@@ -161,3 +161,5 @@ dmypy.json
 .venv/
 
 # End of https://www.gitignore.io/api/python,matlab,jupyternotebook
+
+\.vscode/settings\.json
