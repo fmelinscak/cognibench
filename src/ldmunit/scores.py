@@ -48,3 +48,35 @@ class MSEScore(Score):
 
     def __str__(self):
         return 'MSE = %.3f' % self.score
+
+class NLLScore(Score):
+    #TODO: Compute log-likelihood by Empirical distribution for unknown case
+    """A negative log-likelihood score.
+    """
+
+    _allowed_types = (float,)
+
+    @classmethod
+    def compute(cls, observation, prediction):
+        assert isinstance(observation, dict)
+        assert isinstance(prediction, dict)
+
+        # prepare observed value
+        try:
+            obs = observation['value']
+        except (TypeError, KeyError, IndexError):
+            try:
+                obs = observation['data']
+            except (TypeError, IndexError):
+                obs = observation
+
+        para = prediction['para'] # return the parameter
+        pdf = np.vectorize(prediction['lpdf']) # return a function over np.array positive log-likelihood
+        
+        value = 0
+        value -= pdf(para, obs).sum() # negative
+        score = NLLScore(value)
+        return score
+    
+    def __str__(self):
+        return 'A negative log likelihood = %.3f' % self.score
