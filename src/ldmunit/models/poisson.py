@@ -2,9 +2,7 @@ import sciunit
 from sciunit.capabilities import ProducesNumber
 import numpy as np
 from numpy.random import poisson
-
-from .capabilities import ProducesLoglikelihood
-from .utils import softmax
+from .. import capabilities
 
 """SciUnit model classes."""
 
