@@ -2,7 +2,7 @@ import numpy as np
 from scipy import stats
 from scipy.optimize import minimize
 from sciunit.models import Model
-from ...capabilities import ProducesLoglikelihood
+from ...capabilities import ProducesLoglikelihood, Trainable
 
 template = """
 import numpy as np
@@ -34,7 +34,7 @@ def func(variable, stimuli, rewards, actions, {fixed}):
     return -np.sum(pointwise_lpdf)
 """
 
-class RwNormNativeModel(Model, ProducesLoglikelihood):
+class RwNormNativeModel(Model, ProducesLoglikelihood, Trainable):
     
     bounds={'alpha': (1.0e-3, 1.0e3), 
             'sigma': (1.0e-3, 1.0e3), 
