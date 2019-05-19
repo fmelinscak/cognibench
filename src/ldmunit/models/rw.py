@@ -1,6 +1,7 @@
 import sciunit
 import numpy as np
 from ..capabilities import ProducesLoglikelihood
+from scipy.optimize import minimize
 
 template="""
 import numpy as np
@@ -20,6 +21,8 @@ def func(variable, stimuli, rewards, actions, {fixed}):
 
 class RWModel(sciunit.Model, ProducesLoglikelihood):
     """A decision making models (Rescorla–Wagner model)"""
+    bounds={'alpha': (1.0e-3, 1.0e3), 
+            'beta':  (1.0e-3, 1.0e3)}
 
     def __init__(self, paras=None, name=None):
         # if paras != None:
@@ -45,3 +48,53 @@ class RWModel(sciunit.Model, ProducesLoglikelihood):
                 res -= f(p_, s, r, a)
             return res
         return logpdf
+
+    def train_with_observations(self, initial_guess, stimuli, rewards, actions, fixed,
+                                update_paras=False, verbose=False,):
+                                #TODO: add user-defined bounds
+                                #TODO: add support for cases not fixed
+
+        # minimize wrt negative log-likelihood function
+        assert isinstance(fixed, list)
+        res = []
+        success = True
+
+        for s, r, a, f in zip(stimuli, rewards, actions, fixed):
+            #TODO: assert (s, r, a) has the same n_rows; 
+            fixed_var = tuple(f.keys())
+            variable = sorted(set(('alpha', 'beta')).difference(fixed_var))
+            bounds_var = tuple([self.bounds[i] for i in variable]) # get bounds for variables
+            fixed_vals = tuple(f.values())
+            vals = (s, r, a, *fixed_vals) if f != None else (s, r, a)
+
+            sol = minimize(self.__make_func(*fixed_var), 
+                                    x0=initial_guess, 
+                                    args=vals, 
+                                    bounds=bounds_var, 
+                                    method='L-BFGS-B')
+
+            success = success & sol.success # update marker
+
+            if sol.success:
+                optimal_variable = dict(zip(variable, sol.x))
+                if verbose:
+                    print("Success, the optimal parameters are:")
+                    for k, v in optimal_variable.items():
+                        print("{:10} = {:10.4f}".format(k, v))
+
+                optimal_variable.update(f) # add fixed parameters
+                res.append(optimal_variable)
+            else:
+                optimal_variable = dict(zip(variable, initial_guess))
+                if verbose:
+                    print("Optimal parameters not found, return the initial guess:")
+                    for k, v in optimal_variable.items():
+                        print("{:8} = {:10.4f}".format(k, v))
+
+                optimal_variable.update(f) # add fixed parametersts
+                res.append(optimal_variable)
+
+        if update_paras & success:
+            print("Parameters updated")
+            self.paras = res
+        return res #TODO: add bounds in the returns
