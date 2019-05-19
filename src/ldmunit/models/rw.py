@@ -1,6 +1,6 @@
 import sciunit
 import numpy as np
-from ..capabilities import ProducesLoglikelihood
+from ..capabilities import ProducesLoglikelihood, Trainable
 from scipy.optimize import minimize
 
 template="""
@@ -19,7 +19,7 @@ def func(variable, stimuli, rewards, actions, {fixed}):
     return -prob_log
 """
 
-class RWModel(sciunit.Model, ProducesLoglikelihood):
+class RWModel(sciunit.Model, ProducesLoglikelihood, Trainable):
     """A decision making models (Rescorla–Wagner model)"""
     bounds={'alpha': (1.0e-3, 1.0e3), 
             'beta':  (1.0e-3, 1.0e3)}
