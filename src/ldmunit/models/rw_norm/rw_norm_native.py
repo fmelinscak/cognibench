@@ -48,6 +48,9 @@ class RwNormNativeModel(Model, ProducesLoglikelihood, Trainable):
         # super(RwNormNativeModel, self).__init__(name=name, paras=paras)
         super().__init__(name=name, paras=paras) # py 3 
 
+    def __predict_actions(self):
+        pass
+    
     @staticmethod
     def predict_mu_sd(x, stimuli, rewards):
         alpha, sigma, b0, b1, w0 = x
