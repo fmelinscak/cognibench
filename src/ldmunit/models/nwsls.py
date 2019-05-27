@@ -28,6 +28,64 @@ class NWSLSModel(sciunit.Model, ProducesLoglikelihood, Trainable):
             prob_log += np.log(Q[stimulus][action])
         return -prob_log
 
+    def get_n_obs(self, rewards):
+        if any(isinstance(i, list) for i in rewards): # nested list
+            n = [len(i) for i in rewards]
+        else:
+            n = len(rewards)
+        return n
+
+    def stimulate_exp(self, env, paras, n_trials):
+        assert isinstance(paras, list)
+        k = len(paras[0]) #TODO:
+        n_actions = env.action_space.n
+        assert n_actions == 2 # only two-armed right now
+        actions, rewards = [], []
+
+        for p in paras:
+            env._reset()
+            # unpack parameters
+            epsilon = p['epsilon']
+            
+            # generate the first pair at random
+            aLast = np.random.choice(range(n_actions))
+            rLast = np.random.choice([0, 1], p=[0.5,0.5])
+                                    
+            a = np.empty(n_trials, dtype=int)
+            r = np.empty(n_trials, dtype=int)
+            a[0], r[0] = aLast, rLast
+
+            for t in range(1, n_trials):
+                # choose the first action at random
+                if rLast == 1:
+                    # win stay (with probability 1-epsilon)
+                    p = [epsilon/2] * 2
+                    p[aLast] = 1-epsilon/2
+                else:
+                    # lose shift (with probability 1-epsilon)
+                    p = [1-epsilon/2] * 2
+                    p[aLast] = epsilon / 2
+                # make choice according to choice probababilities
+                a[t] = np.random.choice([0,1], p=p)
+                # generate reward based on choice
+                _, r[t], _, _ = env._step(a[t])
+
+                aLast = a[t]
+                rLast = r[t]
+
+            actions.append(a)
+            rewards.append(r)
+
+            env.close()
+                
+        obs = {
+            'stimuli': [np.repeat(0, n_trials)] * 2,
+            'actions': actions,
+            'rewards': rewards,
+            'k': k
+        }
+        return obs
+
     def produce_loglikelihood(self, stimuli, rewards):
         #TODO: add error handle
         assert isinstance(self.paras, list)

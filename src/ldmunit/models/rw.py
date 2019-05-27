@@ -19,6 +19,10 @@ def func(variable, stimuli, rewards, actions, {fixed}):
     return -prob_log
 """
 
+def softmax(x, beta):
+    return np.exp(x * beta) / np.sum(np.exp(x * beta), axis=0)
+
+
 class RWModel(sciunit.Model, ProducesLoglikelihood, Trainable):
     """A decision making models (Rescorla–Wagner model)"""
     bounds={'alpha': (1.0e-3, 1.0e3), 
@@ -48,6 +52,60 @@ class RWModel(sciunit.Model, ProducesLoglikelihood, Trainable):
                 res -= f(p_, s, r, a)
             return res
         return logpdf
+
+    def get_n_obs(self, rewards):
+        if any(isinstance(i, list) for i in rewards): # nested list
+            n = [len(i) for i in rewards]
+        else:
+            n = len(rewards)
+        return n
+
+    def stimulate_exp(self, env, paras, n_trials):
+        
+        assert isinstance(paras, list)
+        k = len(paras[0]) #TODO:
+        n_actions = env.action_space.n
+
+        actions, rewards = [], []
+
+        for p in paras:
+            env._reset()
+
+            # unpack parameters
+            alpha = p['alpha']
+            beta = p['beta']
+
+            Q = np.zeros(n_actions)
+
+            a = np.empty(n_trials, dtype=int)
+            r = np.empty(n_trials, dtype=int)
+
+            for t in range(n_trials):
+                p = softmax(Q, beta)
+                if len(set(p)) == 1: # all equal
+                    a[t] = np.random.randint(0, n_actions)
+                else:
+                    a[t] = np.random.choice(range(n_actions), p=p)
+
+                
+                
+                _, r[t], _, _ = env._step(a[t])
+                
+                Q[a[t]] += alpha * (r[t] - Q[a[t]])
+                
+
+            actions.append(a)
+            rewards.append(r)
+
+            env.close()
+            
+        obs = {
+            'stimuli': [np.repeat(0, n_trials)] * 2,
+            'actions': actions,
+            'rewards': rewards,
+            'k': k
+        }
+        return obs
 
     def train_with_observations(self, initial_guess, stimuli, rewards, actions, fixed,
                                 update_paras=False, verbose=False,):
