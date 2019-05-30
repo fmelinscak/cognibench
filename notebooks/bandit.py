@@ -50,7 +50,7 @@ class BanditEnv(gym.Env):
         assert self.action_space.contains(action)
 
         reward = 0
-        done = True
+        done = False #True
 
         if np.random.uniform() < self.p_dist[action]:
             if not isinstance(self.r_dist[action], list):
@@ -58,10 +58,10 @@ class BanditEnv(gym.Env):
             else:
                 reward = np.random.normal(self.r_dist[action][0], self.r_dist[action][1])
 
-        return [0], reward, done, self.info #
+        return 0, reward, done, self.info # [0]
 
     def _reset(self):
-        return [0] #
+        return 0 #[0]
 
     def _render(self, mode='human', close=False):
         pass
