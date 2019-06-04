@@ -25,32 +25,35 @@ class RWCKModel(sciunit.Model, SupportsDiscreteActions):
         self.hidden_state = {'CK': dict([[i, np.zeros(n_actions)] for i in range(n_obs)]),
                              'Q' : dict([[i, np.zeros(n_actions)] for i in range(n_obs)])}
 
-    def predict(self, paras, stimulus):
+    def predict(self, stimulus):
         """Predict choice probabilities based on stimulus (observation in AI Gym)."""
         assert self.observation_space.contains(stimulus)
+        assert self.paras != None #TODO: add assert for keys
         # get model's state
         CK, Q = self.hidden_state['CK'][stimulus], self.hidden_state['Q'][stimulus]
         
         # unpack parameters
-        beta   = paras['beta']
-        beta_c = paras['beta_c' ]
+        beta   = self.paras['beta']
+        beta_c = self.paras['beta_c' ]
 
         V = beta * Q + beta_c * CK
         P = softmax(V, 1)
 
         return P
 
-    def update(self, paras, stimulus, reward, action, done): #TODO: add default value
+    def update(self, stimulus, reward, action, done): #TODO: add default value
         """Update model's state given stimulus (observation in AI Gym), reward, action in the environment."""
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
+        assert self.paras != None #TODO: add assert for keys
+
         # get model's state
         CK, Q = self.hidden_state['CK'][stimulus], self.hidden_state['Q'][stimulus]
         
         if not done:
             # unpack parameters
-            alpha   = paras['alpha'  ]
-            alpha_c = paras['alpha_c']
+            alpha   = self.paras['alpha'  ]
+            alpha_c = self.paras['alpha_c']
 
             # update choice kernel
             CK = (1 - alpha_c) * CK
@@ -76,3 +79,7 @@ class RWCKModel(sciunit.Model, SupportsDiscreteActions):
         """Agent make decision/choice based on the probabilities."""
         assert len(p) == self.n_actions
         return np.random.choice(range(self.n_actions), p=p)
+
+    def loglikelihood(self, P, action):
+        """Return log-likelihood value of action based on P given by predict() method"""
+        return P[action]
