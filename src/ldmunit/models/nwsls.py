@@ -1,145 +1,116 @@
 import sciunit
 import numpy as np
-from ..capabilities import ProducesLoglikelihood, Trainable
+import gym
+from gym import spaces
 from scipy.optimize import minimize
+from ..capabilities import SupportsDiscreteActions
 
-class NWSLSModel(sciunit.Model, ProducesLoglikelihood, Trainable):
-
-    bounds={'epsilon': (1.0e-3, 1.0e3)}
-
-    def __init__(self, paras, name=None):
-        # if paras != None:
+class NWSLSModel(sciunit.Model, SupportsDiscreteActions):
+    """Noisy-win-stay-lose-shift model"""
+    def __init__(self, n_actions, n_obs, paras=None, name=None):
+        assert n_actions == 2 # two actions only
+        assert isinstance(n_obs, int)
         self.paras = paras
-        super().__init__(name=name, paras=paras) # py 3 
+        self.name = name
+        self.n_actions = n_actions
+        self.n_obs = n_obs # number of stimuli
+        self.action_space = spaces.Discrete(self.n_actions)
+        self.observation_space = spaces.Discrete(self.n_obs)
+        # init model's state: last reward
+        self.hidden_state = {'P': dict([[i, np.full(n_actions, 1/n_actions)] for i in range(n_obs)])}
 
-    @staticmethod
-    def nlll(epsilon, stimuli, rewards, actions):
-        """Calculate negative log-likelihood for one subject."""
-        prob_log = 0
-        prob_list = np.array([1-epsilon/2, epsilon/2, epsilon/2, 1-epsilon/2]).reshape((2,2))
+    def predict(self, stimulus):
+        """Predict choice probabilities based on stimulus (observation in AI Gym)."""
+        assert self.observation_space.contains(stimulus)
+        assert self.paras != None #TODO: add assert for keys
+        # list of prob. for each subjects
+        return self.hidden_state['P'][stimulus]
 
-        stimuli_list = np.unique(stimuli).tolist()
-        n_actions = np.unique(actions).shape[0]
-        
-        Q = dict([[stimulus, np.zeros(n_actions)] for stimulus in stimuli_list])
-        for action, reward, stimulus in zip(actions, rewards, stimuli):
-            idx = 1 if action == reward else 0
-            Q[stimulus] = prob_list[idx]
-            prob_log += np.log(Q[stimulus][action])
-        return -prob_log
+    def update(self, stimulus, reward, action, done):
+        P = self.hidden_state['P'][stimulus]
+        # unpack parameters
+        epsilon = self.paras['epsilon']
 
-    def get_n_obs(self, rewards):
-        if any(isinstance(i, list) for i in rewards): # nested list
-            n = [len(i) for i in rewards]
-        else:
-            n = len(rewards)
-        return n
-
-    def stimulate_exp(self, env, paras, n_trials):
-        assert isinstance(paras, list)
-        k = len(paras[0]) #TODO:
-        n_actions = env.action_space.n
-        assert n_actions == 2 # only two-armed right now
-        actions, rewards = [], []
-
-        for p in paras:
-            env._reset()
-            # unpack parameters
-            epsilon = p['epsilon']
-            
-            # generate the first pair at random
-            aLast = np.random.choice(range(n_actions))
-            rLast = np.random.choice([0, 1], p=[0.5,0.5])
-                                    
-            a = np.empty(n_trials, dtype=int)
-            r = np.empty(n_trials, dtype=int)
-            a[0], r[0] = aLast, rLast
-
-            for t in range(1, n_trials):
-                # choose the first action at random
-                if rLast == 1:
-                    # win stay (with probability 1-epsilon)
-                    p = [epsilon/2] * 2
-                    p[aLast] = 1-epsilon/2
-                else:
-                    # lose shift (with probability 1-epsilon)
-                    p = [1-epsilon/2] * 2
-                    p[aLast] = epsilon / 2
-                # make choice according to choice probababilities
-                a[t] = np.random.choice([0,1], p=p)
-                # generate reward based on choice
-                _, r[t], _, _ = env._step(a[t])
-
-                aLast = a[t]
-                rLast = r[t]
-
-            actions.append(a)
-            rewards.append(r)
-
-            env.close()
-                
-        obs = {
-            'stimuli': [np.repeat(0, n_trials)] * 2,
-            'actions': actions,
-            'rewards': rewards,
-            'k': k
-        }
-        return obs
-
-    def produce_loglikelihood(self, stimuli, rewards):
-        #TODO: add error handle
-        assert isinstance(self.paras, list)
-        def logpdf(actions):
-            res = 0
-            for a, r, s, p in zip(actions, rewards, stimuli, self.paras):
-                p_ = list(p.values()) # unpack paras dict
-                res -= self.nlll(p_[0], s, r, a)
-            return res
-        return logpdf
-
-    def train_with_observations(self, initial_guess, stimuli, rewards, actions,
-                                update_paras=False, verbose=False,):
-                                #TODO: add user-defined bounds
-                                #TODO: add support for cases not fixed
-
-        # minimize wrt negative log-likelihood function
-        res = []
-        success = True
-
-        for s, r, a in zip(stimuli, rewards, actions):
-            #TODO: assert (s, r, a) has the same n_rows; 
-            variable = ['epsilon']
-            bounds_var = tuple([self.bounds[i] for i in variable]) # get bounds for variables
-            vals = (s, r, a)
-
-            sol = minimize(self.nlll, 
-                                    x0=initial_guess, 
-                                    args=vals, 
-                                    bounds=bounds_var, 
-                                    method='L-BFGS-B')
-
-            success = success & sol.success # update marker
-
-            if sol.success:
-                optimal_variable = dict(zip(variable, list(sol.x)))
-                if verbose:
-                    print("Success, the optimal parameters are:")
-                    for k, v in optimal_variable.items():
-                        print("{:10} = {:10.4f}".format(k, v))
-
-                optimal_variable.update(f) # add fixed parameters
-                res.append(optimal_variable)
+        if not done:
+            if reward == 1:
+                # win stays
+                P = [epsilon/2] * 2
+                P[action] = 1 - epsilon/2
             else:
-                optimal_variable = dict(zip(variable, initial_guess))
-                if verbose:
-                    print("Optimal parameters not found, return the initial guess:")
-                    for k, v in optimal_variable.items():
-                        print("{:8} = {:10.4f}".format(k, v))
+                P = [1 - epsilon/2] * 2
+                P[action] = epsilon/2
 
-                # optimal_variable.update(f) # add fixed parametersts
-                res.append(optimal_variable)
+        self.hidden_state['P'][stimulus] = P
 
-        if update_paras & success:
-            print("Parameters updated")
-            self.paras = res
-        return res #TODO: add bounds in the returns
+        return P
+
+    def reset(self):
+        """Reset model's state."""
+        self.hidden_state = {'P': dict([[i, np.full(self.n_actions, 1/self.n_actions)] for i in range(self.n_obs)])}
+
+        return self.action_space.sample()
+    
+    def act(self, p):
+        """Agent make decision/choice based on the probabilities."""
+        assert len(p) == self.n_actions
+        return np.random.choice(range(self.n_actions), p=p)
+
+    def loglikelihood(self, P, action):
+        """Return log-likelihood value of action based on P given by predict() method"""
+        return P[action]
+
+class NWSLSMultiModel(sciunit.Model, SupportsDiscreteActions):
+    """Noisy-win-stay-lose-shift model"""
+    def __init__(self, n_actions, n_obs, paras=None, name=None):
+        assert n_actions == 2 # two actions only
+        assert isinstance(n_obs, int)
+        self.paras = paras
+        self.name = name
+        self.n_actions = n_actions
+        self.n_obs = n_obs # number of stimuli
+        self.action_space = spaces.Discrete(self.n_actions)
+        self.observation_space = spaces.Discrete(self.n_obs)
+        # init model's state: last reward
+        self.n_sub = len(self.paras)
+
+        hidden_state = {'P': dict([[i, np.full(n_actions, 1/n_actions)] for i in range(n_obs)])}
+
+        self.hidden_state = [hidden_state] * self.n_sub
+
+
+    def predict(self, stimulus, sub):
+        """Predict choice probabilities based on stimulus (observation in AI Gym)."""
+        assert self.observation_space.contains(stimulus)
+        assert self.paras != None #TODO: add assert for keys
+        # list of prob. for each subjects
+        return self.hidden_state[sub]['P'][stimulus]
+
+    def update(self, stimulus, reward, action, done, sub):
+        P = self.hidden_state[sub]['P'][stimulus]
+        # unpack parameters
+        epsilon = self.paras[sub]['epsilon']
+
+        if not done:
+            if reward == 1:
+                # win stays
+                P = [epsilon/2] * 2
+                P[action] = 1 - epsilon/2
+            else:
+                P = [1 - epsilon/2] * 2
+                P[action] = epsilon/2
+
+        self.hidden_state[sub]['P'][stimulus] = P
+
+        return P
+
+    def reset(self):
+        """Reset model's state."""
+        hidden_state = {'P': dict([[i, np.full(self.n_actions, 1/self.n_actions)] for i in range(self.n_obs)])}
+
+        self.hidden_state = [hidden_state] * self.n_sub
+        return self.action_space.sample()
+    
+    def act(self, p):
+        """Agent make decision/choice based on the probabilities."""
+        assert len(p) == self.n_actions
+        return np.random.choice(range(self.n_actions), p=p)
