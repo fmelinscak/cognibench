@@ -2,6 +2,7 @@ import sciunit
 import numpy as np
 from gym import spaces
 from scipy.optimize import minimize
+from scipy.stats import beta
 
 class NWSLSModel(sciunit.Model):
 
