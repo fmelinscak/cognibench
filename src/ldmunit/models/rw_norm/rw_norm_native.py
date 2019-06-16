@@ -14,20 +14,17 @@ class RwNormGymModel(sciunit.Model):
         self.paras = paras
         self.name = name
         self.n_obs = n_obs
-        self._set_spaces(n_actions)
-        self.hidden_state = self._set_hidden_state(n_actions, n_obs, self.paras)
+        self._set_spaces(n_obs)
+        self.hidden_state = self._set_hidden_state(n_obs, self.paras)
 
-        # init model's state
-        self.hidden_state = {'w'    : np.zeros(n_obs),
-                             'rhat' : np.random.ranf(1)} #TODO: store reward predict
-
-    def _set_hidden_state(self, n_actions, n_obs, paras):
-        hidden_state = {'P': dict([[i, np.full(n_actions, 1/n_actions)] for i in range(n_obs)])}
+    def _set_hidden_state(self, n_obs, paras):
+        hidden_state = {'w'    : np.zeros(n_obs),
+                        'rhat' : np.random.ranf(1)}
         return hidden_state
 
-    def _set_spaces(self, n_actions):
+    def _set_spaces(self, n_obs):
         RwNormGymModel.action_space = spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
-        RwNormGymModel.observation_space = spaces.MultiBinary(n_actions)
+        RwNormGymModel.observation_space = spaces.MultiBinary(n_obs)
 
     def predict(self, paras, stimulus):
         """Predict choice probabilities based on stimulus (observation in AI Gym)."""
@@ -73,11 +70,8 @@ class RwNormGymModel(sciunit.Model):
 
     def reset(self):
         """Reset model's state."""
-        self.hidden_state = {'w'    : np.zeros(self.n_obs),
-                             'rhat' : np.random.ranf(1)}
-        
-        return 0 #TODO
+        self.hidden_state = self._set_hidden_state(self.n_obs, self.params)
+        return None
     
     def act(self):
-        """Agent does not exert action in the environment"""
-        return self.hidden_state['rhat']
+        pass

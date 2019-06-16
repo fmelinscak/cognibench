@@ -4,91 +4,65 @@ from gym import spaces
 from scipy.optimize import minimize
 from scipy.stats import beta
 
-class NWSLSModel(sciunit.Model):
+class BetaBinomialModel(sciunit.Model):
 
-    action_space = spaces.Discrete(1)
-    observation_space = spaces.Discrete(1)
+    action_space = spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32) #TODO: change
+    observation_space = spaces.MultiBinary(2)
 
-    """Noisy-win-stay-lose-shift model"""
-    def __init__(self, n_actions, n_obs, paras=None, name=None):
+    def __init__(self, n_obs, paras=None, name=None):
         self.paras = paras
         self.name = name
-        self.n_actions = n_actions
-        self.n_obs = n_obs # number of stimuli
-        self._set_spaces(n_actions)
-        self.hidden_state = self._set_hidden_state(n_actions, n_obs, self.paras)
+        self.n_obs = n_obs
+        self._set_spaces(n_obs)
+        self.hidden_state = self._set_hidden_state(n_obs, self.paras)
 
-    def _set_hidden_state(self, n_actions, n_obs, paras):
-        hidden_state = {'P': dict([[i, np.full(n_actions, 1/n_actions)] for i in range(n_obs)])}
+    def _set_hidden_state(self, n_obs, paras):
+        hidden_state = {'a' : np.zeros(n_obs),
+                        'b' : np.zeros(n_obs)}
         return hidden_state
 
-    def _set_spaces(self, n_actions):
-        NWSLSModel.action_space = spaces.Discrete(n_actions)
-        NWSLSModel.observation_space = spaces.Discrete(n_actions)
+    def _set_spaces(self, n_obs):
+        BetaBinomialModel.action_space = spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
+        BetaBinomialModel.observation_space = spaces.MultiBinary(n_obs)
 
-    def predict(self, stimulus):
-        return self.hidden_state['P'][stimulus]
+    def predict(self, paras, stimulus):
+        """Predict choice probabilities based on stimulus (observation in AI Gym)."""
+        assert BetaBinomialModel.observation_space.contains(stimulus)
 
-    def update(self, stimulus, reward, action, done):
-        P = self.hidden_state['P'][stimulus]
         # unpack parameters
-        epsilon = self.paras['epsilon']
+        slope     = self.paras['slope']
+        mixCoef   = self.paras['mixCoef']
+        intercept = self.paras['intercept']
+
+        # get model's state
+        a = self.hidden_state['a']
+        b = self.hidden_state['b']
+
+        # Generate outcome prediction
+        mu      = beta.mean(a, b)
+        entropy = beta.entropy(a, b)
+
+        return intercept + np.dot(stimulus, (mixCoef * mu  + (1 - mixCoef) * entropy)) * slope
+
+    def update(self, stimulus, reward, action, done): #TODO: add default value
+        """Update model's state given stimulus (observation in AI Gym), reward, action in the environment."""
+        assert self.observation_space.contains(stimulus)
+        # get model's state
+        a = self.hidden_state['a']
+        b = self.hidden_state['b']
 
         if not done:
-            if reward == 1:
-                # win stays
-                P = [epsilon/2] * 2
-                P[action] = 1 - epsilon/2
-            else:
-                P = [1 - epsilon/2] * 2
-                P[action] = epsilon/2
+            a += (1 - stimulus) * (1 - reward) + stimulus * reward
+            b += (1 - stimulus) * reward + stimulus * (1 - reward)
+            self.hidden_state['a'] = a
+            self.hidden_state['b'] = b
 
-        self.hidden_state['P'][stimulus] = P
-
-        return P
+        return a, b
 
     def reset(self):
-        self.hidden_state = self._set_hidden_state(self.n_actions, self.n_obs, self.paras)
+        """Reset model's state."""
+        self.hidden_state = self._set_hidden_state(self.n_obs, self.params)      
         return None
-
-    def act(self, p):
-        return np.random.choice(range(self.n_actions), p=p)
-
-    def loglike(self, stimuli, rewards, actions):
-        #TODO: add assertion for the length
-        n_trials = len(stimuli)
-        
-        res = 0
-        
-        hidden_state = self.hidden_state
-        
-        for i in range(n_trials):
-            # compute choice probabilities
-            P = self.predict(stimuli[i])
-            
-            # probability of the action
-            #TODO: generalize this
-            p = P[actions[i]]
-
-            # add log-likelihood
-            res += np.log(p)
-            # update choice kernel and Q weights
-            self.update(stimuli[i], rewards[i], actions[i], False)
-        
-        # keep the model's hidden state intact
-        self.hidden_state = hidden_state
-        
-        return res
-
-    def train_with_obs(self, stimuli, rewards, actions, fixed):
-
-        x0 = list(fixed.values())
-
-        def objective_func(x0):
-            for k, v in zip(fixed.keys(), x0):
-                self.paras[k] = v
-            return - self.loglike(stimuli, rewards, actions)
-
-        opt_results = minimize(fun=objective_func, x0=x0) 
-
-        return opt_results
+    
+    def act(self):
+        pass
