@@ -3,11 +3,12 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy.optimize import minimize
+from scipy import stats
 
 class RwNormGymModel(sciunit.Model):
     
-    action_space = spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32) #TODO: change
-    observation_space = spaces.MultiBinary(2)
+    action_space = spaces.Box
+    observation_space = spaces.MultiBinary
 
     def __init__(self, n_obs, paras=None, name=None):
         assert isinstance(n_obs, int)
@@ -16,6 +17,7 @@ class RwNormGymModel(sciunit.Model):
         self.n_obs = n_obs
         self._set_spaces(n_obs)
         self.hidden_state = self._set_hidden_state(n_obs, self.paras)
+        self._rv = stats.norm(loc=0, scale=1)
 
     def _set_hidden_state(self, n_obs, paras):
         hidden_state = {'w'    : np.zeros(n_obs),
@@ -23,8 +25,8 @@ class RwNormGymModel(sciunit.Model):
         return hidden_state
 
     def _set_spaces(self, n_obs):
-        RwNormGymModel.action_space = spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
-        RwNormGymModel.observation_space = spaces.MultiBinary(n_obs)
+        self.action_space = spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
+        self.observation_space = spaces.MultiBinary(n_obs)
 
     def predict(self, paras, stimulus):
         """Predict choice probabilities based on stimulus (observation in AI Gym)."""
@@ -47,7 +49,9 @@ class RwNormGymModel(sciunit.Model):
         # Predict response
         mu_pred = b0 + b1 * rhat
 
-        return mu_pred, sd_pred
+        self._rv = stats.norm(loc=mu_pred, scale=sd_pred)
+
+        return self._rv.logpdf
 
     def update(self, paras, stimulus, reward, action, done): #TODO: add default value
         """Update model's state given stimulus (observation in AI Gym), reward, action in the environment."""

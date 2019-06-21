@@ -7,11 +7,11 @@ def softmax(x, beta):
     return np.exp(x * beta) / np.sum(np.exp(x * beta), axis=0)
 
 class RWCKModel(sciunit.Model):
-
-    action_space = spaces.Discrete(1)
-    observation_space = spaces.Discrete(1)
-
     """Rescorla Wagner Choice kernel Model for discrete decision marking."""
+
+    action_space = spaces.Discrete
+    observation_space = spaces.Discrete
+
     def __init__(self, n_actions, n_obs, paras=None, name=None):
         self.paras = paras
         self.name = name
@@ -19,6 +19,9 @@ class RWCKModel(sciunit.Model):
         self.n_obs = n_obs
         self._set_spaces(n_actions)
         self.hidden_state = self._set_hidden_state(n_actions, n_obs, self.paras)
+        xk = np.arange(n_actions)
+        pk = np.full(n_actions, 1/n_actions)
+        self._rv = stats.rv_discrete(name=self.name, values=(xk, pk))
         
     def _set_hidden_state(self, n_actions, n_obs, paras):
         w0 = 0
@@ -31,12 +34,12 @@ class RWCKModel(sciunit.Model):
         return hidden_state
 
     def _set_spaces(self, n_actions):
-        RWCKModel.action_space = spaces.Discrete(n_actions)
-        RWCKModel.observation_space = spaces.Discrete(n_actions)
+        self.action_space = spaces.Discrete(n_actions)
+        self.observation_space = spaces.Discrete(n_actions)
 
     def predict(self, stimulus):
         """Predict choice probabilities based on stimulus (observation in AI Gym)."""
-        assert RWCKModel.observation_space.contains(stimulus)
+        assert self.observation_space.contains(stimulus)
         assert self.paras != None #TODO: add assert for keys
         # get model's state
         CK, Q = self.hidden_state['CK'][stimulus], self.hidden_state['Q'][stimulus]
@@ -46,9 +49,11 @@ class RWCKModel(sciunit.Model):
         beta_c = self.paras['beta_c' ]
 
         V = beta * Q + beta_c * CK
-        P = softmax(V, 1)
+        pk = softmax(V, 1)
 
-        return P
+        self._rv.pk = pk
+        
+        return self._rv.logpmf
 
     def update(self, stimulus, reward, action, done): #TODO: add default value
         """Update model's state given stimulus (observation in AI Gym), reward, action in the environment."""
@@ -85,45 +90,6 @@ class RWCKModel(sciunit.Model):
     def act(self, p):
         """Agent make decision/choice based on the probabilities."""
         return np.random.choice(range(self.n_actions), p=p)
-
-    def loglike(self, stimuli, rewards, actions):
-        #TODO: add assertion for the length
-        n_trials = len(stimuli)
-        
-        res = 0
-        
-        hidden_state = self.hidden_state
-        
-        for i in range(n_trials):
-            # compute choice probabilities
-            P = self.predict(stimuli[i])
-            
-            # probability of the action
-            #TODO: generalize this
-            p = P[actions[i]]
-
-            # add log-likelihood
-            res += np.log(p)
-            # update choice kernel and Q weights
-            self.update(stimuli[i], rewards[i], actions[i], False)
-        
-        # keep the model's hidden state intact
-        self.hidden_state = hidden_state
-        
-        return res
-
-    def train_with_obs(self, stimuli, rewards, actions, fixed):
-
-        x0 = list(fixed.values())
-
-        def objective_func(x0):
-            for k, v in zip(fixed.keys(), x0):
-                self.paras[k] = v
-            return - self.loglike(stimuli, rewards, actions)
-
-        opt_results = minimize(fun=objective_func, x0=x0) 
-
-        return opt_results
 
 class RWModel(RWCKModel):
 
