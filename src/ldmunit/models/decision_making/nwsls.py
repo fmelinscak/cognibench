@@ -36,15 +36,21 @@ class NWSLSModel(sciunit.Model, Interactive):
     def update(self, stimulus, reward, action, done):
         pk = self.hidden_state['pk'][stimulus]
         epsilon = self.paras['epsilon']
+        n = self.n_actions
 
         if not done:
             if reward == 1:
                 # win stays
-                pk = [epsilon/2] * 2
-                pk[action] = 1 - epsilon/2
+                prob_action = 1 - epsilon / n
+                prob_others = (1 - prob_action) / (n - 1)
+                pk = np.full(n, prob_others)
+                pk[action] = prob_action
             else:
-                pk = [1 - epsilon/2] * 2
-                pk[action] = epsilon/2
+                # lose shift
+                prob_action = epsilon / n
+                prob_others = (1 - prob_action) / (n - 1)
+                pk = np.full(n, prob_others)
+                pk[action] = prob_action
 
         self.hidden_state['pk'][stimulus] = pk
 
