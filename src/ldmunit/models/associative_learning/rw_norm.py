@@ -77,47 +77,39 @@ class RwNormModel(sciunit.Model, Interactive):
         mu_pred = b0 + b1 * rhat
         return mu_pred
 
-class RwNormOctModel(Model, Interactive):
-
-    action_space = spaces.Box
-    observation_space = spaces.MultiBinary
-
-    def __init__(self, n_obs, paras=None, name=None):
-        assert isinstance(n_obs, int)
-        self.paras = paras
-        self.name = name
-        self.n_obs = n_obs
-        self._set_spaces(n_obs)
-        self.hidden_state = self._set_hidden_state(n_obs)
-
-    def _set_hidden_state(self, n_obs):
-        w0 = 0
-        if 'w0' in self.paras:
-            w0 = self.paras['w0']
-        hidden_state = {'w': np.full(n_obs, w0)}
-        return hidden_state
-
-    def _set_spaces(self, n_obs):
-        self.action_space = spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
-        self.observation_space = spaces.MultiBinary(n_obs)
-
-    def predict(self, stimulus):
-        pass
+class RwNormOctModel(RwNormModel):
     
     def update(self, stimulus, reward, action, done):
-        """evolution function"""
-        pass
-    
-    def reset(self):
-        pass
-    
-    def act(self, stimulus):
         """observation function"""
-        class_path = os.path.dirname(inspect.getfile(type(self)))
+        class_path = os.path.dirname(inspect.getfile(type(self))) #TODO: fix this 
+
+        params = Struct()
+        params['alpha'] = self.paras['alpha'] # slope
+        params['wInit'] = self.hidden_state['w']
 
         # Calculate predictions in Octave
         with oct2py.Oct2Py() as oc:
             oc.addpath(class_path)
-            cr_pred = oc.obs_affine_batch()
+            result = oc.evo_rw_batch(stimulus, reward, params)
         
-        return cr_pred
+        self.hidden_state['w'] = result.w
+
+        return result.w
+    
+    def act(self, stimulus):
+        """observation function"""
+        class_path = os.path.dirname(inspect.getfile(type(self))) #TODO: fix this 
+
+        params = Struct()
+        params['slope']     = self.paras['b1'] # slope
+        params['intercept'] = self.paras['b0'] # intercept
+
+        results_evo = Struct()
+        results_evo['w'] = self.hidden_state['w']
+
+        # Calculate predictions in Octave
+        with oct2py.Oct2Py() as oc:
+            oc.addpath(class_path)
+            result = oc.obs_affine_batch(results_evo, stimulus, params)
+        
+        return result.crPred

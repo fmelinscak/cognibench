@@ -4,7 +4,11 @@ import gym
 from gym import spaces
 from scipy.optimize import minimize
 from scipy import stats
-from ..capabilities import Interactive
+from ...capabilities import Interactive
+import oct2py
+from oct2py import Struct
+import inspect
+import os
 
 class KrwNormModel(sciunit.Model, Interactive):
     
@@ -48,7 +52,6 @@ class KrwNormModel(sciunit.Model, Interactive):
         """evolution function"""
         assert self.observation_space.contains(stimulus)
 
-        alpha  = self.paras['alpha']
         tauSq = np.exp(self.paras['logTauSq']) # State diffusion variance
         Q = tauSq * np.identity(self.n_obs) # Transition noise variance (transformed to positive reals); constant over time
         sigmaRSq = np.exp(self.paras['logSigmaRSq'])
@@ -92,3 +95,44 @@ class KrwNormModel(sciunit.Model, Interactive):
         # Predict response
         mu_pred = b0 + b1 * rhat
         return mu_pred
+
+class KrwNormOctModel(KrwNormModel):
+    
+    def update(self, stimulus, reward, action, done):
+        """observation function"""
+        class_path = os.path.dirname(inspect.getfile(type(self))) #TODO: fix this 
+
+        params = Struct()
+        params['w'] = self.hidden_state['w']
+        params['logTauSq'] = self.paras['logTauSq']
+        params['logSigmaRSq'] = self.paras['logSigmaRSq']
+        params['C'] = self.hidden_state['C']
+
+        # Calculate predictions in Octave
+        with oct2py.Oct2Py() as oc:
+            oc.addpath(class_path)
+            result = oc.evo_krw_batch(stimulus, reward, params)
+        
+        self.hidden_state['w'] = result.w
+        self.hidden_state['C'] = result.C
+
+        return result.w, result.C
+    
+    def act(self, stimulus):
+        """observation function"""
+        # same as the rw_norm
+        class_path = os.path.dirname(inspect.getfile(type(self))) #TODO: fix this 
+
+        params = Struct()
+        params['slope']     = self.paras['b1'] # slope
+        params['intercept'] = self.paras['b0'] # intercept
+
+        results_evo = Struct()
+        results_evo['w'] = self.hidden_state['w']
+
+        # Calculate predictions in Octave
+        with oct2py.Oct2Py() as oc:
+            oc.addpath(class_path)
+            result = oc.obs_affine_batch(results_evo, stimulus, params)
+        
+        return result.crPred

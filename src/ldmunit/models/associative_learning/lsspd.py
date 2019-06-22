@@ -4,9 +4,13 @@ import gym
 from gym import spaces
 from scipy.optimize import minimize
 from scipy import stats
-from ..capabilities import Interactive
+from ...capabilities import Interactive
+import oct2py
+from oct2py import Struct
+import inspect
+import os
 
-class RwNormModel(sciunit.Model, Interactive):
+class LSSPDModel(sciunit.Model, Interactive):
     
     action_space = spaces.Box
     observation_space = spaces.MultiBinary
@@ -89,9 +93,16 @@ class RwNormModel(sciunit.Model, Interactive):
         w_curr = self.hidden_state['w']
         alpha = self.hidden_state['alpha']
 
-        # Generate reward prediction
-        rhat = np.dot(stimulus, w_curr.T)
-
         # Predict response
-        mu_pred = b0 + b1 * rhat
-        return b0 + b1 * np.dot(stimulus, (mix_coef * w_curr + (1 - mix_coef) * alpha))
+        mu_pred = b0 + b1 * np.dot(stimulus, (mix_coef * w_curr + (1 - mix_coef) * alpha))
+        return mu_pred
+
+class LSSPDOctModel(LSSPDModel):
+    
+    def update(self, stimulus, reward, action, done):
+        """observation function"""
+        pass
+    
+    def act(self, stimulus):
+        """observation function"""
+        pass
