@@ -2,8 +2,9 @@ import sciunit
 import numpy as np
 from gym import spaces
 from scipy.optimize import minimize
+from ...capabilities import Interactive
 
-class RRModel(sciunit.Model):
+class RRModel(sciunit.Model, Interactive):
 
     action_space = spaces.Discrete(1)
     observation_space = spaces.Discrete(1)

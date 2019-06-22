@@ -3,11 +3,12 @@ import numpy as np
 from gym import spaces
 from scipy.optimize import minimize
 from scipy import stats
+from ...capabilities import Interactive
 
 def softmax(x, beta):
     return np.exp(x * beta) / np.sum(np.exp(x * beta), axis=0)
 
-class RWCKModel(sciunit.Model):
+class RWCKModel(sciunit.Model, Interactive):
     """Rescorla Wagner Choice kernel Model for discrete decision marking."""
 
     action_space = spaces.Discrete

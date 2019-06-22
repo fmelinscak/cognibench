@@ -3,8 +3,9 @@ import numpy as np
 from gym import spaces
 from scipy.optimize import minimize
 from scipy import stats
+from ...capabilities import Interactive
 
-class NWSLSModel(sciunit.Model):
+class NWSLSModel(sciunit.Model, Interactive):
     """Noisy-win-stay-lose-shift model"""
 
     action_space = spaces.Discrete
