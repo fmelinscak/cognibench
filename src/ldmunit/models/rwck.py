@@ -2,6 +2,7 @@ import sciunit
 import numpy as np
 from gym import spaces
 from scipy.optimize import minimize
+from scipy import stats
 
 def softmax(x, beta):
     return np.exp(x * beta) / np.sum(np.exp(x * beta), axis=0)
