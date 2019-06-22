@@ -3,7 +3,7 @@ import numpy as np
 from gym import spaces
 from scipy.optimize import minimize
 from scipy.stats import beta
-from ..capabilities import Interactive
+from ...capabilities import Interactive
 
 class BetaBinomialModel(sciunit.Model, Interactive):
 
@@ -27,7 +27,7 @@ class BetaBinomialModel(sciunit.Model, Interactive):
         BetaBinomialModel.observation_space = spaces.MultiBinary(n_obs)
 
     def predict(self, stimulus):
-        assert BetaBinomialModel.observation_space.contains(stimulus)
+        assert self.observation_space.contains(stimulus)
         # get model's state
         a = self.hidden_state['a']
         b = self.hidden_state['b']
