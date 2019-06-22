@@ -21,17 +21,21 @@ class RWCKModel(sciunit.Model, Interactive):
         self.n_obs = n_obs
         self._set_spaces(n_actions)
         self.hidden_state = self._set_hidden_state(n_actions, n_obs, self.paras)
+
+        
+    def _set_hidden_state(self, n_actions, n_obs):
+        w0 = 0
+        if 'w0' in self.paras:
+            w0 = self.paras['w0']
+
+        # set rv_discrete for each stimulus/cue/observation
         xk = np.arange(n_actions)
         pk = np.full(n_actions, 1/n_actions)
-        self._rv = stats.rv_discrete(name=self.name, values=(xk, pk))
-        
-    def _set_hidden_state(self, n_actions, n_obs, paras):
-        w0 = 0
-        if 'w0' in paras:
-            w0 = paras['w0']
+        rv = stats.rv_discrete(name=self.name, values=(xk, pk))
 
         hidden_state = {'CK': dict([[i, np.zeros(n_actions)]    for i in range(n_obs)]),
-                        'Q' : dict([[i, np.full(n_actions, w0)] for i in range(n_obs)])}
+                        'Q' : dict([[i, np.full(n_actions, w0)] for i in range(n_obs)]),
+                        'RV': dict([[i, rv]                     for i in range(n_obs)])}
 
         return hidden_state
 
@@ -40,11 +44,11 @@ class RWCKModel(sciunit.Model, Interactive):
         self.observation_space = spaces.Discrete(n_actions)
 
     def predict(self, stimulus):
-        """Predict choice probabilities based on stimulus (observation in AI Gym)."""
         assert self.observation_space.contains(stimulus)
         assert self.paras != None #TODO: add assert for keys
         # get model's state
         CK, Q = self.hidden_state['CK'][stimulus], self.hidden_state['Q'][stimulus]
+        RV = self.hidden_state['RV'][stimulus]
         
         # unpack parameters
         beta   = self.paras['beta']
@@ -53,14 +57,15 @@ class RWCKModel(sciunit.Model, Interactive):
         V = beta * Q + beta_c * CK
         pk = softmax(V, 1)
 
-        self._rv.pk = pk
+        # update pk
+        RV.pk = pk
+        self.hidden_state['RV'][stimulus] = RV
         
-        return self._rv.logpmf
+        return RV.logpmf
 
     def update(self, stimulus, reward, action, done): #TODO: add default value
-        """Update model's state given stimulus (observation in AI Gym), reward, action in the environment."""
-        assert RWCKModel.action_space.contains(action)
-        assert RWCKModel.observation_space.contains(stimulus)
+        assert self.action_space.contains(action)
+        assert self.observation_space.contains(stimulus)
         assert self.paras != None #TODO: add assert for keys
 
         # get model's state
@@ -85,15 +90,15 @@ class RWCKModel(sciunit.Model, Interactive):
         return CK, Q
 
     def reset(self):
-        """Reset model's state."""
-        self.hidden_state = self._set_hidden_state(self.n_actions, self.n_obs, self.paras)
+        self.hidden_state = self._set_hidden_state(self.n_actions, self.n_obs)
         return None
     
-    def act(self, p):
-        """Agent make decision/choice based on the probabilities."""
-        return np.random.choice(range(self.n_actions), p=p)
+    def act(self, stimulus):
+        RV = self.hidden_state['RV'][stimulus]
+        return RV.rvs()
 
 class RWModel(RWCKModel):
+    """Rescorla Wagner Model for discrete decision marking."""
 
     def __init__(self, n_actions, n_obs, paras=None, name=None):
         self.paras = paras
@@ -105,6 +110,7 @@ class RWModel(RWCKModel):
         self.hidden_state = self._set_hidden_state(n_actions, n_obs, self.paras)
 
 class CKModel(RWCKModel):
+    """Choice kernel Model for discrete decision marking."""
 
     def __init__(self, n_actions, n_obs, paras=None, name=None):
         self.paras = paras
