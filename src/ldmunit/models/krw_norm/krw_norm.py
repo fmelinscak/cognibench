@@ -1,63 +1,94 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Apr  1 11:57:59 2019
-
-@author: filipmelinscak
-"""
-
+import sciunit
 import numpy as np
+import gym
+from gym import spaces
+from scipy.optimize import minimize
 from scipy import stats
-from sciunit.models import Model
-from ...capabilities import ProducesLoglikelihood
-import matlab.engine
-import inspect
-import os
+from ..capabilities import Interactive
 
+class KrwNormModel(sciunit.Model, Interactive):
+    
+    action_space = spaces.Box
+    observation_space = spaces.MultiBinary
 
-class KrwNormModel(Model, ProducesLoglikelihood):
+    def __init__(self, n_obs, paras=None, name=None):
+        assert isinstance(n_obs, int)
+        self.paras = paras
+        self.name = name
+        self.n_obs = n_obs
+        self._set_spaces(n_obs)
+        self.hidden_state = self._set_hidden_state(n_obs)
 
-    def __init__(self, sigma_a, sigma_r, sigma_w, sigma_w0,
-                 b0, b1, w0=None, name=None):
-        if w0 is None:
-            w0 = 0.0
-        self.sigma_a = sigma_a
-        self.sigma_r = sigma_r
-        self.sigma_w = sigma_w
-        self.sigma_w0 = sigma_w0
-        self.b0 = b0
-        self.b1 = b1
-        self.w0 = w0
-        super(KrwNormModel, self).__init__(name=name,
-                                           sigma_a=sigma_a, sigma_r=sigma_r,
-                                           sigma_w=sigma_w, sigma_w0=sigma_w0,
-                                           b0=b0, b1=b1, w0=w0)
+    def _set_hidden_state(self, n_obs):
+        w0 = 0
+        if 'w0' in self.paras:
+            w0 = self.paras['w0']
+        w0 = np.array(w0) if isinstance(w0, list) else np.full(n_obs, w0)
 
-    def produce_loglikelihood(self, stimuli, rewards):
-        class_path = os.path.dirname(inspect.getfile(type(self)))
-        eng = matlab.engine.start_matlab()
-        eng.addpath(class_path)
-        stimuli = matlab.double(stimuli.tolist())
-        rewards = matlab.double(rewards.tolist())
-        # Calculate predictions in Matlab
-        try:
-            pred = eng.krw_norm_predict(stimuli, rewards,
-                                        self.sigma_a, self.sigma_r,
-                                        self.sigma_w, self.sigma_w0,
-                                        self.b0, self.b1, self.w0, nargout=2)
-        finally:
-            eng.exit()
-        # Unpack predictions
-        mu_pred_mat, sd_pred_mat = pred
-        mu_pred = np.array(mu_pred_mat._data.tolist())  # TODO: find better way
-        mu_pred = mu_pred.reshape(mu_pred_mat.size).transpose()
-        sd_pred = np.array(sd_pred_mat._data.tolist())
-        sd_pred = sd_pred.reshape(sd_pred_mat.size).transpose()
+        logSigmaWInit = self.paras['logSigmaWInit']
+        C =  np.exp(logSigmaWInit) * np.identity(self.n_obs) # Initial weight covariance matrix
 
-        # Create logpdf
-        def logpdf(actions):
-            pointwise_logpdf = stats.norm.logpdf(actions,
-                                                 loc=mu_pred, scale=sd_pred)
-            return np.sum(pointwise_logpdf)
+        hidden_state = {'w': np.full(n_obs, w0),
+                        'C': C}
+        return hidden_state
 
-        return logpdf
+    def _set_spaces(self, n_obs):
+        self.action_space = spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
+        self.observation_space = spaces.MultiBinary(n_obs)
+
+    def predict(self, stimulus):
+        assert self.observation_space.contains(stimulus)
+
+        sd_pred = self.paras['sigma']
+        mu_pred = self.act(stimulus)
+
+        return stats.norm(loc=mu_pred, scale=sd_pred).logpdf
+
+    def update(self, stimulus, reward, action, done):
+        """evolution function"""
+        assert self.observation_space.contains(stimulus)
+
+        alpha  = self.paras['alpha']
+        tauSq = np.exp(self.paras['logTauSq']) # State diffusion variance
+        Q = tauSq * np.identity(self.n_obs) # Transition noise variance (transformed to positive reals); constant over time
+        sigmaRSq = np.exp(self.paras['logSigmaRSq'])
+
+        
+        w_curr = self.hidden_state['w']
+        C_curr = self.hidden_state['C']
+
+        if not done:
+            # Kalman prediction step
+            w_pred = w_curr # No mean-shift for the weight distribution evolution (only stochastic evolution)
+            C_pred = C_curr + Q # Update covariance
+
+            # get pred_error
+            pred_err = reward - action
+
+            # Kalman update step
+            K = C_pred.dot(stimulus) / (stimulus.dot(C_pred.dot(stimulus)) + sigmaRSq) # (n_obs,)
+            w_updt = w_pred + K * pred_err # Mean updated with prediction error
+            C_updt = C_pred - K * stimulus * C_pred # Covariance updated
+
+            self.hidden_state['w'] = w_updt
+            self.hidden_state['C'] = C_updt
+
+        return w_updt, C_updt
+
+    def reset(self):
+        self.hidden_state = self._set_hidden_state(self.n_obs)
+        return None
+    
+    def act(self, stimulus):
+        """observation function"""
+        b0 = self.paras['b0'] # intercept
+        b1 = self.paras['b1'] # slope #TODO: add variable slopes
+        
+        w_curr = self.hidden_state['w']
+
+        # Generate reward prediction
+        rhat = np.dot(stimulus, w_curr.T)
+
+        # Predict response
+        mu_pred = b0 + b1 * rhat
+        return mu_pred
