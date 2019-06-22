@@ -17,14 +17,11 @@ class NWSLSModel(sciunit.Model, Interactive):
         self.n_actions = n_actions
         self.n_obs = n_obs # number of stimuli
         self._set_spaces(n_actions)
-        self.hidden_state = self._set_hidden_state(n_actions, n_obs, self.paras)
-        xk = np.arange(n_actions)
-        pk = np.full(n_actions, 1/n_actions)
-        self._rv = stats.rv_discrete(name=self.name, values=(xk, pk))
+        self.hidden_state = self._set_hidden_state()
 
-    def _set_hidden_state(self, n_actions, n_obs, paras):
-        hidden_state = {'pk': dict([[i, np.full(n_actions, 1/n_actions)] 
-                                   for i in range(n_obs)])}
+    def _set_hidden_state(self):
+        hidden_state = {'pk': dict([[i, np.full(self.n_actions, 1 / self.n_actions)] 
+                                   for i in range(self.n_obs)])}
         return hidden_state
 
     def _set_spaces(self, n_actions):
@@ -54,8 +51,7 @@ class NWSLSModel(sciunit.Model, Interactive):
         return pk
 
     def reset(self):
-        self.hidden_state = self._set_hidden_state(self.n_actions, 
-                                                   self.n_obs, self.paras)
+        self.hidden_state = self._set_hidden_state()
         return None
 
     def act(self, p):

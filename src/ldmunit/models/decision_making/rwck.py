@@ -20,22 +20,22 @@ class RWCKModel(sciunit.Model, Interactive):
         self.n_actions = n_actions
         self.n_obs = n_obs
         self._set_spaces(n_actions)
-        self.hidden_state = self._set_hidden_state(n_actions, n_obs, self.paras)
+        self.hidden_state = self._set_hidden_state()
 
         
-    def _set_hidden_state(self, n_actions, n_obs):
+    def _set_hidden_state(self):
         w0 = 0
         if 'w0' in self.paras:
             w0 = self.paras['w0']
 
         # set rv_discrete for each stimulus/cue/observation
-        xk = np.arange(n_actions)
-        pk = np.full(n_actions, 1/n_actions)
+        xk = np.arange(self.n_actions)
+        pk = np.full(self.n_actions, 1 / self.n_actions)
         rv = stats.rv_discrete(name=self.name, values=(xk, pk))
 
-        hidden_state = {'CK': dict([[i, np.zeros(n_actions)]    for i in range(n_obs)]),
-                        'Q' : dict([[i, np.full(n_actions, w0)] for i in range(n_obs)]),
-                        'RV': dict([[i, rv]                     for i in range(n_obs)])}
+        hidden_state = {'CK': dict([[i, np.zeros(self.n_actions)]    for i in range(self.n_obs)]),
+                        'Q' : dict([[i, np.full(self.n_actions, w0)] for i in range(self.n_obs)]),
+                        'RV': dict([[i, rv]                          for i in range(self.n_obs)])}
 
         return hidden_state
 
@@ -90,7 +90,7 @@ class RWCKModel(sciunit.Model, Interactive):
         return CK, Q
 
     def reset(self):
-        self.hidden_state = self._set_hidden_state(self.n_actions, self.n_obs)
+        self.hidden_state = self._set_hidden_state()
         return None
     
     def act(self, stimulus):
@@ -107,7 +107,7 @@ class RWModel(RWCKModel):
         self.n_actions = n_actions
         self.n_obs = n_obs
         self._set_spaces(n_actions)
-        self.hidden_state = self._set_hidden_state(n_actions, n_obs, self.paras)
+        self.hidden_state = self._set_hidden_state()
 
 class CKModel(RWCKModel):
     """Choice kernel Model for discrete decision marking."""
@@ -119,4 +119,4 @@ class CKModel(RWCKModel):
         self.n_actions = n_actions
         self.n_obs = n_obs
         self._set_spaces(n_actions)
-        self.hidden_state = self._set_hidden_state(n_actions, n_obs, self.paras)
+        self.hidden_state = self._set_hidden_state()
