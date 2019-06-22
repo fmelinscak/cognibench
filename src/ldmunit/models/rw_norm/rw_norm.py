@@ -1,58 +1,123 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Mar 18 15:29:33 2019
-
-@author: filipmelinscak
-"""
-
+import sciunit
 import numpy as np
+import gym
+from gym import spaces
+from scipy.optimize import minimize
 from scipy import stats
-from sciunit.models import Model
-from ...capabilities import ProducesLoglikelihood
-import matlab.engine
+from ...capabilities import Interactive
+import oct2py
+from oct2py import Struct
 import inspect
 import os
 
+class RwNormModel(sciunit.Model, Interactive):
+    
+    action_space = spaces.Box
+    observation_space = spaces.MultiBinary
 
-class RwNormModel(Model, ProducesLoglikelihood):
+    def __init__(self, n_obs, paras=None, name=None):
+        assert isinstance(n_obs, int)
+        self.paras = paras
+        self.name = name
+        self.n_obs = n_obs
+        self._set_spaces(n_obs)
+        self.hidden_state = self._set_hidden_state(n_obs)
 
-    def __init__(self, alpha, sigma, b0, b1, w0=None, name=None):
-        if w0 is None:
-            w0 = 0.0
-        self.alpha = alpha
-        self.sigma = sigma
-        self.b0 = b0
-        self.b1 = b1
-        self.w0 = w0
-        super(RwNormModel, self).__init__(name=name,
-                                          alpha=alpha, sigma=sigma,
-                                          b0=b0, b1=b1, w0=w0)
+    def _set_hidden_state(self, n_obs):
+        w0 = 0
+        if 'w0' in self.paras:
+            w0 = self.paras['w0']
+        hidden_state = {'w': np.full(n_obs, w0)}
+        return hidden_state
 
-    def produce_loglikelihood(self, stimuli, rewards):
+    def _set_spaces(self, n_obs):
+        self.action_space = spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
+        self.observation_space = spaces.MultiBinary(n_obs)
+
+    def predict(self, stimulus):
+        assert self.observation_space.contains(stimulus)
+
+        sd_pred = self.paras['sigma']
+        mu_pred = self.act(stimulus)
+
+        return stats.norm(loc=mu_pred, scale=sd_pred).logpdf
+
+    def update(self, stimulus, reward, action, done):
+        """evolution function"""
+        assert self.observation_space.contains(stimulus)
+
+        alpha  = self.paras['alpha']
+        
+        w_curr = self.hidden_state['w']
+
+        if not done:
+            pred_err = reward - action
+
+            w_curr += alpha * pred_err * stimulus
+
+            self.hidden_state['w'] = w_curr
+
+        return w_curr
+
+    def reset(self):
+        self.hidden_state = self._set_hidden_state(self.n_obs)
+        return None
+    
+    def act(self, stimulus):
+        """observation function"""
+        b0 = self.paras['b0'] # intercept
+        b1 = self.paras['b1'] # slope #TODO: add variable slopes
+        
+        w_curr = self.hidden_state['w']
+
+        # Generate reward prediction
+        rhat = np.dot(stimulus, w_curr.T)
+
+        # Predict response
+        mu_pred = b0 + b1 * rhat
+        return mu_pred
+
+class RwNormOctModel(Model, Interactive):
+
+    action_space = spaces.Box
+    observation_space = spaces.MultiBinary
+
+    def __init__(self, n_obs, paras=None, name=None):
+        assert isinstance(n_obs, int)
+        self.paras = paras
+        self.name = name
+        self.n_obs = n_obs
+        self._set_spaces(n_obs)
+        self.hidden_state = self._set_hidden_state(n_obs)
+
+    def _set_hidden_state(self, n_obs):
+        w0 = 0
+        if 'w0' in self.paras:
+            w0 = self.paras['w0']
+        hidden_state = {'w': np.full(n_obs, w0)}
+        return hidden_state
+
+    def _set_spaces(self, n_obs):
+        self.action_space = spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
+        self.observation_space = spaces.MultiBinary(n_obs)
+
+    def predict(self, stimulus):
+        pass
+    
+    def update(self, stimulus, reward, action, done):
+        """evolution function"""
+        pass
+    
+    def reset(self):
+        pass
+    
+    def act(self, stimulus):
+        """observation function"""
         class_path = os.path.dirname(inspect.getfile(type(self)))
-        eng = matlab.engine.start_matlab()
-        eng.addpath(class_path)
-        stimuli = matlab.double(stimuli.tolist())
-        rewards = matlab.double(rewards.tolist())
-        # Calculate predictions in Matlab
-        try:
-            pred = eng.rw_norm_predict(stimuli, rewards,
-                                       self.alpha, self.sigma,
-                                       self.b0, self.b1, self.w0, nargout=2)
-        finally:
-            eng.exit()
-        # Unpack predictions
-        mu_pred_mat, sd_pred_mat = pred
-        mu_pred = np.array(mu_pred_mat._data.tolist())  # TODO: find better way
-        mu_pred = mu_pred.reshape(mu_pred_mat.size).transpose()
-        sd_pred = np.array(sd_pred_mat._data.tolist())
-        sd_pred = sd_pred.reshape(sd_pred_mat.size).transpose()
 
-        # Create logpdf
-        def logpdf(actions):
-            pointwise_logpdf = stats.norm.logpdf(actions,
-                                                 loc=mu_pred, scale=sd_pred)
-            return np.sum(pointwise_logpdf)
-
-        return logpdf
+        # Calculate predictions in Octave
+        with oct2py.Oct2Py() as oc:
+            oc.addpath(class_path)
+            cr_pred = oc.obs_affine_batch()
+        
+        return cr_pred
