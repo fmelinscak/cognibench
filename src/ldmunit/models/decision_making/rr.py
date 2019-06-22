@@ -2,51 +2,53 @@ import sciunit
 import numpy as np
 from gym import spaces
 from scipy.optimize import minimize
+from scipy import stats
 from ...capabilities import Interactive
 
 class RRModel(sciunit.Model, Interactive):
+    """Random respounding for discrete decision marking."""
 
-    action_space = spaces.Discrete(1)
-    observation_space = spaces.Discrete(1)
+    action_space = spaces.Discrete
+    observation_space = spaces.Discrete
 
-    """Rescorla Wagner Choice kernel Model for discrete decision marking."""
     def __init__(self, n_actions, n_obs, paras=None, name=None):
         self.paras = paras
         self.name = name
         self.n_actions = n_actions
         self.n_obs = n_obs
         self._set_spaces(n_actions)
-        self.hidden_state = self._set_hidden_state(n_actions, n_obs, self.paras)
+        self.hidden_state = self._set_hidden_state(n_actions, n_obs)
         
-    def _set_hidden_state(self, n_actions, n_obs, paras):
-        hidden_state = None
+    def _set_hidden_state(self, n_actions, n_obs):
+        # set rv_discrete for each stimulus/cue/observation
+        xk = np.arange(n_actions)
+        pk = np.full(n_actions, 1/n_actions)
+        rv = stats.rv_discrete(name=self.name, values=(xk, pk))
+
+        hidden_state = {'RV': dict([[i, rv] for i in range(n_obs)])}
         return hidden_state
 
     def _set_spaces(self, n_actions):
-        RRModel.action_space = spaces.Discrete(n_actions)
-        RRModel.observation_space = spaces.Discrete(n_actions)
+        self.action_space = spaces.Discrete(n_actions)
+        self.observation_space = spaces.Discrete(n_actions)
 
     def predict(self, stimulus):
-        """Predict choice probabilities based on stimulus (observation in AI Gym)."""
-        pass
+        assert self.observation_space.contains(stimulus)
+        # get model's state
+        RV = self.hidden_state['RV'][stimulus]
+        
+        return RV.logpmf
 
     def update(self, stimulus, reward, action, done): #TODO: add default value
-        """Update model's state given stimulus (observation in AI Gym), reward, action in the environment."""
-        assert RRModel.action_space.contains(action)
-        assert RRModel.observation_space.contains(stimulus)
+        assert self.action_space.contains(action)
+        assert self.observation_space.contains(stimulus)
         pass
 
     def reset(self):
-        """Reset model's state."""
-        self.hidden_state = self._set_hidden_state(self.n_actions, self.n_obs, self.paras)
+        self.hidden_state = self._set_hidden_state(self.n_actions, self.n_obs)
         return None
     
-    def act(self, p):
-        """Agent make decision/choice based on the probabilities."""
-        pass
+    def act(self, stimulus):
+        RV = self.hidden_state['RV'][stimulus]
+        return RV.rvs()
 
-    def loglike(self, stimuli, rewards, actions):
-        pass
-
-    def train_with_obs(self, stimuli, rewards, actions, fixed):
-        pass
