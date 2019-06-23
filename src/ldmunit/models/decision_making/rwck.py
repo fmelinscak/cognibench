@@ -1,8 +1,8 @@
 import sciunit
 import numpy as np
 from gym import spaces
-from scipy.optimize import minimize
 from scipy import stats
+
 from ...capabilities import Interactive
 
 def softmax(x, beta):
@@ -19,14 +19,12 @@ class RWCKModel(sciunit.Model, Interactive):
         self.name = name
         self.n_actions = n_actions
         self.n_obs = n_obs
-        self._set_spaces(n_actions)
+        self._set_spaces()
         self.hidden_state = self._set_hidden_state()
 
         
     def _set_hidden_state(self):
-        w0 = 0
-        if 'w0' in self.paras:
-            w0 = self.paras['w0']
+        w0 = 0 if 'w0' not in self.paras else self.paras['w0']  
 
         # set rv_discrete for each stimulus/cue/observation
         xk = np.arange(self.n_actions)
@@ -35,20 +33,19 @@ class RWCKModel(sciunit.Model, Interactive):
 
         hidden_state = {'CK': dict([[i, np.zeros(self.n_actions)]    for i in range(self.n_obs)]),
                         'Q' : dict([[i, np.full(self.n_actions, w0)] for i in range(self.n_obs)]),
-                        'RV': dict([[i, rv]                          for i in range(self.n_obs)])}
+                        'rv': dict([[i, rv]                          for i in range(self.n_obs)])}
 
         return hidden_state
 
-    def _set_spaces(self, n_actions):
-        self.action_space = spaces.Discrete(n_actions)
-        self.observation_space = spaces.Discrete(n_actions)
+    def _set_spaces(self):
+        self.action_space = spaces.Discrete(self.n_actions)
+        self.observation_space = spaces.Discrete(self.n_actions)
 
     def predict(self, stimulus):
         assert self.observation_space.contains(stimulus)
-        assert self.paras != None #TODO: add assert for keys
         # get model's state
         CK, Q = self.hidden_state['CK'][stimulus], self.hidden_state['Q'][stimulus]
-        RV = self.hidden_state['RV'][stimulus]
+        rv = self.hidden_state['rv'][stimulus]
         
         # unpack parameters
         beta   = self.paras['beta']
@@ -58,15 +55,13 @@ class RWCKModel(sciunit.Model, Interactive):
         pk = softmax(V, 1)
 
         # update pk
-        RV.pk = pk
-        self.hidden_state['RV'][stimulus] = RV
+        rv.pk = pk
         
-        return RV.logpmf
+        return rv.logpmf
 
     def update(self, stimulus, reward, action, done): #TODO: add default value
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
-        assert self.paras != None #TODO: add assert for keys
 
         # get model's state
         CK, Q = self.hidden_state['CK'][stimulus], self.hidden_state['Q'][stimulus]
@@ -94,8 +89,8 @@ class RWCKModel(sciunit.Model, Interactive):
         return None
     
     def act(self, stimulus):
-        RV = self.hidden_state['RV'][stimulus]
-        return RV.rvs()
+        rv = self.hidden_state['rv'][stimulus]
+        return rv.rvs()
 
 class RWModel(RWCKModel):
     """Rescorla Wagner Model for discrete decision marking."""
@@ -106,7 +101,7 @@ class RWModel(RWCKModel):
         self.name = name
         self.n_actions = n_actions
         self.n_obs = n_obs
-        self._set_spaces(n_actions)
+        self._set_spaces()
         self.hidden_state = self._set_hidden_state()
 
 class CKModel(RWCKModel):
@@ -118,5 +113,6 @@ class CKModel(RWCKModel):
         self.name = name
         self.n_actions = n_actions
         self.n_obs = n_obs
-        self._set_spaces(n_actions)
+        self._set_spaces()
         self.hidden_state = self._set_hidden_state()
+
