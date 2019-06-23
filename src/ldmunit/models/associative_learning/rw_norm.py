@@ -2,13 +2,14 @@ import sciunit
 import numpy as np
 import gym
 from gym import spaces
-from scipy.optimize import minimize
 from scipy import stats
+
+# import oct2py
+# from oct2py import Struct
+# import inspect
+# import os
+
 from ...capabilities import Interactive
-import oct2py
-from oct2py import Struct
-import inspect
-import os
 
 class RwNormModel(sciunit.Model, Interactive):
     
@@ -20,19 +21,19 @@ class RwNormModel(sciunit.Model, Interactive):
         self.paras = paras
         self.name = name
         self.n_obs = n_obs
-        self._set_spaces(n_obs)
-        self.hidden_state = self._set_hidden_state(n_obs)
+        self._set_spaces()
+        self.hidden_state = self._set_hidden_state()
 
-    def _set_hidden_state(self, n_obs):
+    def _set_hidden_state(self):
         w0 = 0
         if 'w0' in self.paras:
             w0 = self.paras['w0']
-        hidden_state = {'w': np.full(n_obs, w0)}
+        hidden_state = {'w': np.full(self.n_obs, w0)}
         return hidden_state
 
-    def _set_spaces(self, n_obs):
-        self.action_space = spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
-        self.observation_space = spaces.MultiBinary(n_obs)
+    def _set_spaces(self):
+        self.action_space = spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32) #TODO, to be changed
+        self.observation_space = spaces.MultiBinary(self.n_obs)
 
     def predict(self, stimulus):
         assert self.observation_space.contains(stimulus)
@@ -40,18 +41,18 @@ class RwNormModel(sciunit.Model, Interactive):
         sd_pred = self.paras['sigma']
         mu_pred = self.act(stimulus)
 
-        return stats.norm(loc=mu_pred, scale=sd_pred).logpdf
+        return stats.norm(loc=mu_pred[0], scale=sd_pred).logpdf
 
     def update(self, stimulus, reward, action, done):
-        """evolution function"""
+        assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
 
         alpha  = self.paras['alpha']
-        
         w_curr = self.hidden_state['w']
+        pred_reward = self.act(stimulus)[0]
 
         if not done:
-            pred_err = reward - action
+            pred_err = reward - pred_reward
 
             w_curr += alpha * pred_err * stimulus
 
@@ -60,11 +61,12 @@ class RwNormModel(sciunit.Model, Interactive):
         return w_curr
 
     def reset(self):
-        self.hidden_state = self._set_hidden_state(self.n_obs)
+        self.hidden_state = self._set_hidden_state()
         return None
     
     def act(self, stimulus):
-        """observation function"""
+        assert self.observation_space.contains(stimulus)
+
         b0 = self.paras['b0'] # intercept
         b1 = self.paras['b1'] # slope #TODO: add variable slopes
         
@@ -75,41 +77,46 @@ class RwNormModel(sciunit.Model, Interactive):
 
         # Predict response
         mu_pred = b0 + b1 * rhat
-        return mu_pred
+        return [mu_pred]
 
-class RwNormOctModel(RwNormModel):
+# class RwNormOctModel(RwNormModel):
     
-    def update(self, stimulus, reward, action, done):
-        """observation function"""
-        class_path = os.path.dirname(inspect.getfile(type(self))) #TODO: fix this 
+#     def update(self, stimulus, reward, action, done):
+#         """observation function"""
+#         assert self.action_space.contains(action)
+#         assert self.observation_space.contains(stimulus)
 
-        params = Struct()
-        params['alpha'] = self.paras['alpha'] # slope
-        params['wInit'] = self.hidden_state['w']
+#         class_path = os.path.dirname(inspect.getfile(type(self))) #TODO: fix this 
 
-        # Calculate predictions in Octave
-        with oct2py.Oct2Py() as oc:
-            oc.addpath(class_path)
-            result = oc.evo_rw_batch(stimulus, reward, params)
+#         params = Struct()
+#         params['alpha'] = self.paras['alpha'] # slope
+#         params['wInit'] = self.hidden_state['w']
+
+#         # Calculate predictions in Octave
+#         with oct2py.Oct2Py() as oc:
+#             oc.addpath(class_path)
+#             result = oc.evo_rw_batch(stimulus, reward, params)
         
-        self.hidden_state['w'] = result.w
+#         self.hidden_state['w'] = result.w
 
-        return result.w
+#         return result.w
     
-    def act(self, stimulus):
-        """observation function"""
-        class_path = os.path.dirname(inspect.getfile(type(self))) #TODO: fix this 
+#     def act(self, stimulus):
+#         """observation function"""
+#         assert self.observation_space.contains(stimulus)
 
-        params = Struct()
-        params['slope']     = self.paras['b1'] # slope
-        params['intercept'] = self.paras['b0'] # intercept
+#         class_path = os.path.dirname(inspect.getfile(type(self))) #TODO: fix this 
 
-        results_evo = Struct()
-        results_evo['w'] = self.hidden_state['w']
+#         params = Struct()
+#         params['slope']     = self.paras['b1'] # slope
+#         params['intercept'] = self.paras['b0'] # intercept
 
-        # Calculate predictions in Octave
-        with oct2py.Oct2Py() as oc:
-            oc.addpath(class_path)
-            result = oc.obs_affine_batch(results_evo, stimulus, params)
+#         results_evo = Struct()
+#         results_evo['w'] = self.hidden_state['w']
+
+#         # Calculate predictions in Octave
+#         with oct2py.Oct2Py() as oc:
+#             oc.addpath(class_path)
+#             result = oc.obs_affine_batch(results_evo, stimulus, params)
         
-        return result.crPred
+#         return result.crPred

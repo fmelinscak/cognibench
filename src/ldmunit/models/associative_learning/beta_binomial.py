@@ -1,8 +1,15 @@
 import sciunit
 import numpy as np
+import gym
 from gym import spaces
-from scipy.optimize import minimize
+from scipy import stats
 from scipy.stats import beta
+
+# import oct2py
+# from oct2py import Struct
+# import inspect
+# import os
+
 from ...capabilities import Interactive
 
 class BetaBinomialModel(sciunit.Model, Interactive):
@@ -14,17 +21,17 @@ class BetaBinomialModel(sciunit.Model, Interactive):
         self.paras = paras
         self.name = name
         self.n_obs = n_obs
-        self._set_spaces(n_obs)
-        self.hidden_state = self._set_hidden_state(n_obs, self.paras)
+        self._set_spaces()
+        self.hidden_state = self._set_hidden_state()
 
-    def _set_hidden_state(self, n_obs, paras):
-        hidden_state = {'a' : np.zeros(n_obs),
-                        'b' : np.zeros(n_obs)}
+    def _set_hidden_state(self):
+        hidden_state = {'a' : np.ones(self.n_obs),
+                        'b' : np.ones(self.n_obs)}
         return hidden_state
 
-    def _set_spaces(self, n_obs):
-        BetaBinomialModel.action_space = spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
-        BetaBinomialModel.observation_space = spaces.MultiBinary(n_obs)
+    def _set_spaces(self):
+        self.action_space = spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
+        self.observation_space = spaces.MultiBinary(self.n_obs)
 
     def predict(self, stimulus):
         assert self.observation_space.contains(stimulus)
@@ -50,12 +57,14 @@ class BetaBinomialModel(sciunit.Model, Interactive):
         return a, b
 
     def reset(self):
-        self.hidden_state = self._set_hidden_state(self.n_obs, self.params)      
+        self.hidden_state = self._set_hidden_state()      
         return None
     
     def act(self, stimulus):
         """observation function"""
-        mixCoef = self.paras['mixCoef']
+        assert self.observation_space.contains(stimulus)
+
+        mix_coef = self.paras['mix_coef']
         b0 = self.paras['b0'] # intercept
         b1 = self.paras['b1'] # slope #TODO: add variable slopes
 
@@ -66,5 +75,7 @@ class BetaBinomialModel(sciunit.Model, Interactive):
         # Generate outcome prediction
         mu      = beta.mean(a, b)
         entropy = beta.entropy(a, b)
+
+        crPred = b0 + np.dot(stimulus, (mix_coef * mu  + (1 - mix_coef) * entropy)) * b1
         
-        return b0 + np.dot(stimulus, (mixCoef * mu  + (1 - mixCoef) * entropy)) * b1
+        return [crPred]
