@@ -9,7 +9,14 @@ class Interactive(sciunit.Capability):
     Description:
         Requires models to respound to the environment in a interactive manner.
 
-    Observation: 
+    For decision making cases, the model is init with the number of actions and
+    number of observation.
+    For associate learning models, the model is initialized with number of 
+    observation.
+
+
+    Observation:
+        Cue/stimulus in other setting or literature. 
         Type: defined in each model.
         
     Actions:
@@ -20,16 +27,25 @@ class Interactive(sciunit.Capability):
     """
 
     def predict(self):
-        """Return pmf/pdf based on stimulus (observation in AI Gym)."""
+        """Given stimulus, model should return the function for the calculation
+        of log probability density function or log probability mass function.
+        """
         raise NotImplementedError("Must implement predict.")
     
     def reset(self):
-        """Update model's state given stimulus (observation in AI Gym), reward, action in the environment."""
+        """Reset the hidden state of the model to initial state.
+        """
         raise NotImplementedError("Must implement reset.")
 
     def update(self):
-        """Update model's state given stimulus (observation in AI Gym), reward, action in the environment."""
+        """Given stimulus, rewards and action, the model should updates its 
+        hidden state. Also named evolution function in some packages.
+        """
         raise NotImplementedError("Must implement update.")
 
     def act(self):
+        """For decision making, return the action taken by the model,
+        Associative learning models returns the predicted value.
+        Also named observation function in some packages.
+        """
         raise NotImplementedError("Must implement act")
