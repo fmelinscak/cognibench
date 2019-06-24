@@ -3,9 +3,9 @@ import numpy as np
 from gym import spaces
 from scipy import stats
 
-from ...capabilities import Interactive
+from ...capabilities import Interactive, DiscreteAction, DiscreteObservation
 
-class NWSLSModel(sciunit.Model, Interactive):
+class NWSLSModel(sciunit.Model, Interactive, DiscreteAction, DiscreteObservation):
     """Noisy-win-stay-lose-shift model"""
 
     action_space = spaces.Discrete
@@ -16,8 +16,9 @@ class NWSLSModel(sciunit.Model, Interactive):
         self.name = name
         self.n_actions = n_actions
         self.n_obs = n_obs
-        self._set_spaces()
         self.hidden_state = self._set_hidden_state()
+        self.action_space = self._set_action_space()
+        self.observation_space = self._set_observation_space()
 
     def _set_hidden_state(self):
         xk = np.arange(self.n_actions)
@@ -27,9 +28,15 @@ class NWSLSModel(sciunit.Model, Interactive):
         hidden_state = {'rv': dict([[i, rv] for i in range(self.n_obs)])}
         return hidden_state
 
-    def _set_spaces(self):
-        self.action_space = spaces.Discrete(self.n_actions)
-        self.observation_space = spaces.Discrete(self.n_actions)
+    def _set_action_space(self):
+        return spaces.Discrete(self.n_actions)
+    
+    def _set_observation_space(self):
+        return spaces.Discrete(self.n_obs)
+
+    def reset(self):
+        self.action_space = self._set_action_space()
+        self.observation_space = self._set_observation_space()
 
     def predict(self, stimulus):
         assert self.observation_space.contains(stimulus)
@@ -62,10 +69,6 @@ class NWSLSModel(sciunit.Model, Interactive):
         rv.pk = pk
 
         return pk
-
-    def reset(self):
-        self.hidden_state = self._set_hidden_state()
-        return None
 
     def act(self, stimulus):
         assert self.observation_space.contains(stimulus)

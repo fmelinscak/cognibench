@@ -3,12 +3,12 @@ import numpy as np
 from gym import spaces
 from scipy import stats
 
-from ...capabilities import Interactive
+from ...capabilities import Interactive, DiscreteAction, DiscreteObservation
 
 def softmax(x, beta):
     return np.exp(x * beta) / np.sum(np.exp(x * beta), axis=0)
 
-class RWCKModel(sciunit.Model, Interactive):
+class RWCKModel(sciunit.Model, Interactive, DiscreteAction, DiscreteObservation):
     """Rescorla Wagner Choice kernel Model for discrete decision marking."""
 
     action_space = spaces.Discrete
@@ -19,8 +19,9 @@ class RWCKModel(sciunit.Model, Interactive):
         self.name = name
         self.n_actions = n_actions
         self.n_obs = n_obs
-        self._set_spaces()
         self.hidden_state = self._set_hidden_state()
+        self.action_space = self._set_action_space()
+        self.observation_space = self._set_observation_space()
 
         
     def _set_hidden_state(self):
@@ -37,9 +38,15 @@ class RWCKModel(sciunit.Model, Interactive):
 
         return hidden_state
 
-    def _set_spaces(self):
-        self.action_space = spaces.Discrete(self.n_actions)
-        self.observation_space = spaces.Discrete(self.n_actions)
+    def _set_action_space(self):
+        return spaces.Discrete(self.n_actions)
+    
+    def _set_observation_space(self):
+        return spaces.Discrete(self.n_obs)
+
+    def reset(self):
+        self.action_space = self._set_action_space()
+        self.observation_space = self._set_observation_space()
 
     def predict(self, stimulus):
         assert self.observation_space.contains(stimulus)
@@ -84,10 +91,6 @@ class RWCKModel(sciunit.Model, Interactive):
 
         return CK, Q
 
-    def reset(self):
-        self.hidden_state = self._set_hidden_state()
-        return None
-    
     def act(self, stimulus):
         rv = self.hidden_state['rv'][stimulus]
         return rv.rvs()
@@ -101,8 +104,9 @@ class RWModel(RWCKModel):
         self.name = name
         self.n_actions = n_actions
         self.n_obs = n_obs
-        self._set_spaces()
         self.hidden_state = self._set_hidden_state()
+        self.action_space = self._set_action_space()
+        self.observation_space = self._set_observation_space()
 
 class CKModel(RWCKModel):
     """Choice kernel Model for discrete decision marking."""
@@ -113,6 +117,7 @@ class CKModel(RWCKModel):
         self.name = name
         self.n_actions = n_actions
         self.n_obs = n_obs
-        self._set_spaces()
         self.hidden_state = self._set_hidden_state()
+        self.action_space = self._set_action_space()
+        self.observation_space = self._set_observation_space()
 
