@@ -75,3 +75,38 @@ def simulate(env, model, n_trials, seed=0):
     env.close()
 
     return stimuli[1:], rewards, actions
+
+class MultiMeta(type):
+    def __new__(cls, name, bases, dct):
+        single_cls = dct['single_cls']
+        base_classes = (single_cls.__bases__)
+        out_cls = super().__new__(cls, name, base_classes, dct)
+
+        def multi_init(self, param_list, *args, **kwargs):
+            self.models = []
+            for param in param_list:
+                self.models.append(single_cls(*args, **kwargs, paras=param))
+        out_cls.__init__ = multi_init
+
+        def multi_predict(self, idx, *args, **kwargs):
+            return self.models[idx].predict(*args, **kwargs)
+        out_cls.predict = multi_predict
+
+        def multi_update(self, idx, *args, **kwargs):
+            return self.models[idx].update(*args, **kwargs)
+        out_cls.update = multi_update
+
+        def multi_act(self, idx, *args, **kwargs):
+            return self.models[idx].act(*args, **kwargs)
+        out_cls.act = multi_act
+
+        def multi_reset(self, idx, *args, **kwargs):
+            return self.models[idx].reset(*args, **kwargs)
+        out_cls.reset = multi_reset
+
+
+
+        return out_cls
+
+def multi_from_single(single_cls, multi_cls_name):
+    return MultiMeta(multi_cls_name, (), {'single_cls': single_cls})
