@@ -1,5 +1,5 @@
 import sciunit
-
+from gym import spaces
 
 ### The Capabilities ###
 
@@ -49,3 +49,19 @@ class Interactive(sciunit.Capability):
         Also named observation function in some packages.
         """
         raise NotImplementedError("Must implement act")
+
+class DiscreteAction(sciunit.Capability):
+    def _set_action_space(self, *args, **kwargs):
+        return spaces.Discrete(*args, **kwargs)
+
+class ContinuousAction(sciunit.Capability):
+    def _set_action_space(self, *args, **kwargs):
+        return spaces.Box(*args, **kwargs)
+
+class MultibinObsevation(sciunit.Capability):
+    def _set_observation_space(self, *args, **kwargs):
+        return spaces.MultiBinary(*args, **kwargs)
+
+class DiscreteObservation(sciunit.Capability):
+    def _set_observation_space(self, *args, **kwargs):
+        return spaces.Discrete(*args, **kwargs)
