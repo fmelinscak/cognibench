@@ -10,9 +10,9 @@ from scipy.stats import beta
 # import inspect
 # import os
 
-from ...capabilities import Interactive
+from ...capabilities import Interactive, ContinuousAction, MultibinObsevation
 
-class BetaBinomialModel(sciunit.Model, Interactive):
+class BetaBinomialModel(sciunit.Model, Interactive, ContinuousAction, MultibinObsevation):
 
     action_space = spaces.Box
     observation_space = spaces.MultiBinary
@@ -21,17 +21,24 @@ class BetaBinomialModel(sciunit.Model, Interactive):
         self.paras = paras
         self.name = name
         self.n_obs = n_obs
-        self._set_spaces()
         self.hidden_state = self._set_hidden_state()
+        self.action_space = self._set_action_space()
+        self.observation_space = self._set_observation_space(self.n_obs)
 
     def _set_hidden_state(self):
         hidden_state = {'a' : np.ones(self.n_obs),
                         'b' : np.ones(self.n_obs)}
         return hidden_state
 
-    def _set_spaces(self):
-        self.action_space = spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
-        self.observation_space = spaces.MultiBinary(self.n_obs)
+    def _set_observation_space(self, n_obs):
+        return spaces.MultiBinary(n_obs)
+
+    def _set_action_space(self):
+        return spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
+
+    def reset(self):
+        self.action_space = self._set_action_space()
+        self.observation_space = self._set_observation_space(self.n_obs)
 
     def predict(self, stimulus):
         assert self.observation_space.contains(stimulus)
@@ -56,10 +63,6 @@ class BetaBinomialModel(sciunit.Model, Interactive):
 
         return a, b
 
-    def reset(self):
-        self.hidden_state = self._set_hidden_state()      
-        return None
-    
     def act(self, stimulus):
         """observation function"""
         assert self.observation_space.contains(stimulus)
@@ -78,4 +81,4 @@ class BetaBinomialModel(sciunit.Model, Interactive):
 
         crPred = b0 + np.dot(stimulus, (mix_coef * mu  + (1 - mix_coef) * entropy)) * b1
         
-        return [crPred]
+        return np.array([crPred])

@@ -9,9 +9,9 @@ from scipy import stats
 # import inspect
 # import os
 
-from ...capabilities import Interactive
+from ...capabilities import Interactive, ContinuousAction, MultibinObsevation
 
-class RwNormModel(sciunit.Model, Interactive):
+class RwNormModel(sciunit.Model, Interactive, ContinuousAction, MultibinObsevation):
     
     action_space = spaces.Box
     observation_space = spaces.MultiBinary
@@ -21,8 +21,9 @@ class RwNormModel(sciunit.Model, Interactive):
         self.paras = paras
         self.name = name
         self.n_obs = n_obs
-        self._set_spaces()
         self.hidden_state = self._set_hidden_state()
+        self.action_space = self._set_action_space()
+        self.observation_space = self._set_observation_space(self.n_obs)
 
     def _set_hidden_state(self):
         w0 = 0
@@ -31,9 +32,15 @@ class RwNormModel(sciunit.Model, Interactive):
         hidden_state = {'w': np.full(self.n_obs, w0)}
         return hidden_state
 
-    def _set_spaces(self):
-        self.action_space = spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32) #TODO, to be changed
-        self.observation_space = spaces.MultiBinary(self.n_obs)
+    def _set_observation_space(self, n_obs):
+        return spaces.MultiBinary(n_obs)
+
+    def _set_action_space(self):
+        return spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
+
+    def reset(self):
+        self.action_space = self._set_action_space()
+        self.observation_space = self._set_observation_space(self.n_obs)
 
     def predict(self, stimulus):
         assert self.observation_space.contains(stimulus)
@@ -59,10 +66,6 @@ class RwNormModel(sciunit.Model, Interactive):
             self.hidden_state['w'] = w_curr
 
         return w_curr
-
-    def reset(self):
-        self.hidden_state = self._set_hidden_state()
-        return None
     
     def act(self, stimulus):
         assert self.observation_space.contains(stimulus)
@@ -77,7 +80,7 @@ class RwNormModel(sciunit.Model, Interactive):
 
         # Predict response
         mu_pred = b0 + b1 * rhat
-        return [mu_pred]
+        return np.array([mu_pred])
 
 # class RwNormOctModel(RwNormModel):
     
