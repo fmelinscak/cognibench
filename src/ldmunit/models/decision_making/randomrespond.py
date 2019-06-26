@@ -2,45 +2,31 @@ import sciunit
 import numpy as np
 from gym import spaces
 from scipy import stats
-from ...capabilities import Interactive
 
-class RandomRespondModel(sciunit.Model, Interactive):
+from .base import DADO
+
+class RandomRespondModel(DADO):
     """Random respond for discrete decision marking."""
 
-    action_space = spaces.Discrete
-    observation_space = spaces.Discrete
+    def __init__(self, n_action=None, n_obs=None, paras=None, hidden_state=None, name=None, **params):
+        return super().__init__(n_action=n_action, n_obs=n_obs, paras=paras, hidden_state=hidden_state, name=name, **params)
 
-    def __init__(self, n_actions, n_obs, paras=None, name=None):
-        self.paras = paras
-        self.name = name
-        self.n_actions = n_actions
-        self.n_obs = n_obs
-        self.hidden_state = self._set_hidden_state()
-        self.action_space = self._set_action_space()
-        self.observation_space = self._set_observation_space()
- 
-    def _set_hidden_state(self):
-        # set rv_discrete for each stimulus/cue/observation
-        bias        = self.paras['bias']
-        action_bias = self.paras['action_bias']
-        pk = np.full(self.n_actions, (1 - bias) / (self.n_actions - 1))
-        pk[action_bias] = bias
-
-        xk = np.arange(self.n_actions)
-        rv = stats.rv_discrete(name=self.name, values=(xk, pk))
-
-        hidden_state = {'rv': dict([[i, rv] for i in range(self.n_obs)])}
-        return hidden_state
-
-    def _set_action_space(self):
-        return spaces.Discrete(self.n_actions)
-    
-    def _set_observation_space(self):
-        return spaces.Discrete(self.n_obs)
+    def _get_default_paras(self):
+        return {'bias': 0.5, 'action_bias': 1}
 
     def reset(self):
-        self.action_space = self._set_action_space()
-        self.observation_space = self._set_observation_space()
+        if not (isinstance(self.n_action, int) and isinstance(self.n_obs, int)):
+            raise TypeError("action_space and observation_space must be set.")
+
+        bias        = self.paras['bias']
+        action_bias = self.paras['action_bias']
+
+        xk = np.arange(self.n_action)
+        pk = np.full(self.n_action, 1 / self.n_action)
+        rv = stats.rv_discrete(values=(xk, pk))
+
+        hidden_state = {'rv': dict([[i, rv] for i in range(self.n_obs)])}
+        self.hidden_state = hidden_state
 
     def predict(self, stimulus):
         assert self.observation_space.contains(stimulus)
