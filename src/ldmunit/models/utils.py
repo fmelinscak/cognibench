@@ -24,9 +24,16 @@ def loglike(model, stimuli, rewards, actions):
 
 def train_with_obs(model, stimuli, rewards, actions, fixed=None):
 
+    if not model.hidden_state:
+        model.set_space_from_data(stimuli, actions)
+        model.reset()
+
+    if not model.paras:
+        model.paras = model._get_default_paras()
+    
     if fixed:
         model.paras.update(fixed)
-
+        
     x0 = list(model.paras.values())
 
     def objective_func(x0):
