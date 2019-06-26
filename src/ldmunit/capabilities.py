@@ -50,18 +50,162 @@ class Interactive(sciunit.Capability):
         """
         raise NotImplementedError("Must implement act")
 
-class DiscreteAction(sciunit.Capability):
-    def _set_action_space(self, *args, **kwargs):
-        return spaces.Discrete(*args, **kwargs)
+class ActionSpace(sciunit.Capability):
+    @property
+    def action_space(self):
+        raise NotImplementedError("Must have action_space attribute.")
 
-class ContinuousAction(sciunit.Capability):
-    def _set_action_space(self, *args, **kwargs):
-        return spaces.Box(*args, **kwargs)
+class ObservationSpace(sciunit.Capability):
+    @property
+    def observation_space(self):
+        raise NotImplementedError("Must have observation_space attribute.")
 
-class MultibinObsevation(sciunit.Capability):
-    def _set_observation_space(self, *args, **kwargs):
-        return spaces.MultiBinary(*args, **kwargs)
+class DiscreteObservation(ObservationSpace):
 
-class DiscreteObservation(sciunit.Capability):
-    def _set_observation_space(self, *args, **kwargs):
-        return spaces.Discrete(*args, **kwargs)
+    @property
+    def observation_space(self):
+        return self._observation_space
+
+    @observation_space.setter
+    def observation_space(self, value):
+        if not value:
+            self._observation_space = spaces.Discrete
+        elif isinstance(value, spaces.Discrete):
+            self._observation_space = value
+        elif isinstance(value, int):
+            self._observation_space = spaces.Discrete(value)
+        else:
+            raise TypeError("action_space must be integer or gym.spaces.Discrete")
+
+    @observation_space.deleter
+    def observation_space(self):
+        del self._observation_space
+
+    @property
+    def n_obs(self):
+        if isinstance(self.observation_space, spaces.Discrete):
+            return self.observation_space.n
+        else:
+            return None
+
+    @n_obs.setter
+    def n_obs(self, value):
+        if not value:
+            self.observation_space = None
+        elif not isinstance(value, int):
+            raise TypeError('n_obs must be an integer')
+        elif isinstance(value, int):
+            self.observation_space = value
+
+    def _check_observation(self, x):
+        if not isinstance(x, list) and all(isinstance(i, int) for i in x):
+            raise AssertionError("Data must be list of integers.")
+        return True
+
+class DiscreteAction(ActionSpace):
+
+    @property
+    def action_space(self):
+        return self._action_space
+
+    @action_space.setter
+    def action_space(self, value):
+        if not value:
+            self._action_space = spaces.Discrete
+        elif isinstance(value, spaces.Discrete):
+            self._action_space = value
+        elif isinstance(value, int):
+            self._action_space = spaces.Discrete(value)
+        else:
+            raise TypeError("action_space must be integer or gym.spaces.Discrete")
+
+    @action_space.deleter
+    def action_space(self):
+        del self._action_space
+
+    @property
+    def n_action(self):
+        if isinstance(self.action_space, spaces.Discrete):
+            return self.action_space.n
+        else:
+            return None
+
+    @n_action.setter
+    def n_action(self, value):
+        if not value:
+            self.action_space = None
+        elif not isinstance(value, int):
+            raise TypeError('n_action must be an integer')
+        elif isinstance(value, int):
+            self.action_space = value
+
+    def _check_action(self, x):
+        if not isinstance(x, list) and all(isinstance(i, int) for i in x):
+            raise AssertionError("Data must be list of integers.")
+        return True
+    
+    def _check_observation(self, x):
+        if not isinstance(x, list) and all(isinstance(i, int) for i in x):
+            raise AssertionError("Data must be list of integers.")
+        return True
+
+class MultiBinaryObservation(ObservationSpace):
+
+    @property
+    def observation_space(self):
+        return self._observation_space
+
+    @observation_space.setter
+    def observation_space(self, value):
+        if not value:
+            self._observation_space = spaces.MultiBinary
+        elif isinstance(value, spaces.MultiBinary):
+            self._observation_space = value
+        elif isinstance(value, int):
+            self._observation_space = spaces.MultiBinary(value)
+        else:
+            raise TypeError("action_space must be integer or gym.spaces.MultiBinary")
+
+    @observation_space.deleter
+    def observation_space(self):
+        del self._observation_space
+
+    @property
+    def n_obs(self):
+        if isinstance(self.observation_space, spaces.MultiBinary):
+            return self.observation_space.n
+        else:
+            return None
+
+    @n_obs.setter
+    def n_obs(self, value):
+        if not value:
+            self.observation_space = None
+        elif not isinstance(value, int):
+            raise TypeError('n_obs must be an integer')
+        elif isinstance(value, int):
+            self.observation_space = value
+
+    def _check_observation(self, x):
+        if not isinstance(x, list) and all(spaces.MultiBinary(1).contains(i) for i in x):
+            raise AssertionError("Data must be list of MultiBinary.")
+        return True
+
+class BoxAction(ActionSpace):
+
+    @property
+    def action_space(self):
+        return self._action_space
+
+    @action_space.setter
+    def action_space(self, value):
+        if not value:
+            self._action_space = spaces.Box(-10000, 10000, (1,))
+        elif isinstance(value, spaces.Box):
+            self._action_space = value
+        else:
+            raise TypeError("action_space must be gym.spaces.Box")
+
+    @action_space.deleter
+    def action_space(self):
+        del self._action_space
