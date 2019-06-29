@@ -1,5 +1,6 @@
 import sciunit
 from gym import spaces
+from .continous import Continous
 
 ### The Capabilities ###
 
@@ -143,11 +144,6 @@ class DiscreteAction(ActionSpace):
         if not isinstance(x, list) and all(isinstance(i, int) for i in x):
             raise AssertionError("Data must be list of integers.")
         return True
-    
-    def _check_observation(self, x):
-        if not isinstance(x, list) and all(isinstance(i, int) for i in x):
-            raise AssertionError("Data must be list of integers.")
-        return True
 
 class MultiBinaryObservation(ObservationSpace):
 
@@ -191,21 +187,13 @@ class MultiBinaryObservation(ObservationSpace):
             raise AssertionError("Data must be list of MultiBinary.")
         return True
 
-class BoxAction(ActionSpace):
+class ContinousAction(ActionSpace):
 
     @property
     def action_space(self):
-        return self._action_space
+        return Continous() # self._action_space
 
-    @action_space.setter
-    def action_space(self, value):
-        if not value:
-            self._action_space = spaces.Box(-10000, 10000, (1,))
-        elif isinstance(value, spaces.Box):
-            self._action_space = value
-        else:
-            raise TypeError("action_space must be gym.spaces.Box")
-
-    @action_space.deleter
-    def action_space(self):
-        del self._action_space
+    def _check_action(self, x):
+        if not isinstance(x, list) and all(self.action_space.contains(i) for i in x):
+            raise AssertionError("Data must be list of continous.")
+        return True
