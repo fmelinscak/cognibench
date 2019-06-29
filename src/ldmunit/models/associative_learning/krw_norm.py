@@ -3,61 +3,28 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
+from .rw_norm import RwNormModel
 
-# import oct2py
-# from oct2py import Struct
-# import inspect
-# import os
+class KrwNormModel(RwNormModel):
 
-from ...capabilities import Interactive, ContinuousAction, MultibinObsevation
-
-class KrwNormModel(sciunit.Model, Interactive, ContinuousAction, MultibinObsevation):
-    
-    action_space = spaces.Box
-    observation_space = spaces.MultiBinary
-
-    def __init__(self, n_obs, paras=None, name=None):
-        assert isinstance(n_obs, int)
-        self.paras = paras
-        self.name = name
-        self.n_obs = n_obs
-        self.hidden_state = self._set_hidden_state()
-        self.action_space = self._set_action_space()
-        self.observation_space = self._set_observation_space(self.n_obs)
-
-    def _set_hidden_state(self):
-        w0 = 0
-        if 'w0' in self.paras:
-            w0 = self.paras['w0']
-        w0 = np.array(w0) if isinstance(w0, list) else np.full(self.n_obs, w0)
+    def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, **params):
+        return super().__init__(n_obs=n_obs, paras=paras, hidden_state=hidden_state, name=name, **params)
+        
+    def reset(self):
+        w0 = self.paras['w0'] if 'w0' in self.paras else 0
+        w0 = np.array(w0, dtype=np.float64) if isinstance(w0, list) else np.full(self.n_obs, w0, dtype=np.float64)
 
         logSigmaWInit = self.paras['logSigmaWInit']
         C =  np.exp(logSigmaWInit) * np.identity(self.n_obs) # Initial weight covariance matrix
 
         hidden_state = {'w': np.full(self.n_obs, w0),
                         'C': C}
-        return hidden_state
+        self.hidden_state = hidden_state
 
-    def _set_observation_space(self, n_obs):
-        return spaces.MultiBinary(n_obs)
-
-    def _set_action_space(self):
-        return spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
-
-    def reset(self):
-        self.action_space = self._set_action_space()
-        self.observation_space = self._set_observation_space(self.n_obs)
-
-    def predict(self, stimulus):
-        assert self.observation_space.contains(stimulus)
-
-        sd_pred = self.paras['sigma']
-        mu_pred = self.act(stimulus)
-
-        return stats.norm(loc=mu_pred[0], scale=sd_pred).logpdf
-
+    def _get_default_paras(self):
+        return {'w0': 0.1, 'sigma': 0.5, 'b0': 0.5, 'b1': 0.5, 'logSigmaWInit': 0.23, 'logTauSq': 0.32, 'logSigmaRSq': 0.34}
+        
     def update(self, stimulus, reward, action, done):
-        """evolution function"""
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
 
@@ -69,84 +36,22 @@ class KrwNormModel(sciunit.Model, Interactive, ContinuousAction, MultibinObsevat
         w_curr = self.hidden_state['w']
         C_curr = self.hidden_state['C']
 
-        pred_reward = self.act(stimulus)[0]
+        rhat = self._predict_reward(stimulus)
 
-        if not done:
+        if not done:                
             # Kalman prediction step
             w_pred = w_curr # No mean-shift for the weight distribution evolution (only stochastic evolution)
             C_pred = C_curr + Q # Update covariance
 
             # get pred_error
-            pred_err = reward - pred_reward
+            delta = reward - rhat
 
             # Kalman update step
             K = C_pred.dot(stimulus) / (stimulus.dot(C_pred.dot(stimulus)) + sigmaRSq) # (n_obs,)
-            w_updt = w_pred + K * pred_err # Mean updated with prediction error
+            w_updt = w_pred + K * delta # Mean updated with prediction error
             C_updt = C_pred - K * stimulus * C_pred # Covariance updated
 
             self.hidden_state['w'] = w_updt
             self.hidden_state['C'] = C_updt
 
         return w_updt, C_updt
-
-    def act(self, stimulus):
-        """observation function"""
-        assert self.observation_space.contains(stimulus)
-
-        b0 = self.paras['b0'] # intercept
-        b1 = self.paras['b1'] # slope #TODO: add variable slopes
-        
-        w_curr = self.hidden_state['w']
-
-        # Generate reward prediction
-        rhat = np.dot(stimulus, w_curr.T)
-
-        # Predict response
-        mu_pred = b0 + b1 * rhat
-        return np.array([mu_pred])
-
-# class KrwNormOctModel(KrwNormModel):
-    
-#     def update(self, stimulus, reward, action, done):
-#         """observation function"""
-#         assert self.action_space.contains(action)
-#         assert self.observation_space.contains(stimulus)
-
-#         class_path = os.path.dirname(inspect.getfile(type(self))) #TODO: fix this 
-
-#         params = Struct()
-#         params['w'] = self.hidden_state['w']
-#         params['logTauSq'] = self.paras['logTauSq']
-#         params['logSigmaRSq'] = self.paras['logSigmaRSq']
-#         params['C'] = self.hidden_state['C']
-
-#         # Calculate predictions in Octave
-#         with oct2py.Oct2Py() as oc:
-#             oc.addpath(class_path)
-#             result = oc.evo_krw_batch(stimulus, reward, params)
-        
-#         self.hidden_state['w'] = result.w
-#         self.hidden_state['C'] = result.C
-
-#         return result.w, result.C
-    
-#     def act(self, stimulus):
-#         """observation function"""
-#         assert self.observation_space.contains(stimulus)
-
-#         # same as the rw_norm
-#         class_path = os.path.dirname(inspect.getfile(type(self))) #TODO: fix this 
-
-#         params = Struct()
-#         params['slope']     = self.paras['b1'] # slope
-#         params['intercept'] = self.paras['b0'] # intercept
-
-#         results_evo = Struct()
-#         results_evo['w'] = self.hidden_state['w']
-
-#         # Calculate predictions in Octave
-#         with oct2py.Oct2Py() as oc:
-#             oc.addpath(class_path)
-#             result = oc.obs_affine_batch(results_evo, stimulus, params)
-        
-#         return result.crPred

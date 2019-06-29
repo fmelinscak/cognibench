@@ -4,62 +4,51 @@ import gym
 from gym import spaces
 from scipy import stats
 from scipy.stats import beta
+from .base import CAMO
 
-# import oct2py
-# from oct2py import Struct
-# import inspect
-# import os
+class BetaBinomialModel(CAMO):
 
-from ...capabilities import Interactive, ContinuousAction, MultibinObsevation
+    def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, **params):
+        return super().__init__(n_obs=n_obs, paras=paras, hidden_state=hidden_state, name=name, **params)
 
-class BetaBinomialModel(sciunit.Model, Interactive, ContinuousAction, MultibinObsevation):
-
-    action_space = spaces.Box
-    observation_space = spaces.MultiBinary
-
-    def __init__(self, n_obs, paras=None, name=None):
-        self.paras = paras
-        self.name = name
-        self.n_obs = n_obs
-        self.hidden_state = self._set_hidden_state()
-        self.action_space = self._set_action_space()
-        self.observation_space = self._set_observation_space(self.n_obs)
-
-    def _set_hidden_state(self):
-        hidden_state = {'a' : np.ones(self.n_obs),
-                        'b' : np.ones(self.n_obs)}
-        return hidden_state
-
-    def _set_observation_space(self, n_obs):
-        return spaces.MultiBinary(n_obs)
-
-    def _set_action_space(self):
-        return spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
+    def _set_a_b(self):
+        assert isinstance(self.n_obs, int), "observation space must be set"
+        return dict(a=np.ones(self.n_obs, dtype=np.float64), b=np.ones(self.n_obs, dtype=np.float64))
 
     def reset(self):
-        self.action_space = self._set_action_space()
-        self.observation_space = self._set_observation_space(self.n_obs)
+        assert isinstance(self.n_obs, int), "observation space must be set"
+        self.hidden_state = dict()
 
-    def predict(self, stimulus):
+    def observation(self, stimulus):
         assert self.observation_space.contains(stimulus)
         # get model's state
-        a = self.hidden_state['a']
-        b = self.hidden_state['b']
+        if stimulus not in self.hidden_state.keys():
+            self.hidden_state[stimulus] = self._set_a_b()
+        a = self.hidden_state[stimulus]['a']
+        b = self.hidden_state[stimulus]['b']
 
-        logpdf = lambda x: beta.logpdf(x, a=a, b=b)
-        return logpdf
+        rv = beta(a, b)
+        return rv
+
+    def predict(self, stimulus):
+        return self.observation(stimulus).logpdf
+
+    def act(self, stimulus):
+        return self.observation(stimulus).rvs()
 
     def update(self, stimulus, reward, action, done): #TODO: add default value
         assert self.observation_space.contains(stimulus)
         # get model's state
-        a = self.hidden_state['a']
-        b = self.hidden_state['b']
+        if stimulus not in self.hidden_state.keys():
+            self.hidden_state[stimulus] = self._set_a_b()
+        a = self.hidden_state[stimulus]['a']
+        b = self.hidden_state[stimulus]['b']
 
         if not done:
             a += (1 - stimulus) * (1 - reward) + stimulus * reward
             b += (1 - stimulus) * reward + stimulus * (1 - reward)
-            self.hidden_state['a'] = a
-            self.hidden_state['b'] = b
+            self.hidden_state[stimulus]['a'] = a
+            self.hidden_state[stimulus]['b'] = b
 
         return a, b
 
@@ -71,9 +60,10 @@ class BetaBinomialModel(sciunit.Model, Interactive, ContinuousAction, MultibinOb
         b0 = self.paras['b0'] # intercept
         b1 = self.paras['b1'] # slope #TODO: add variable slopes
 
-        # get model's state
-        a = self.hidden_state['a']
-        b = self.hidden_state['b']
+        if stimulus not in self.hidden_state.keys():
+            self.hidden_state[stimulus] = self._set_a_b()
+        a = self.hidden_state[stimulus]['a']
+        b = self.hidden_state[stimulus]['b']
 
         # Generate outcome prediction
         mu      = beta.mean(a, b)

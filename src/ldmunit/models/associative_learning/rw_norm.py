@@ -3,52 +3,51 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
+from .base import CAMO
 
-# import oct2py
-# from oct2py import Struct
-# import inspect
-# import os
+class RwNormModel(CAMO):
 
-from ...capabilities import Interactive, ContinuousAction, MultibinObsevation
-
-class RwNormModel(sciunit.Model, Interactive, ContinuousAction, MultibinObsevation):
-    
-    action_space = spaces.Box
-    observation_space = spaces.MultiBinary
-
-    def __init__(self, n_obs, paras=None, name=None):
-        assert isinstance(n_obs, int)
-        self.paras = paras
-        self.name = name
-        self.n_obs = n_obs
-        self.hidden_state = self._set_hidden_state()
-        self.action_space = self._set_action_space()
-        self.observation_space = self._set_observation_space(self.n_obs)
-
-    def _set_hidden_state(self):
-        w0 = 0
-        if 'w0' in self.paras:
-            w0 = self.paras['w0']
-        hidden_state = {'w': np.full(self.n_obs, w0)}
-        return hidden_state
-
-    def _set_observation_space(self, n_obs):
-        return spaces.MultiBinary(n_obs)
-
-    def _set_action_space(self):
-        return spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
+    def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, **params):
+        return super().__init__(n_obs=n_obs, paras=paras, hidden_state=hidden_state, name=name, **params)
 
     def reset(self):
-        self.action_space = self._set_action_space()
-        self.observation_space = self._set_observation_space(self.n_obs)
+        w0 = self.paras['w0'] if 'w0' in self.paras else 0
+        w0 = np.array(w0, dtype=np.float64) if isinstance(w0, list) else np.full(self.n_obs, w0, dtype=np.float64)
+
+        hidden_state = {'w': w0}
+        self.hidden_state = hidden_state
+
+    def _get_default_paras(self):
+        return {'w0': 0.1, 'alpha': 0.5, 'sigma': 0.5, 'b0': 0.5, 'b1': 0.5}
 
     def predict(self, stimulus):
+        return self.observation(stimulus).logpdf
+
+    def act(self, stimulus):
+        return self.observation(stimulus).rvs()
+
+    def _predict_reward(self, stimulus):
+        assert self.observation_space.contains(stimulus)
+        w_curr = self.hidden_state['w']
+        rhat = np.dot(stimulus, w_curr.T)
+        return rhat
+
+    def observation(self, stimulus):
+        assert isinstance(self.observation_space, spaces.MultiBinary), "observation space must be set first"
+        assert self.hidden_state, "hidden state must be set"
         assert self.observation_space.contains(stimulus)
 
+        b0 = self.paras['b0'] # intercept
+        b1 = self.paras['b1'] # slope
         sd_pred = self.paras['sigma']
-        mu_pred = self.act(stimulus)
+        
+        w_curr = self.hidden_state['w']
 
-        return stats.norm(loc=mu_pred[0], scale=sd_pred).logpdf
+        rhat = self._predict_reward(stimulus)
+
+        # Predict response
+        mu_pred = b0 + b1 * rhat
+        return stats.norm(loc=mu_pred, scale=sd_pred)
 
     def update(self, stimulus, reward, action, done):
         assert self.action_space.contains(action)
@@ -56,70 +55,15 @@ class RwNormModel(sciunit.Model, Interactive, ContinuousAction, MultibinObsevati
 
         alpha  = self.paras['alpha']
         w_curr = self.hidden_state['w']
-        pred_reward = self.act(stimulus)[0]
+
+        rhat = self._predict_reward(stimulus)
 
         if not done:
-            pred_err = reward - pred_reward
+            delta = reward - rhat
 
-            w_curr += alpha * pred_err * stimulus
+            w_curr += alpha * delta * stimulus
 
             self.hidden_state['w'] = w_curr
 
         return w_curr
-    
-    def act(self, stimulus):
-        assert self.observation_space.contains(stimulus)
 
-        b0 = self.paras['b0'] # intercept
-        b1 = self.paras['b1'] # slope #TODO: add variable slopes
-        
-        w_curr = self.hidden_state['w']
-
-        # Generate reward prediction
-        rhat = np.dot(stimulus, w_curr.T)
-
-        # Predict response
-        mu_pred = b0 + b1 * rhat
-        return np.array([mu_pred])
-
-# class RwNormOctModel(RwNormModel):
-    
-#     def update(self, stimulus, reward, action, done):
-#         """observation function"""
-#         assert self.action_space.contains(action)
-#         assert self.observation_space.contains(stimulus)
-
-#         class_path = os.path.dirname(inspect.getfile(type(self))) #TODO: fix this 
-
-#         params = Struct()
-#         params['alpha'] = self.paras['alpha'] # slope
-#         params['wInit'] = self.hidden_state['w']
-
-#         # Calculate predictions in Octave
-#         with oct2py.Oct2Py() as oc:
-#             oc.addpath(class_path)
-#             result = oc.evo_rw_batch(stimulus, reward, params)
-        
-#         self.hidden_state['w'] = result.w
-
-#         return result.w
-    
-#     def act(self, stimulus):
-#         """observation function"""
-#         assert self.observation_space.contains(stimulus)
-
-#         class_path = os.path.dirname(inspect.getfile(type(self))) #TODO: fix this 
-
-#         params = Struct()
-#         params['slope']     = self.paras['b1'] # slope
-#         params['intercept'] = self.paras['b0'] # intercept
-
-#         results_evo = Struct()
-#         results_evo['w'] = self.hidden_state['w']
-
-#         # Calculate predictions in Octave
-#         with oct2py.Oct2Py() as oc:
-#             oc.addpath(class_path)
-#             result = oc.obs_affine_batch(results_evo, stimulus, params)
-        
-#         return result.crPred

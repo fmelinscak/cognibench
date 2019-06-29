@@ -3,50 +3,37 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
+from .base import CAMO
 
-# import oct2py
-# from oct2py import Struct
-# import inspect
-# import os
+class RandomRespondModel(CAMO):
 
-from ...capabilities import Interactive, ContinuousAction, MultibinObsevation
+    def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, **params):
+        return super().__init__(n_obs=n_obs, paras=paras, hidden_state=hidden_state, name=name, **params)
 
-class RandomRespondModel(sciunit.Model, Interactive):
-    
-    action_space = spaces.Box
-    observation_space = spaces.MultiBinary
-
-    def __init__(self, n_obs, paras=None, name=None):
-        assert isinstance(n_obs, int)
-        self.paras = paras
-        self.name = name
-        self.n_obs = n_obs
-        self.hidden_state = self._set_hidden_state()
-        self.action_space = self._set_action_space()
-        self.observation_space = self._set_observation_space(self.n_obs)
-
-    def _set_hidden_state(self):
-        return None
-
-    def _set_observation_space(self, n_obs):
-        return spaces.MultiBinary(n_obs)
-
-    def _set_action_space(self):
-        return spaces.Box(-1000, 1000, shape=(1,), dtype=np.float32)
+    def _get_default_paras(self):
+        return dict(mu=0, sigma=1)
 
     def reset(self):
-        self.action_space = self._set_action_space()
-        self.observation_space = self._set_observation_space(self.n_obs)
+        self.hidden_state = None
+
+    def observation(self, stimulus):
+        assert isinstance(self.observation_space, spaces.MultiBinary), "observation space must be set first"
+        assert self.observation_space.contains(stimulus)
+
+        mu_pred = self.paras['mu']
+        sd_pred = self.paras['sigma']
+
+        return stats.norm(loc=mu_pred, scale=sd_pred)
 
     def predict(self, stimulus):
-        assert self.observation_space.contains(stimulus)
-        pass
+        return self.observation(stimulus).logpdf
+
+    def act(self, stimulus):
+        return self.observation(stimulus).rvs()
 
     def update(self, stimulus, reward, action, done):
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
+
         pass
-    
-    def act(self, stimulus):
-        assert self.observation_space.contains(stimulus)
-        pass
+
