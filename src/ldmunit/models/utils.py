@@ -9,17 +9,10 @@ def loglike(model, stimuli, rewards, actions):
     model.reset()
 
     for s, r, a in zip(stimuli, rewards, actions):
-        # compute choice probabilities
         log_prob = model.predict(s)
-        # probability of the action
         res += log_prob(a)
-        # update choice kernel and Q weights
         model.update(s, r, a, False)
 
-    # fix for shape(1,)
-    if isinstance(res, list) or isinstance(res, np.ndarray):
-        res = res[0]
-    
     return res
 
 def train_with_obs(model, stimuli, rewards, actions, fixed=None):
@@ -43,45 +36,57 @@ def train_with_obs(model, stimuli, rewards, actions, fixed=None):
 
     return opt_results
 
-def simulate(env, model, n_trials, seed=0):
+def _simulate(env, model, n_trials, seed=0):
     """Simulation in a given AI Gym environment."""
     assert isinstance(env, gym.Env)
     assert isinstance(model, sciunit.Model)
-    assert isinstance(n_trials, int)
     
-    # reset the agent state and 
-    model.reset()
-    init_stimulus = env.reset()
+    s_init = env.reset()
 
     actions = []
-    rewards = [] # np.zeros(n_trials, dtype=int)
-    stimuli = [] # np.zeros(n_trials, dtype=int)
+    rewards = []
+    stimuli = []
 
-    # add the first stimulus in the environment
-    stimuli.append(init_stimulus)
-    # stimuli = np.insert(stimuli, 0, init_stimulus, axis=0)
+    stimuli.append(s_init)
 
     for i in range(n_trials):
-        # action based on choice probabilities
-        # actions[i] = model.act(stimuli[i])
         s = stimuli[-1]
         a = model.act(s)
-        actions.append(a)
 
-        # generate reward based on action
-        s_update, r, done, _ = env.step(a)
-        rewards.append(r)
-        stimuli.append(s_update)
+        s_next, r, done, _ = env.step(a)
 
-        # update choice kernel and Q weights
         model.update(s, r, a, done)
-
-    # delete the extra stimulus
-    # stimuli = np.delete(stimuli, n_trials, axis=0)
+        
+        actions.append(a)
+        rewards.append(r)
+        stimuli.append(s_next)
+    
+    print(np.unique(actions, return_counts=True))
 
     env.close()
 
     return stimuli[1:], rewards, actions
+
+def simulate(env, model, n_trials, stage=None, seed=0):
+
+    model.reset()
+
+    actions = []
+    rewards = []
+    stimuli = []
+    tmp = np.linspace(0,n_trials, len(stage)+1, dtype=int)
+    n_trials_list = tmp[1:] - tmp[:-1]    
+    
+    for i in range(len(stage)):
+        a, b = stage[i]
+        env.__init__(a, b)
+        n = n_trials_list[i]
+        s, r, a = simulate(env, model, n, seed)
+        stimuli.extend(s)
+        rewards.extend(r)
+        actions.extend(a)
+
+    return stimuli, rewards, actions
 
 class MultiMeta(type):
     def __new__(cls, name, bases, dct):
