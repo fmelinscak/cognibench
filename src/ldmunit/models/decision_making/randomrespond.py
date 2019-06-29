@@ -18,28 +18,32 @@ class RandomRespondModel(DADO):
         if not (isinstance(self.n_action, int) and isinstance(self.n_obs, int)):
             raise TypeError("action_space and observation_space must be set.")
 
+        self.hidden_state = 1 # no hidden state
+
+    def _get_rv(self, stimulus):
+        assert self.observation_space.contains(stimulus)
         bias        = self.paras['bias']
         action_bias = self.paras['action_bias']
 
-        xk = np.arange(self.n_action)
-        pk = np.full(self.n_action, 1 / self.n_action)
+        n = self.n_action
+        pk = np.full(n, (1 - bias) / (n - 1))
+        pk[action_bias] = bias
+        
+        xk = np.arange(n)
         rv = stats.rv_discrete(values=(xk, pk))
 
-        hidden_state = {'rv': dict([[i, rv] for i in range(self.n_obs)])}
-        self.hidden_state = hidden_state
+        return rv
 
     def predict(self, stimulus):
-        assert self.observation_space.contains(stimulus)
-        rv = self.hidden_state['rv'][stimulus]
-        return rv.logpmf
+        return self._get_rv(stimulus).logpmf
+
+    def act(self, stimulus):
+        return self._get_rv(stimulus).rvs()
 
     def update(self, stimulus, reward, action, done):
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
         pass
 
-    def act(self, stimulus):
-        assert self.observation_space.contains(stimulus)
-        rv = self.hidden_state['rv'][stimulus]
-        return rv.rvs()
+
 

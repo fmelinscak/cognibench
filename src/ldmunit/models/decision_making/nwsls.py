@@ -18,48 +18,38 @@ class NWSLSModel(DADO):
         if not (isinstance(self.n_action, int) and isinstance(self.n_obs, int)):
             raise TypeError("action_space and observation_space must be set.")
 
-        xk = np.arange(self.n_action)
-        pk = np.full(self.n_action, 1 / self.n_action)
-        rv = stats.rv_discrete(values=(xk, pk))
+        hidden_state = dict(win=True, action=np.random.randint(0,self.n_action))
 
-        hidden_state = {'rv': dict([[i, rv] for i in range(self.n_obs)])}
         self.hidden_state = hidden_state
 
-    def predict(self, stimulus):
+    def _get_rv(self, stimulus):
         assert self.observation_space.contains(stimulus)
+        
+        epsilon = self.paras['epsilon']
+        n = self.n_action
 
-        rv = self.hidden_state['rv'][stimulus]
-        return rv.logpmf
+        if self.hidden_state['win']:
+            prob_action = 1 - epsilon / n
+        else:
+            prob_action = epsilon / n
+    
+        pk = np.full(n, (1 - prob_action) / (n - 1))
+        pk[self.hidden_state['action']] = prob_action
 
+        xk = np.arange(n)
+        rv = stats.rv_discrete(name=None, values=(xk, pk))
+
+        return rv
+
+    def predict(self, stimulus):
+        return self._get_rv(stimulus).logpmf
+
+    def act(self, stimulus):
+        return self._get_rv(stimulus).rvs()
+        
     def update(self, stimulus, reward, action, done):
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
 
-        rv = self.hidden_state['rv'][stimulus]
-        epsilon = self.paras['epsilon']
-        n = self.n_action
-
-        if not done:
-            if reward == 1:
-                # win stays
-                prob_action = 1 - epsilon / n
-                prob_others = (1 - prob_action) / (n - 1)
-                pk = np.full(n, prob_others)
-                pk[action] = prob_action
-            else:
-                # lose shift
-                prob_action = epsilon / n
-                prob_others = (1 - prob_action) / (n - 1)
-                pk = np.full(n, prob_others)
-                pk[action] = prob_action
-
-        # update probability for this stimulus
-        rv.pk = pk
-
-        return pk
-
-    def act(self, stimulus):
-        assert self.observation_space.contains(stimulus)
-        rv = self.hidden_state['rv'][stimulus]
-        return rv.rvs()
-
+        self.hidden_state['win'] = reward == 1
+        self.hidden_state['action'] = action

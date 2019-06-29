@@ -49,15 +49,4 @@ class DADO(sciunit.Model, DiscreteAction, DiscreteObservation):
 
     def _get_default_paras(self):
         raise NotImplementedError("Must implement _get_default_paras.")
-        
-    def reset(self):
-        raise NotImplementedError("Must implement reset.")
 
-    def predict(self):
-        raise NotImplementedError("Must implement predict.")
-
-    def update(self):
-        raise NotImplementedError("Must implement update.")
-
-    def act(self):
-        raise NotImplementedError("Must implement act.")

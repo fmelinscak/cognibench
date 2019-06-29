@@ -2,11 +2,9 @@ import sciunit
 import numpy as np
 from gym import spaces
 from scipy import stats
+from scipy.special import softmax
 
 from .base import DADO
-
-def softmax(x, beta):
-    return np.exp(x * beta) / np.sum(np.exp(x * beta), axis=0)
 
 class RWCKModel(DADO):
     """Rescorla Wagner Choice kernel Model for discrete decision marking."""
@@ -23,33 +21,29 @@ class RWCKModel(DADO):
 
         w0 = self.paras['w0']  
 
-        # set rv_discrete for each stimulus/cue/observation
-        xk = np.arange(self.n_action)
-        pk = np.full(self.n_action, 1 / self.n_action)
-        rv = stats.rv_discrete(name=self.name, values=(xk, pk))
-
         hidden_state = {'CK': dict([[i, np.zeros(self.n_action)]    for i in range(self.n_obs)]),
-                        'Q' : dict([[i, np.full(self.n_action, w0)] for i in range(self.n_obs)]),
-                        'rv': dict([[i, rv]                         for i in range(self.n_obs)])}
+                        'Q' : dict([[i, np.full(self.n_action, w0)] for i in range(self.n_obs)])}
         self.hidden_state = hidden_state
 
-    def predict(self, stimulus):
+    def _get_rv(self, stimulus):
         assert self.observation_space.contains(stimulus)
-        # get model's state
         CK, Q = self.hidden_state['CK'][stimulus], self.hidden_state['Q'][stimulus]
-        rv = self.hidden_state['rv'][stimulus]
-        
-        # unpack parameters
+
         beta   = self.paras['beta']
-        beta_c = self.paras['beta_c' ]
-
+        beta_c = self.paras['beta_c']
         V = beta * Q + beta_c * CK
-        pk = softmax(V, 1)
 
-        # update pk
-        rv.pk = pk
-        
-        return rv.logpmf
+        xk = np.arange(self.n_action)
+        pk = softmax(V)
+        rv = stats.rv_discrete(values=(xk, pk))
+
+        return rv
+
+    def predict(self, stimulus):
+        return self._get_rv(stimulus).logpmf
+
+    def act(self, stimulus):
+        return self._get_rv(stimulus).rvs()
 
     def update(self, stimulus, reward, action, done): #TODO: add default value
         assert self.action_space.contains(action)
@@ -75,10 +69,6 @@ class RWCKModel(DADO):
             self.hidden_state['Q' ][stimulus] = Q
 
         return CK, Q
-
-    def act(self, stimulus):
-        rv = self.hidden_state['rv'][stimulus]
-        return rv.rvs()
 
 class RWModel(RWCKModel):
     """Rescorla Wagner Model for discrete decision marking."""
