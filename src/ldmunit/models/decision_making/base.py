@@ -15,17 +15,21 @@ class DADO(sciunit.Model, DiscreteAction, DiscreteObservation):
 
     @property
     def hidden_state(self):
+        if self.n_obs and not self._hidden_state:
+            self.reset()
         return self._hidden_state
 
     @hidden_state.setter
     def hidden_state(self, value):
-        if not value:
-            try:
-                self.reset()
-            except TypeError:
-                self._hidden_state = None
-        else:
-            self._hidden_state = value
+        self._hidden_state = value
+    # def hidden_state(self, value):
+    #     if not value:
+    #         try:
+    #             self.reset()
+    #         except TypeError:
+    #             self._hidden_state = None
+    #     else:
+    #         self._hidden_state = value
 
     def set_space_from_data(self, stimuli, actions):
         assert self._check_observation(stimuli) and self._check_action(actions)

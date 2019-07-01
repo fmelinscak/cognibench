@@ -37,7 +37,6 @@ def train_with_obs(model, stimuli, rewards, actions, fixed=None):
     return opt_results
 
 def _simulate(env, model, n_trials, seed=0):
-    """Simulation in a given AI Gym environment."""
     assert isinstance(env, gym.Env)
     assert isinstance(model, sciunit.Model)
     
@@ -61,30 +60,32 @@ def _simulate(env, model, n_trials, seed=0):
         rewards.append(r)
         stimuli.append(s_next)
     
-    print(np.unique(actions, return_counts=True))
-
     env.close()
 
     return stimuli[1:], rewards, actions
 
-def simulate(env, model, n_trials, stage=None, seed=0):
-
+def simulate(env, model, n_trials, seed=0):
+    """Simulation in a given AI Gym environment."""
     model.reset()
 
-    actions = []
-    rewards = []
-    stimuli = []
-    tmp = np.linspace(0,n_trials, len(stage)+1, dtype=int)
-    n_trials_list = tmp[1:] - tmp[:-1]    
+    if isinstance(env, list):
+        actions = []
+        rewards = []
+        stimuli = []
+        tmp = np.linspace(0,n_trials, len(env)+1, dtype=int)
+        n_trials_list = tmp[1:] - tmp[:-1]
+        for i in range(len(env)):
+            n = n_trials_list[i]
+            assert env[i].n_bandits == model.n_obs, "bandits len must be the same as the model.n_obs"
+            s, r, a = simulate(env[i], model, n, seed)
+            stimuli.extend(s)
+            rewards.extend(r)
+            actions.extend(a)
+    else:
+        assert env.n_bandits == model.n_obs, "bandits len must be the same as the model.n_obs"
+        stimuli, rewards, actions = _simulate(env, model, n_trials)
     
-    for i in range(len(stage)):
-        a, b = stage[i]
-        env.__init__(a, b)
-        n = n_trials_list[i]
-        s, r, a = simulate(env, model, n, seed)
-        stimuli.extend(s)
-        rewards.extend(r)
-        actions.extend(a)
+
 
     return stimuli, rewards, actions
 

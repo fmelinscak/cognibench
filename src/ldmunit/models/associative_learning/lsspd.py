@@ -22,6 +22,9 @@ class LSSPDModel(RwNormModel):
 
         self.hidden_state = hidden_state
 
+    def _get_default_paras(self):
+        return {'w0': 0.1, 'alpha': 0.5, 'b0': 0.5, 'b1': 0.5, 'mix_coef': 1, 'eta': 0.3, 'kappa': 0.4}
+
     def observation(self, stimulus):
         assert isinstance(self.observation_space, spaces.MultiBinary), "observation space must be set first"
         assert self.observation_space.contains(stimulus)
