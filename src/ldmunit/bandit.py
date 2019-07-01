@@ -52,8 +52,8 @@ class BanditEnv(gym.Env):
     def render(self, mode='human', close=False):
         pass
 
-class BanditAssociateEnv(BanditEnv):
-    def __init__(self, p_dist, r_dist, info={}):
+class BanditAssociateEnv(gym.Env):
+    def __init__(self, p_dist, info={}):
 
         if min(p_dist) < 0 or max(p_dist) > 1:
             raise ValueError("All probabilities must be between 0 and 1")
@@ -63,7 +63,7 @@ class BanditAssociateEnv(BanditEnv):
 
         self.n_bandits = len(p_dist)
         self.observation_space = spaces.MultiBinary(self.n_bandits)
-        self.action_space = Continous
+        self.action_space = Continous()
 
         self.seed()
 
