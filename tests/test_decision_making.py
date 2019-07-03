@@ -12,6 +12,15 @@ class Test_RWCKModel(unittest.TestCase):
         paras = {'w0': 0.1, 'alpha': 0.5, 'alpha_c': 0.5, 'beta': 0.5, 'beta_c': 0.5}
         self.model = decision_making.RWCKModel(3, 3, paras=paras)
 
+    def test_empty_init(self):
+        self.model = decision_making.RWCKModel()
+        self.assertIsNone(self.model.paras)
+        self.assertIs(self.model.action_space, spaces.Discrete)
+        self.assertIs(self.model.observation_space, spaces.Discrete)
+        self.assertIsNone(self.model.n_action)
+        self.assertIsNone(self.model.n_obs)
+        self.setUp()
+
     def test_action_space(self):
         self.assertEqual(self.model.action_space, spaces.Discrete(3))
 
@@ -45,6 +54,14 @@ class Test_NWSLSModel(unittest.TestCase):
         paras = {'epsilon': 0.5}
         self.model = decision_making.NWSLSModel(3, 3, paras=paras)
 
+    def test_empty_init(self):
+        self.model = decision_making.NWSLSModel()
+        self.assertIsNone(self.model.paras)
+        self.assertIs(self.model.action_space, spaces.Discrete)
+        self.assertIs(self.model.observation_space, spaces.Discrete)
+        self.assertIsNone(self.model.n_action)
+        self.assertIsNone(self.model.n_obs)
+        self.setUp()
     def test_action_space(self):
         self.assertEqual(self.model.action_space, spaces.Discrete(3))
 
@@ -75,6 +92,14 @@ class Test_RandomRespondModel(unittest.TestCase):
         paras = {'bias': 0.5, 'action_bias': 1}
         self.model = decision_making.RandomRespondModel(3, 3, paras=paras)
 
+    def test_empty_init(self):
+        self.model = decision_making.RandomRespondModel()
+        self.assertIsNone(self.model.paras)
+        self.assertIs(self.model.action_space, spaces.Discrete)
+        self.assertIs(self.model.observation_space, spaces.Discrete)
+        self.assertIsNone(self.model.n_action)
+        self.assertIsNone(self.model.n_obs)
+        self.setUp()
     def test_action_space(self):
         self.assertEqual(self.model.action_space, spaces.Discrete(3))
 
