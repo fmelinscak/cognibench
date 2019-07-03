@@ -26,4 +26,4 @@ class Continous(gym.Space):
         return "Continous"
 
     def __eq__(self, other):
-        return isinstance(other, Continous) and self == other
+        return isinstance(other, Continous)
