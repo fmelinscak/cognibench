@@ -22,17 +22,16 @@ class LSSPDModel(RwNormModel):
 
         self.hidden_state = hidden_state
 
-    def _get_default_paras(self):
-        return {'w0': 0.1, 'alpha': 0.5, 'b0': 0.5, 'b1': 0.5, 'mix_coef': 1, 'eta': 0.3, 'kappa': 0.4}
-
-    def observation(self, stimulus):
+    def observation(self, stimulus, paras=None):
+        if not paras:
+            paras = self.paras
         assert isinstance(self.observation_space, spaces.MultiBinary), "observation space must be set first"
         assert self.observation_space.contains(stimulus)
 
-        b0 = self.paras['b0'] # intercept
-        b1 = self.paras['b1'] # slope
-        sd_pred = self.paras['sigma']
-        mix_coef = self.paras['mix_coef'] # proportion of the weights signal in the mixture of weight and associability signals
+        b0 = paras['b0'] # intercept
+        b1 = paras['b1'] # slope
+        sd_pred = paras['sigma']
+        mix_coef = paras['mix_coef'] # proportion of the weights signal in the mixture of weight and associability signals
         
         w_curr = self.hidden_state['w']
         alpha  = self.hidden_state['alpha']
@@ -40,20 +39,25 @@ class LSSPDModel(RwNormModel):
         # Predict response
         mu_pred = b0 + b1 * np.dot(stimulus, (mix_coef * w_curr + (1 - mix_coef) * alpha))
 
-        return stats.norm(loc=mu_pred, scale=sd_pred)
+        rv = stats.norm(loc=mu_pred, scale=sd_pred)
+        if self.seed:
+            rv.random_state = self.seed
 
-    def update(self, stimulus, reward, action, done):
-        """evolution function"""
+        return rv
+        
+    def update(self, stimulus, reward, action, done, paras=None):
+        if not paras:
+            paras = self.paras
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
 
-        eta   = self.paras['eta'] # Proportion of pred. error. in the updated associability value
-        kappa = self.paras['kappa'] # Fixed learning rate for the cue weight update
+        eta   = paras['eta'] # Proportion of pred. error. in the updated associability value
+        kappa = paras['kappa'] # Fixed learning rate for the cue weight update
         
         w_curr = self.hidden_state['w']
         alpha  = self.hidden_state['alpha']
 
-        rhat = self._predict_reward(stimulus)
+        rhat = self._predict_reward(stimulus, paras=paras)
 
 
         if not done:

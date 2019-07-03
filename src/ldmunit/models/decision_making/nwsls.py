@@ -8,13 +8,10 @@ from .base import DADO
 class NWSLSModel(DADO):
     """Noisy-win-stay-lose-shift model"""
 
-    def __init__(self, n_action=None, n_obs=None, paras=None, hidden_state=None, name=None, **params):
-        return super().__init__(n_action=n_action, n_obs=n_obs, paras=paras, hidden_state=hidden_state, name=name, **params)
-
-    def _get_default_paras(self):
-        return {'epsilon': 0.5}
-
-    def reset(self):
+    def __init__(self, n_action=None, n_obs=None, paras=None, hidden_state=None, seed=None, name=None, **params):
+        return super().__init__(n_action=n_action, n_obs=n_obs, paras=paras, hidden_state=hidden_state, seed=seed, name=name, **params)
+        
+    def reset(self, paras=None):
         if not (isinstance(self.n_action, int) and isinstance(self.n_obs, int)):
             raise TypeError("action_space and observation_space must be set.")
 
@@ -22,10 +19,13 @@ class NWSLSModel(DADO):
 
         self.hidden_state = hidden_state
 
-    def _get_rv(self, stimulus):
+    def _get_rv(self, stimulus, paras=None):
         assert self.observation_space.contains(stimulus)
+
+        if not paras:
+            paras = self.paras
         
-        epsilon = self.paras['epsilon']
+        epsilon = paras['epsilon']
         n = self.n_action
 
         if self.hidden_state['win']:
@@ -47,7 +47,7 @@ class NWSLSModel(DADO):
     def act(self, stimulus):
         return self._get_rv(stimulus).rvs()
         
-    def update(self, stimulus, reward, action, done):
+    def update(self, stimulus, reward, action, done, paras=None):
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
 

@@ -1,17 +1,28 @@
 import sciunit
 from gym import spaces
 import numpy as np
+from gym.utils import seeding
 from ...capabilities import Interactive, MultiBinaryObservation, ContinousAction
 from ...continous import Continous
 
 class CAMO(sciunit.Model, MultiBinaryObservation, ContinousAction):
 
-    def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, **params):
+    def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, seed=None, **params):
         self.n_obs = n_obs
         self.paras = paras
         self.hidden_state = hidden_state
+        self.seed = seed
         return super().__init__(n_obs=n_obs, paras=paras,
-                                hidden_state=hidden_state, name=name, **params)
+                                hidden_state=hidden_state, name=name, seed=seed, **params)
+    @property
+    def seed(self):
+        return self._np_random
+
+    @seed.setter
+    def seed(self, value):
+        if not value:
+            self._np_random = None
+        self._np_random, seed = seeding.np_random(value)
 
     @property
     def hidden_state(self):
@@ -36,13 +47,7 @@ class CAMO(sciunit.Model, MultiBinaryObservation, ContinousAction):
 
     @paras.setter
     def paras(self, value):
-        if not value:
-            self._paras = self._get_default_paras()
-        elif not isinstance(value, dict):
+        if not isinstance(value, dict) and value:
             raise TypeError("paras must be of dict type")
         else:
             self._paras = value
-
-    def _get_default_paras(self):
-        raise NotImplementedError("Must implement _get_default_paras.")
-

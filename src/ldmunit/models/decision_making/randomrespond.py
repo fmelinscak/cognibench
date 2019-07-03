@@ -8,22 +8,21 @@ from .base import DADO
 class RandomRespondModel(DADO):
     """Random respond for discrete decision marking."""
 
-    def __init__(self, n_action=None, n_obs=None, paras=None, hidden_state=None, name=None, **params):
-        return super().__init__(n_action=n_action, n_obs=n_obs, paras=paras, hidden_state=hidden_state, name=name, **params)
-
-    def _get_default_paras(self):
-        return {'bias': 0.5, 'action_bias': 1}
-
+    def __init__(self, n_action=None, n_obs=None, paras=None, hidden_state=None, seed=None, name=None, **params):
+        return super().__init__(n_action=n_action, n_obs=n_obs, paras=paras, hidden_state=hidden_state, seed=seed, name=name, **params)
+        
     def reset(self):
         if not (isinstance(self.n_action, int) and isinstance(self.n_obs, int)):
             raise TypeError("action_space and observation_space must be set.")
 
-        self.hidden_state = 1 # no hidden state
+        self.hidden_state = None
 
-    def _get_rv(self, stimulus):
+    def _get_rv(self, stimulus, paras=None):
         assert self.observation_space.contains(stimulus)
-        bias        = self.paras['bias']
-        action_bias = self.paras['action_bias']
+        if not paras:
+            paras = self.paras
+        bias        = paras['bias']
+        action_bias = paras['action_bias']
 
         n = self.n_action
         pk = np.full(n, (1 - bias) / (n - 1))
@@ -31,6 +30,8 @@ class RandomRespondModel(DADO):
         
         xk = np.arange(n)
         rv = stats.rv_discrete(values=(xk, pk))
+        if self.seed:
+            rv.random_state = self.seed
 
         return rv
 

@@ -7,14 +7,16 @@ from .rw_norm import RwNormModel
 
 class KrwNormModel(RwNormModel):
 
-    def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, **params):
-        return super().__init__(n_obs=n_obs, paras=paras, hidden_state=hidden_state, name=name, **params)
-        
-    def reset(self):
-        w0 = self.paras['w0'] if 'w0' in self.paras else 0
+    def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, seed=None, **params):
+        return super().__init__(n_obs=n_obs, paras=paras, hidden_state=hidden_state, name=name, seed=seed, **params)
+            
+    def reset(self, paras=None):
+        if not paras:
+            paras = self.paras
+        w0 = paras['w0'] if 'w0' in self.paras else 0
         w0 = np.array(w0, dtype=np.float64) if isinstance(w0, list) else np.full(self.n_obs, w0, dtype=np.float64)
 
-        logSigmaWInit = self.paras['logSigmaWInit']
+        logSigmaWInit = paras['logSigmaWInit']
         C =  np.exp(logSigmaWInit) * np.identity(self.n_obs) # Initial weight covariance matrix
 
         hidden_state = {'w': np.full(self.n_obs, w0),
@@ -24,13 +26,15 @@ class KrwNormModel(RwNormModel):
     def _get_default_paras(self):
         return {'w0': 0.1, 'sigma': 0.5, 'b0': 0.5, 'b1': 0.5, 'logSigmaWInit': 0.23, 'logTauSq': 0.32, 'logSigmaRSq': 0.34}
         
-    def update(self, stimulus, reward, action, done):
+    def update(self, stimulus, reward, action, done, paras=None):
+        if not paras:
+            paras = self.paras
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
 
-        tauSq = np.exp(self.paras['logTauSq']) # State diffusion variance
+        tauSq = np.exp(paras['logTauSq']) # State diffusion variance
         Q = tauSq * np.identity(self.n_obs) # Transition noise variance (transformed to positive reals); constant over time
-        sigmaRSq = np.exp(self.paras['logSigmaRSq'])
+        sigmaRSq = np.exp(paras['logSigmaRSq'])
 
         
         w_curr = self.hidden_state['w']
