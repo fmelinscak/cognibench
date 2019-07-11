@@ -5,7 +5,7 @@ from gym.utils import seeding
 from ...capabilities import Interactive, MultiBinaryObservation, ContinousAction
 from ...continous import Continous
 
-class CAMO(sciunit.Model, MultiBinaryObservation, ContinousAction):
+class CAMO(sciunit.Model, MultiBinaryObservation, ContinousAction, Interactive):
 
     def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, seed=None, **params):
         self.n_obs = n_obs

@@ -6,6 +6,7 @@ from scipy import stats
 from .base import CAMO
 
 class RandomRespondModel(CAMO):
+    name = 'RandomRespond'
 
     def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, seed=None, **params):
         return super().__init__(n_obs=n_obs, paras=paras, hidden_state=hidden_state, name=name, seed=seed, **params)

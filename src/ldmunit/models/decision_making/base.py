@@ -4,7 +4,7 @@ from gym.utils import seeding
 import numpy as np
 from ...capabilities import Interactive, DiscreteAction, DiscreteObservation
 
-class DADO(sciunit.Model, DiscreteAction, DiscreteObservation):
+class DADO(sciunit.Model, DiscreteAction, DiscreteObservation, Interactive):
 
     def __init__(self, n_action=None, n_obs=None, paras=None, hidden_state=None, seed=None, name=None, **params):
         self.n_action = n_action
@@ -41,6 +41,8 @@ class DADO(sciunit.Model, DiscreteAction, DiscreteObservation):
             raise AssertionError('stimuli and actions must be of the same length.')
         self.action_space = len(np.unique(actions))
         self.observation_space = len(np.unique(stimuli))
+        print('action_space set to {}'.format(self.action_space))
+        print('observation_space set to {}'.format(self.observation_space))
 
     @property
     def paras(self):

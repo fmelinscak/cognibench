@@ -8,6 +8,7 @@ from .base import DADO
 
 class RWCKModel(DADO):
     """Rescorla Wagner Choice kernel Model for discrete decision marking."""
+    name = "RWCKModel"
 
     def __init__(self, n_action=None, n_obs=None, paras=None, hidden_state=None, seed=None, name=None, **params):
         return super().__init__(n_action=n_action, n_obs=n_obs, paras=paras, hidden_state=hidden_state, seed=seed, name=name, **params)
@@ -43,11 +44,11 @@ class RWCKModel(DADO):
 
         return rv
 
-    def predict(self, stimulus):
-        return self._get_rv(stimulus).logpmf
+    def predict(self, stimulus, paras=None):
+        return self._get_rv(stimulus, paras=paras).logpmf
 
-    def act(self, stimulus):
-        return self._get_rv(stimulus).rvs()
+    def act(self, stimulus, paras=None):
+        return self._get_rv(stimulus, paras=paras).rvs()
 
     def update(self, stimulus, reward, action, done, paras=None):
         assert self.action_space.contains(action)
@@ -78,12 +79,15 @@ class RWCKModel(DADO):
 
 class RWModel(RWCKModel):
     """Rescorla Wagner Model for discrete decision marking."""
+    name = "RWModel"
+    
     def __init__(self, n_action=None, n_obs=None, paras=None, hidden_state=None, seed=None, name=None, **params):
         self.paras.update({'beta_c': 0})
         return super().__init__(n_action=n_action, n_obs=n_obs, paras=paras, hidden_state=hidden_state, seed=seed, name=name, **params)
 
 class CKModel(RWCKModel):
     """Choice kernel Model for discrete decision marking."""
+    name = "CKModel"
 
     def __init__(self, n_action=None, n_obs=None, paras=None, hidden_state=None, seed=None, name=None, **params):
         self.paras.update({'beta': 0})

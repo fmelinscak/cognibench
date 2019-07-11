@@ -7,6 +7,7 @@ from .base import DADO
 
 class NWSLSModel(DADO):
     """Noisy-win-stay-lose-shift model"""
+    name = 'NWSLSModel'
 
     def __init__(self, n_action=None, n_obs=None, paras=None, hidden_state=None, seed=None, name=None, **params):
         return super().__init__(n_action=n_action, n_obs=n_obs, paras=paras, hidden_state=hidden_state, seed=seed, name=name, **params)
@@ -38,14 +39,16 @@ class NWSLSModel(DADO):
 
         xk = np.arange(n)
         rv = stats.rv_discrete(name=None, values=(xk, pk))
+        if self.seed:
+            rv.random_state = self.seed
 
         return rv
 
-    def predict(self, stimulus):
-        return self._get_rv(stimulus).logpmf
+    def predict(self, stimulus, paras=None):
+        return self._get_rv(stimulus, paras=paras).logpmf
 
-    def act(self, stimulus):
-        return self._get_rv(stimulus).rvs()
+    def act(self, stimulus, paras=None):
+        return self._get_rv(stimulus, paras=paras).rvs()
         
     def update(self, stimulus, reward, action, done, paras=None):
         assert self.action_space.contains(action)
