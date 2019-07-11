@@ -6,25 +6,10 @@ from .continous import Continous
 
 
 class Interactive(sciunit.Capability):
-    """
-    Description:
-        Requires models to respound to the environment in a interactive manner.
+    """Capability to interact with a environment (i.e. gym.Env)
 
-    For decision making cases, the model is init with the number of actions and
-    number of observation.
-    For associate learning models, the model is initialized with number of 
-    observation.
-
-
-    Observation:
-        Cue/stimulus in other setting or literature. 
-        Type: defined in each model.
-        
-    Actions:
-        Type: defined in each model.
-        
-    Reward:
-        In the decision making model setting, reward is 1 when correct action is chosen.
+    Models with this capability are required to have the following method to be 
+    able to respound and update itself in a interactive manner.
     """
 
     def predict(self):
@@ -52,19 +37,40 @@ class Interactive(sciunit.Capability):
         raise NotImplementedError("Must implement act")
 
 class ActionSpace(sciunit.Capability):
+    """Capability to understand action in a given space (gym.spaces).
+    """
+
     @property
     def action_space(self):
+        """gym.spaces: Models only understand action in this space."""
         raise NotImplementedError("Must have action_space attribute.")
 
 class ObservationSpace(sciunit.Capability):
+    """Capability to understand action in a given space (gym.spaces).
+    """
+
     @property
     def observation_space(self):
+        """gym.spaces: Models only understand observation/stimulus in this space."""
         raise NotImplementedError("Must have observation_space attribute.")
 
 class DiscreteObservation(ObservationSpace):
+    """Capability to understand observation/stimulus/cues in a given discrete space (gym.spaces.Discrete).
+    """
 
     @property
     def observation_space(self):
+        """gym.spaces.Discrete: Models only understand observation in the gym.spaces.Discrete set.
+        
+        observation_space.setter
+
+        Parameters
+        ----------
+        value : None, int, gym.spaces.Discrete
+            observation_space set to class gym.spaces.Discrete when passed None 
+            (default). With a int or an instance of gym.spaces.Discrete, observation_space 
+            will be set to the gym.spaces.Discrete accordingly.
+        """
         return self._observation_space
 
     @observation_space.setter
@@ -84,6 +90,19 @@ class DiscreteObservation(ObservationSpace):
 
     @property
     def n_obs(self):
+        """int: Models only understand discrete observation up to n_obs.
+
+        Return observation_space.n when observation_space present, None otherwise.
+        
+        n_obs.setter
+
+        Parameters
+        ----------
+        value : None, int
+            set the observation_space to gym.spaces.Discrete when passed None 
+            (default). With a int, the model's observation_space will be set 
+            accordingly.
+        """
         if isinstance(self.observation_space, spaces.Discrete):
             return self.observation_space.n
         else:
@@ -99,14 +118,29 @@ class DiscreteObservation(ObservationSpace):
             self.observation_space = value
 
     def _check_observation(self, x):
+        """Check whether given value is a valid observation.
+        """
         if not isinstance(x, list) and all(isinstance(i, int) for i in x):
             raise AssertionError("Data must be list of integers.")
         return True
 
 class DiscreteAction(ActionSpace):
+    """Capability to understand action in a given discrete space (gym.spaces.Discrete).
+    """
 
     @property
     def action_space(self):
+        """gym.spaces.Discrete: Models only understand action in the gym.spaces.Discrete set.
+        
+        observation_space.setter
+
+        Parameters
+        ----------
+        value : None, int, gym.spaces.Discrete
+            observation_space set to class gym.spaces.Discrete when passed None 
+            (default). With a int or an instance of gym.spaces.Discrete, observation_space 
+            will be set to the gym.spaces.Discrete accordingly.
+        """
         return self._action_space
 
     @action_space.setter
@@ -126,6 +160,19 @@ class DiscreteAction(ActionSpace):
 
     @property
     def n_action(self):
+        """int: Models only understand discrete actions up to n_action.
+
+        Return action_space.n when action_space present, None otherwise.
+        
+        n_action.setter
+
+        Parameters
+        ----------
+        value : None, int
+            set the action_space to gym.spaces.Discrete when passed None 
+            (default). With a int, the model's action_space will be set 
+            accordingly.
+        """
         if isinstance(self.action_space, spaces.Discrete):
             return self.action_space.n
         else:
@@ -141,14 +188,35 @@ class DiscreteAction(ActionSpace):
             self.action_space = value
 
     def _check_action(self, x):
+        """Check whether given value is a valid action.
+        """
         if not isinstance(x, list) and all(isinstance(i, int) for i in x):
             raise AssertionError("Data must be list of integers.")
         return True
 
 class MultiBinaryObservation(ObservationSpace):
+    """Capability to under action in a given multi-binary space (gym.spaces.MultiBinary).
+    """
 
     @property
     def observation_space(self):
+        """gym.spaces.MultiBinary: Models only understand observation/stimulus in the gym.spaces.MultiBinary set.
+
+        Example
+        -------
+        observation_space = gym.spaces.MultiBinary(4)
+        Model can only understand observation set in this space. 
+        (e.g. np.array([0,1,0,1]))
+        
+        observation_space.setter
+
+        Parameters
+        ----------
+        value : None, int, gym.spaces.MultiBinary
+            observation_space set to class gym.spaces.MultiBinary when passed None 
+            (default). With a int or an instance of gym.spaces.MultiBinary, observation_space 
+            will be set to the gym.spaces.MultiBinary accordingly.
+        """
         return self._observation_space
 
     @observation_space.setter
@@ -168,6 +236,19 @@ class MultiBinaryObservation(ObservationSpace):
 
     @property
     def n_obs(self):
+        """int: Models only understand n_obs observation in a gym.spaces.MultiBinary space.
+
+        Return observation_space.n when observation_space present, None otherwise.
+        
+        n_obs.setter
+
+        Parameters
+        ----------
+        value : None, int
+            set the observation_space to gym.spaces.MultiBinary when passed None 
+            (default). With a int, the model's observation_space will be set 
+            accordingly.
+        """
         if isinstance(self.observation_space, spaces.MultiBinary):
             return self.observation_space.n
         else:
@@ -183,17 +264,23 @@ class MultiBinaryObservation(ObservationSpace):
             self.observation_space = value
 
     def _check_observation(self, x):
+        """Check whether given value is a valid obeservation.
+        """
         if not isinstance(x, list) and all(spaces.MultiBinary(1).contains(i) for i in x):
             raise AssertionError("Data must be list of MultiBinary.")
         return True
 
 class ContinousAction(ActionSpace):
+    """Capability to under continous actions  (i.e. R^1 in continous).
+    """
 
     @property
     def action_space(self):
-        return Continous() # self._action_space
+        return Continous()
 
     def _check_action(self, x):
+        """Check whether given value is a valid action.
+        """
         if not isinstance(x, list) and all(self.action_space.contains(i) for i in x):
             raise AssertionError("Data must be list of continous.")
         return True
