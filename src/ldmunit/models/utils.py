@@ -15,33 +15,37 @@ def loglike(model, stimuli, rewards, actions):
 
     return res
 
-def train_with_obs(model, stimuli, rewards, actions, fixed=None):
+def train_with_obs(model, stimuli, rewards, actions, paras_x0):
 
     if not model.hidden_state:
         model.set_space_from_data(stimuli, actions)
         model.reset()
 
-    if not model.paras:
-        model.paras = model._get_default_paras()
-    
-    if fixed:
-        model.paras.update(fixed)
-        
-    x0 = list(model.paras.values())
+    bounds = []
+    x0 = []
 
+    for k, v in paras_x0.items():
+        assert k in model.paras, "Supplied parameter is not in the model's parameters' list"
+        bounds.append(v)
+        lb, ub = v
+        start = np.random.uniform(lb, ub)
+        x0.append(start)
+        # model.paras[k] = start
+    
     def objective_func(x0):
+        model.paras.update(dict(zip(paras_x0.keys(), [0.12])))
         return - loglike(model, stimuli, rewards, actions)
 
-    opt_results = minimize(fun=objective_func, x0=x0) 
+    opt_results = minimize(fun=objective_func, x0=x0, bounds=bounds, method='L-BFGS-B')
 
     return opt_results
 
-def _simulate(env, model, n_trials, seed=0):
+def simulate_single_env_single_model(env, model, n_trials, seed=0):
     assert isinstance(env, gym.Env)
     assert isinstance(model, sciunit.Model)
     
     s_init = env.reset()
-
+    env.seed(seed)
     actions = []
     rewards = []
     stimuli = []
@@ -64,7 +68,7 @@ def _simulate(env, model, n_trials, seed=0):
 
     return stimuli[1:], rewards, actions
 
-def simulate(env, model, n_trials, seed=0):
+def simulate_multi_env_single_model(env, model, n_trials, seed=0):
     """Simulation in a given AI Gym environment."""
     model.reset()
 
@@ -76,16 +80,33 @@ def simulate(env, model, n_trials, seed=0):
         n_trials_list = tmp[1:] - tmp[:-1]
         for i in range(len(env)):
             n = n_trials_list[i]
-            assert env[i].n_bandits == model.n_obs, "bandits len must be the same as the model.n_obs"
-            s, r, a = simulate(env[i], model, n, seed)
+            assert env[i].observation_space == model.observation_space, "Observation space must be the same between environment and the model"
+            assert env[i].action_space == model.action_space, "Action space must be the same between environment and the model"
+            s, r, a = simulate_single_env_single_model(env[i], model, n, seed)
             stimuli.extend(s)
             rewards.extend(r)
             actions.extend(a)
     else:
-        assert env.n_bandits == model.n_obs, "bandits len must be the same as the model.n_obs"
-        stimuli, rewards, actions = _simulate(env, model, n_trials)
+        assert env.observation_space == model.observation_space, "Observation space must be the same between environment and the model"
+        assert env.action_space == model.action_space, "Action space must be the same between environment and the model"
+        stimuli, rewards, actions = simulate_single_env_single_model(env, model, n_trials, seed)
     
+    return stimuli, rewards, actions
 
+def simulate(env, model, n_trials, seed=0):
+    actions = []
+    rewards = []
+    stimuli = []
+    if hasattr(model, 'models'):
+        for m in model.models:
+            m.reset()
+            s, r, a = simulate_multi_env_single_model(env, m, n_trials, seed)
+            stimuli.append(s)
+            rewards.append(r)
+            actions.append(a)
+
+    else:
+        stimuli, rewards, actions = simulate_multi_env_single_model(env, model, n_trials, seed)
 
     return stimuli, rewards, actions
 
@@ -102,24 +123,27 @@ class MultiMeta(type):
         out_cls.__init__ = multi_init
 
         def multi_predict(self, idx, *args, **kwargs):
-            return self.models[idx].predict(*args, **kwargs)
+            paras = self.models[idx].paras
+            return self.models[idx].predict(paras=paras, *args, **kwargs)
         out_cls.predict = multi_predict
 
         def multi_update(self, idx, *args, **kwargs):
-            return self.models[idx].update(*args, **kwargs)
+            paras = self.models[idx].paras
+            return self.models[idx].update(paras=paras, *args, **kwargs)
         out_cls.update = multi_update
 
         def multi_act(self, idx, *args, **kwargs):
-            return self.models[idx].act(*args, **kwargs)
+            paras = self.models[idx].paras
+            return self.models[idx].act(paras=paras, *args, **kwargs)
         out_cls.act = multi_act
 
         def multi_reset(self, idx, *args, **kwargs):
-            return self.models[idx].reset(*args, **kwargs)
+            paras = self.models[idx].paras
+            return self.models[idx].reset(paras=paras, *args, **kwargs)
         out_cls.reset = multi_reset
-
-
 
         return out_cls
 
-def multi_from_single(single_cls, multi_cls_name):
+def multi_from_single(single_cls):
+    multi_cls_name = 'Multi' + single_cls.name
     return MultiMeta(multi_cls_name, (), {'single_cls': single_cls})
