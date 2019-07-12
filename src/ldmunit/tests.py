@@ -1,12 +1,13 @@
+from .utils import partialclass
 from sciunit import Test
-from sciunit import scores
+from .scores import SmallerBetterScore
 from .capabilities import Interactive
 from .models.utils import loglike
 
 class NLLTest(Test):
     """Calculate negative loglikelihood of a model."""
     required_capabilities = (Interactive, )
-    score_type = scores.FloatScore
+    score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1000)
 
     def generate_prediction(self, model):
         stimuli = self.observation['stimuli']
@@ -29,7 +30,7 @@ class NLLTest(Test):
 class AICTest(Test):
     """Calculate AIC score of a model on given data."""
     required_capabilities = (Interactive, )
-    score_type = scores.FloatScore
+    score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1000)
 
     def generate_prediction(self, model):
         stimuli = self.observation['stimuli']
@@ -53,7 +54,7 @@ class AICTest(Test):
 class BICTest(Test):
     """Calculate BIC score of a model on given data."""
     required_capabilities = (Interactive, )
-    score_type = scores.FloatScore
+    score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1000)
 
     def generate_prediction(self, model):
         stimuli = self.observation['stimuli']
