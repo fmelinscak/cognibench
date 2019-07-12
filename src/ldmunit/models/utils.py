@@ -4,7 +4,25 @@ import sciunit
 import numpy as np
 
 def loglike(model, stimuli, rewards, actions):
+    """
+    loglike is a utility function which calculates the log-likelihood
+    of a model on a list of (stimulus, action, reward) triples. Before
+    stimuli are presented and log-likelihood is computed, the model is
+    reset to its initial state.
     
+    Parameters
+    ----------
+    model:    Model object used to iteratively predict the stimuli and
+              update using actions and rewards.
+
+    stimuli:  List of stimuli.
+    rewards:  List of rewards.
+    actions:  List of actions.
+
+    Returns
+    -------
+    res:      Iteratively computed log-likelihood value.
+    """
     res = 0
     model.reset()
 
@@ -110,7 +128,22 @@ def simulate(env, model, n_trials, seed=0):
 
     return stimuli, rewards, actions
 
-class MultiMeta(type):
+class MultiMetaInteractive(type):
+    """
+    MultiMetaInteractive is a metaclass for creating multi-subject models from
+    interactive single-subject ones. The input single-subject model should
+    implement all the requirements of an interactive model (see capabilities.Interactive).
+
+    The classes created by this metaclass implement all four methods of an
+    interactive method. In addition, each method takes an additional subject
+    index as their first argument. This index is used to select the individual
+    single-subject model to use. In this regard, the returned class is semantically
+    similar to a list of single-subject models.
+
+    This metaclass is not intended to be used directly. Users should use 
+    multi_from_single function for automatically generating multi-subject models
+    from single-subject ones.
+    """
     def __new__(cls, name, bases, dct):
         single_cls = dct['single_cls']
         base_classes = (single_cls.__bases__)
@@ -144,6 +177,10 @@ class MultiMeta(type):
 
         return out_cls
 
-def multi_from_single(single_cls):
+def multi_from_single_interactive(single_cls):
+    """
+    Create an interactive multi-subject model from an interactive
+    single-subject model.
+    """
     multi_cls_name = 'Multi' + single_cls.name
-    return MultiMeta(multi_cls_name, (), {'single_cls': single_cls})
+    return MultiMetaInteractive(multi_cls_name, (), {'single_cls': single_cls})

@@ -8,28 +8,28 @@ from .continous import Continous
 class Interactive(sciunit.Capability):
     """Capability to interact with a environment (i.e. gym.Env)
 
-    Models with this capability are required to have the following method to be 
-    able to respound and update itself in a interactive manner.
+    Models with this capability are required to have the following methods to be 
+    able to respond and update itself in an interactive manner.
     """
 
-    def predict(self):
+    def predict(self, *args, **kwargs):
         """Given stimulus, model should return the function for the calculation
         of log probability density function or log probability mass function.
         """
         raise NotImplementedError("Must implement predict.")
     
-    def reset(self):
+    def reset(self, *args, **kwargs):
         """Reset the hidden state of the model to initial state.
         """
         raise NotImplementedError("Must implement reset.")
 
-    def update(self):
+    def update(self, *args, **kwargs):
         """Given stimulus, rewards and action, the model should updates its 
         hidden state. Also named evolution function in some packages.
         """
         raise NotImplementedError("Must implement update.")
 
-    def act(self):
+    def act(self, *args, **kwargs):
         """For decision making, return the action taken by the model,
         Associative learning models returns the predicted value.
         Also named observation function in some packages.
