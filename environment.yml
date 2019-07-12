@@ -1,11 +1,16 @@
+name: ldmunit
 channels:
   - defaults
+  - conda-forge
+  - hcc
 dependencies:
   - ipykernel=5.1.0
   - matplotlib=3.0.3
   - numpy=1.16.2
   - pandas=0.24.2
   - python=3.6.8
+  - pip
+  - gym
   - scipy=1.2.1
   - oct2py=5.0.2
   - rpy2=2.9.4
