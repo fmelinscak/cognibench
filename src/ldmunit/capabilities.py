@@ -13,8 +13,7 @@ class Interactive(sciunit.Capability):
     """
 
     def predict(self, *args, **kwargs):
-        """Given stimulus, model should return the function for the calculation
-        of log probability density function or log probability mass function.
+        """Given stimulus, model should return the prediction.
         """
         raise NotImplementedError("Must implement predict.")
     
@@ -284,3 +283,14 @@ class ContinousAction(ActionSpace):
         if not isinstance(x, list) and all(self.action_space.contains(i) for i in x):
             raise AssertionError("Data must be list of continous.")
         return True
+
+class LogProbModel(sciunit.Capability):
+    """Capability for models that produce a log probability distribution
+    as a result of their predict function.
+
+    Models with this capability are required to have the following methods
+    """
+    def predict(self, *args, **kwargs):
+        """Given stimulus, model should return log pdf or log pmf function.
+        """
+        raise NotImplementedError("Must implement predict returning log pdf/pmf.")

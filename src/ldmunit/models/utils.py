@@ -3,61 +3,6 @@ import gym
 import sciunit
 import numpy as np
 
-def loglike(model, stimuli, rewards, actions):
-    """
-    loglike is a utility function which calculates the log-likelihood
-    of a model on a list of (stimulus, action, reward) triples. Before
-    stimuli are presented and log-likelihood is computed, the model is
-    reset to its initial state.
-    
-    Parameters
-    ----------
-    model:    Model object used to iteratively predict the stimuli and
-              update using actions and rewards.
-
-    stimuli:  List of stimuli.
-    rewards:  List of rewards.
-    actions:  List of actions.
-
-    Returns
-    -------
-    res:      Iteratively computed log-likelihood value.
-    """
-    res = 0
-    model.reset()
-
-    for s, r, a in zip(stimuli, rewards, actions):
-        log_prob = model.predict(s)
-        res += log_prob(a)
-        model.update(s, r, a, False)
-
-    return res
-
-def train_with_obs(model, stimuli, rewards, actions, paras_x0):
-
-    if not model.hidden_state:
-        model.set_space_from_data(stimuli, actions)
-        model.reset()
-
-    bounds = []
-    x0 = []
-
-    for k, v in paras_x0.items():
-        assert k in model.paras, "Supplied parameter is not in the model's parameters' list"
-        bounds.append(v)
-        lb, ub = v
-        start = np.random.uniform(lb, ub)
-        x0.append(start)
-        # model.paras[k] = start
-    
-    def objective_func(x0):
-        model.paras.update(dict(zip(paras_x0.keys(), [0.12])))
-        return - loglike(model, stimuli, rewards, actions)
-
-    opt_results = minimize(fun=objective_func, x0=x0, bounds=bounds, method='L-BFGS-B')
-
-    return opt_results
-
 def simulate_single_env_single_model(env, model, n_trials, seed=0):
     assert isinstance(env, gym.Env)
     assert isinstance(model, sciunit.Model)

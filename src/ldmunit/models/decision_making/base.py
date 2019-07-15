@@ -2,9 +2,9 @@ import sciunit
 from gym import spaces
 from gym.utils import seeding
 import numpy as np
-from ...capabilities import Interactive, DiscreteAction, DiscreteObservation
+from ...capabilities import Interactive, DiscreteAction, DiscreteObservation, LogProbModel
 
-class DADO(sciunit.Model, DiscreteAction, DiscreteObservation, Interactive):
+class DADO(sciunit.Model, DiscreteAction, DiscreteObservation, Interactive, LogProbModel):
 
     def __init__(self, n_action=None, n_obs=None, paras=None, hidden_state=None, seed=None, name=None, **params):
         self.n_action = n_action

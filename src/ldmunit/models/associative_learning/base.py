@@ -2,10 +2,10 @@ import sciunit
 from gym import spaces
 import numpy as np
 from gym.utils import seeding
-from ...capabilities import Interactive, MultiBinaryObservation, ContinousAction
+from ...capabilities import Interactive, MultiBinaryObservation, ContinousAction, LogProbModel
 from ...continous import Continous
 
-class CAMO(sciunit.Model, MultiBinaryObservation, ContinousAction, Interactive):
+class CAMO(sciunit.Model, MultiBinaryObservation, ContinousAction, Interactive, LogProbModel):
 
     def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, seed=None, **params):
         self.n_obs = n_obs
