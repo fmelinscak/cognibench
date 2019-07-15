@@ -11,9 +11,12 @@ class LSSPDModel(RwNormModel):
     def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, **params):
         return super().__init__(n_obs=n_obs, paras=paras, hidden_state=hidden_state, name=name, **params)
 
-    def reset(self):
-        w0 = self.paras['w0'] if 'w0' in self.paras else 0
-        alpha = self.paras['alpha'] if 'alpha' in self.paras else 0
+    def reset(self, paras=None):
+        if not paras:
+            paras = self.paras
+
+        w0 = paras['w0'] if 'w0' in paras else 0
+        alpha = paras['alpha'] if 'alpha' in paras else 0
 
         w0 = np.array(w0) if isinstance(w0, list) else np.full(self.n_obs, w0)
         alpha = np.array(alpha) if isinstance(alpha, list) else np.full(self.n_obs, alpha)

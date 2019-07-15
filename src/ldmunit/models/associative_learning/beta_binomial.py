@@ -51,15 +51,15 @@ class BetaBinomialModel(CAMO):
         return rv
 
 
-    def predict(self, stimulus):
+    def predict(self, stimulus, paras=None):
         if tuple(stimulus) not in self.hidden_state.keys():
             self.hidden_state[stimulus] = self._set_a_b()
-        return self.observation(stimulus).logpdf
+        return self.observation(stimulus, paras).logpdf
 
-    def act(self, stimulus):
+    def act(self, stimulus, paras=None):
         if tuple(stimulus) not in self.hidden_state.keys():
             self.hidden_state[stimulus] = self._set_a_b()
-        return self.observation(stimulus).rvs()
+        return self.observation(stimulus, paras).rvs()
 
     def update(self, stimulus, reward, action, done, paras=None):
         assert self.observation_space.contains(stimulus)

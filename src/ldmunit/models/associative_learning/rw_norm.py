@@ -20,11 +20,11 @@ class RwNormModel(CAMO):
         hidden_state = {'w': w0}
         self.hidden_state = hidden_state
 
-    def predict(self, stimulus):
-        return self.observation(stimulus).logpdf
+    def predict(self, stimulus, paras=None):
+        return self.observation(stimulus, paras).logpdf
 
-    def act(self, stimulus):
-        return self.observation(stimulus).rvs()
+    def act(self, stimulus, paras=None):
+        return self.observation(stimulus, paras).rvs()
 
     def _predict_reward(self, stimulus, paras=None):
         assert self.observation_space.contains(stimulus)

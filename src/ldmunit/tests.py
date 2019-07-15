@@ -3,31 +3,40 @@ from sciunit import Test
 from .scores import SmallerBetterScore
 from .capabilities import Interactive, LogProbModel
 
-def _test_single_model(model, stimuli, rewards, actions):
+def _test_multimodel(multimodel, stimuli, rewards, actions):
     """
-    _test_single_model is a private utility function which that trains
-    a model on a list of stimulus, reward, action triples. The list of
-    predictions after each predict step is returned.
+    _test_multimodel is a private utility function which trains
+    a multi-subject model on a list of stimulus, reward, action
+    triples for each subject. The list of predictions after each
+    predict step is returned.
     
     Parameters
     ----------
-    model:    Model object used to iteratively predict the stimuli and
-              update using actions and rewards.
-
-    stimuli:  List of stimuli.
-    rewards:  List of rewards.
-    actions:  List of actions.
+    model:    Multi-subject model. If you have a single-subject model
+              that works on data for one subject at a time, use
+              models.utils.multi_from_single to get a multi-subject
+              model that works on a single-subject at a time.
+    stimuli:  List of subject-specific stimuli. Each element of this list
+              must contain all the stimuli for the corresponding subject.
+    rewards:  List of subject-specific rewards. Each element of this list
+              must contain all the rewards for the corresponding subject.
+    actions:  List of subject-specific rewards. Each element of this list
+              must contain all the rewards for the corresponding subject.
 
     Returns
     -------
-    res:      List of predictions in the same order as the given triples.
+    res:      List of predictions. Each element of this list contains
+              all the predictions for the corresponding subject.
     """
     predictions = []
-    model.reset()
 
-    for s, r, a in zip(stimuli, rewards, actions):
-        predictions.append(model.predict(s))
-        model.update(s, r, a, False)
+    for subject_idx, (subject_stimuli, subject_rewards, subject_actions) in enumerate(zip(stimuli, rewards, actions)):
+        multimodel.reset(subject_idx)
+        subject_predictions = []
+        for s, r, a in zip(subject_stimuli, subject_rewards, subject_actions):
+            subject_predictions.append(multimodel.predict(subject_idx, s))
+            multimodel.update(subject_idx, s, r, a, False)
+        predictions.append(subject_predictions)
 
     return predictions
 
@@ -39,20 +48,12 @@ class InteractiveTest(Test):
     """
     required_capabilities = (Interactive, )
 
-    def generate_prediction(self, model):
+    def generate_prediction(self, multimodel):
         stimuli = self.observation['stimuli']
         rewards = self.observation['rewards']
         actions = self.observation['actions']
 
-        if hasattr(model, 'models'):
-            models = model.models
-        else:
-            models = [model]
-
-        predictions = []
-        for m, s, r, a in zip(models, stimuli, rewards, actions):
-            predictions.append(_test_single_model(m, s, r, a))
-
+        predictions = _test_multimodel(multimodel, stimuli, rewards, actions)
         return predictions
 
 
@@ -67,9 +68,9 @@ class NLLTest(InteractiveTest):
     def compute_score(self, observation, prediction):
         actions = observation['actions']
         score = 0
-        n_models = len(actions)
-        for i in range(n_models):
-            for act, logprob in zip(actions[i], prediction[i]):
+        n_subjects = len(actions)
+        for subject_idx in range(n_subjects):
+            for act, logprob in zip(actions[subject_idx], prediction[subject_idx]):
                 score -= logprob(act)
         return self.score_type(score)
 
@@ -82,22 +83,18 @@ class AICTest(InteractiveTest):
     score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1000)
     required_capabilities = InteractiveTest.required_capabilities + (LogProbModel,)
 
-    def generate_prediction(self, model):
+    def generate_prediction(self, multimodel):
         # save variables necessary to compute score
-        if hasattr(model, 'models'):
-            models = model.models
-        else:
-            models = [model]
-        self.n_model_params = [len(m.paras) for m in models]
+        self.n_model_params = [len(m.paras) for m in multimodel.subject_models]
 
-        return super().generate_prediction(model)
+        return super().generate_prediction(multimodel)
 
     def compute_score(self, observation, prediction):
         actions = observation['actions']
         score = 0
-        n_models = len(actions)
-        for i in range(n_models):
-            for act, logprob in zip(actions[i], prediction[i]):
+        n_subjects = len(actions)
+        for subject_idx in range(n_subjects):
+            for act, logprob in zip(actions[subject_idx], prediction[subject_idx]):
                 score -= logprob(act)
 
         score += 2 * sum(self.n_model_params)
@@ -112,24 +109,20 @@ class BICTest(InteractiveTest):
     score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1000)
     required_capabilities = InteractiveTest.required_capabilities + (LogProbModel,)
 
-    def generate_prediction(self, model):
+    def generate_prediction(self, multimodel):
         # save variables necessary to compute score
         stimuli = self.observation['stimuli']
-        if hasattr(model, 'models'):
-            models = model.models
-        else:
-            models = [model]
-        self.n_model_params = [len(m.paras) for m in models]
+        self.n_model_params = [len(m.paras) for m in multimodel.subject_models]
         self.n_samples = [len(s) for s in stimuli]
 
-        return super().generate_prediction(model)
+        return super().generate_prediction(multimodel)
 
     def compute_score(self, observation, prediction):
         actions = observation['actions']
         score = 0
-        n_models = len(actions)
-        for i in range(n_models):
-            for act, logprob in zip(actions[i], prediction[i]):
+        n_subjects = len(actions)
+        for subject_idx in range(n_subjects):
+            for act, logprob in zip(actions[subject_idx], prediction[subject_idx]):
                 score -= logprob(act)
 
         score += sum(p * q for p, q in zip(self.n_model_params, self.n_samples))
