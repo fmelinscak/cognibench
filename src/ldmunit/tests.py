@@ -17,16 +17,16 @@ def _test_multimodel(multimodel, stimuli, rewards, actions):
               models.utils.multi_from_single to get a multi-subject
               model that works on a single-subject at a time.
     stimuli:  List of subject-specific stimuli. Each element of this list
-              must contain all the stimuli for the corresponding subject.
+              must contain all the stimuli for the corresponding subject as a list.
     rewards:  List of subject-specific rewards. Each element of this list
-              must contain all the rewards for the corresponding subject.
+              must contain all the rewards for the corresponding subject as a list.
     actions:  List of subject-specific rewards. Each element of this list
-              must contain all the rewards for the corresponding subject.
+              must contain all the rewards for the corresponding subject as a list.
 
     Returns
     -------
     res:      List of predictions. Each element of this list contains
-              all the predictions for the corresponding subject.
+              all the predictions for the corresponding subject as a list.
     """
     predictions = []
 
@@ -39,6 +39,33 @@ def _test_multimodel(multimodel, stimuli, rewards, actions):
         predictions.append(subject_predictions)
 
     return predictions
+
+
+def _neg_loglikelihood(actions, predictions):
+    """
+    Compute negative log-likelihood of a multimodel using a collection of
+    subject-specific true action and model prediction lists. Each prediction
+    list must contain a series of logpdf or logpmf functions.
+
+    Parameters
+    ----------
+    actions:     List of subject-specific actions. Each element must be a list
+                 containing a series of actions.
+    predictions:  List of subject-specific predictions. Each element must be a list
+                 containing a series of predictions as logpdf or logpmf.
+
+    Returns
+    -------
+    neg_loglike: Negative log-likelihood of the whole multi-subject model on the
+                 given action and prediction data. It is calculated as the sum of
+                 individual log probabilities for every action-prediction pairs.
+    """
+    neg_loglike = 0
+    n_subjects = len(actions)
+    for subject_idx in range(n_subjects):
+        for act, logprob in zip(actions[subject_idx], predictions[subject_idx]):
+            neg_loglike -= logprob(act)
+    return neg_loglike
 
 
 class InteractiveTest(Test):
@@ -66,13 +93,8 @@ class NLLTest(InteractiveTest):
     required_capabilities = InteractiveTest.required_capabilities + (LogProbModel,)
 
     def compute_score(self, observation, prediction):
-        actions = observation['actions']
-        score = 0
-        n_subjects = len(actions)
-        for subject_idx in range(n_subjects):
-            for act, logprob in zip(actions[subject_idx], prediction[subject_idx]):
-                score -= logprob(act)
-        return self.score_type(score)
+        nll = _neg_loglikelihood(observation['actions'], prediction)
+        return self.score_type(nll)
 
 
 class AICTest(InteractiveTest):
@@ -90,15 +112,9 @@ class AICTest(InteractiveTest):
         return super().generate_prediction(multimodel)
 
     def compute_score(self, observation, prediction):
-        actions = observation['actions']
-        score = 0
-        n_subjects = len(actions)
-        for subject_idx in range(n_subjects):
-            for act, logprob in zip(actions[subject_idx], prediction[subject_idx]):
-                score -= logprob(act)
-
-        score += 2 * sum(self.n_model_params)
-        return self.score_type(score)
+        nll = _neg_loglikelihood(observation['actions'], prediction)
+        regularizer = 2 * sum(self.n_model_params)
+        return self.score_type(nll + regularizer)
 
 
 class BICTest(InteractiveTest):
@@ -118,12 +134,6 @@ class BICTest(InteractiveTest):
         return super().generate_prediction(multimodel)
 
     def compute_score(self, observation, prediction):
-        actions = observation['actions']
-        score = 0
-        n_subjects = len(actions)
-        for subject_idx in range(n_subjects):
-            for act, logprob in zip(actions[subject_idx], prediction[subject_idx]):
-                score -= logprob(act)
-
-        score += sum(p * q for p, q in zip(self.n_model_params, self.n_samples))
-        return self.score_type(score)
+        nll = _neg_loglikelihood(observation['actions'], prediction)
+        regularizer = sum(p * q for p, q in zip(self.n_model_params, self.n_samples))
+        return self.score_type(nll + regularizer)
