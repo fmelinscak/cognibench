@@ -1,4 +1,5 @@
 import sciunit
+import numpy as np
 from gym import spaces
 from .continuous import ContinuousSpace
 
@@ -36,6 +37,19 @@ class Interactive(sciunit.Capability):
         Also named observation function in some packages.
         """
         raise NotImplementedError("Must implement act")
+
+class LogProbModel(sciunit.Capability):
+    """
+    Capability for models that produce a log probability distribution
+    as a result of their predict function.
+
+    Models with this capability are required to have the following methods
+    """
+    def predict(self, *args, **kwargs):
+        """
+        Given stimulus, model should return log pdf or log pmf function.
+        """
+        raise NotImplementedError("Must implement predict returning log-pdf or log-pmf.")
 
 class ActionSpace(sciunit.Capability):
     """
@@ -89,62 +103,31 @@ class DiscreteObservation(ObservationSpace):
 
         Parameters
         ----------
-        value : None or int or gym.spaces.Discrete
-            observation_space set to class gym.spaces.Discrete when passed None 
-            (default). With a int or an instance of gym.spaces.Discrete, observation_space 
-            will be set to the gym.spaces.Discrete accordingly.
+        value : int or gym.spaces.Discrete
+            Observation_space will be set to the gym.spaces.Discrete accordingly.
         """
-        if not value:
-            self._observation_space = spaces.Discrete
-        elif isinstance(value, spaces.Discrete):
+        if isinstance(value, spaces.Discrete):
             self._observation_space = value
-        elif isinstance(value, int):
+        elif np.issubdtype(type(value), np.integer):
             self._observation_space = spaces.Discrete(value)
         else:
-            raise TypeError("action_space must be integer or gym.spaces.Discrete")
-
-    @observation_space.deleter
-    def observation_space(self):
-        del self._observation_space
+            raise TypeError("observation_space must be integer or gym.spaces.Discrete")
 
     @property
     def n_obs(self):
         """
         Returns
         -------
-        int or None
-            Models only understand discrete observation up to n_obs. Return observation_space.n when
-            observation_space present, None otherwise.
+        int
+            Dimension of the observation space.
         """
-        if isinstance(self.observation_space, spaces.Discrete):
-            return self.observation_space.n
-        else:
-            return None
+        return self.observation_space.n
 
-    @n_obs.setter
-    def n_obs(self, value):
+    def _check_observation(self, values):
         """
-        Parameters
-        ----------
-        value : None or int
-            Set the observation_space to gym.spaces.Discrete when passed None 
-            (default). With a int, the model's observation_space will be set 
-            accordingly.
+        Check whether given values are valid observations.
         """
-        if not value:
-            self.observation_space = None
-        elif not isinstance(value, int):
-            raise TypeError('n_obs must be an integer')
-        elif isinstance(value, int):
-            self.observation_space = value
-
-    def _check_observation(self, x):
-        """
-        Check whether given value is a valid observation.
-        """
-        if not isinstance(x, list) and all(isinstance(i, int) for i in x):
-            raise AssertionError("Data must be list of integers.")
-        return True
+        return all(np.issubdtype(type(x), np.integer) for x in values)
 
 class DiscreteAction(ActionSpace):
     """
@@ -171,57 +154,28 @@ class DiscreteAction(ActionSpace):
             (default). With a int or an instance of gym.spaces.Discrete, observation_space 
             will be set to the gym.spaces.Discrete accordingly.
         """
-        if not value:
-            self._action_space = spaces.Discrete
-        elif isinstance(value, spaces.Discrete):
+        if isinstance(value, spaces.Discrete):
             self._action_space = value
-        elif isinstance(value, int):
+        elif np.issubdtype(type(value), np.integer):
             self._action_space = spaces.Discrete(value)
         else:
             raise TypeError("action_space must be integer or gym.spaces.Discrete")
-
-    @action_space.deleter
-    def action_space(self):
-        del self._action_space
 
     @property
     def n_action(self):
         """
         Returns
         -------
-        int or None
-            Models only understand discrete actions up to n_action.
-            Return action_space.n when action_space present, None otherwise.
+        int
+            Dimension of the action space.
         """
-        if isinstance(self.action_space, spaces.Discrete):
-            return self.action_space.n
-        else:
-            return None
+        return self.action_space.n
 
-    @n_action.setter
-    def n_action(self, value):
-        """
-        Parameters
-        ----------
-        value : int or None
-            set the action_space to gym.spaces.Discrete when passed None 
-            (default). With a int, the model's action_space will be set 
-            accordingly.
-        """
-        if not value:
-            self.action_space = None
-        elif not isinstance(value, int):
-            raise TypeError('n_action must be an integer')
-        elif isinstance(value, int):
-            self.action_space = value
-
-    def _check_action(self, x):
+    def _check_action(self, values):
         """
         Check whether given value is a valid action.
         """
-        if not isinstance(x, list) and all(isinstance(i, int) for i in x):
-            raise AssertionError("Data must be list of integers.")
-        return True
+        return all(np.issubdtype(type(x), np.integer) for x in values)
 
 class MultiBinaryObservation(ObservationSpace):
     """
@@ -257,57 +211,28 @@ class MultiBinaryObservation(ObservationSpace):
             (default). With a int or an instance of gym.spaces.MultiBinary, observation_space 
             will be set to the gym.spaces.MultiBinary accordingly.
         """
-        if not value:
-            self._observation_space = spaces.MultiBinary
-        elif isinstance(value, spaces.MultiBinary):
+        if isinstance(value, spaces.MultiBinary):
             self._observation_space = value
         elif isinstance(value, int):
             self._observation_space = spaces.MultiBinary(value)
         else:
             raise TypeError("action_space must be integer or gym.spaces.MultiBinary")
 
-    @observation_space.deleter
-    def observation_space(self):
-        del self._observation_space
-
     @property
     def n_obs(self):
         """
         Returns
         -------
-        int or None
-            Models only understand n_obs observation in a gym.spaces.MultiBinary space. 
-            Return observation_space.n when observation_space present, None otherwise.
+        int
+            Dimension of the observation space.
         """
-        if isinstance(self.observation_space, spaces.MultiBinary):
-            return self.observation_space.n
-        else:
-            return None
+        return self.observation_space.n
 
-    @n_obs.setter
-    def n_obs(self, value):
-        """
-        Parameters
-        ----------
-        value : int or None
-            set the observation_space to gym.spaces.MultiBinary when passed None 
-            (default). With a int, the model's observation_space will be set 
-            accordingly.
-        """
-        if not value:
-            self.observation_space = None
-        elif not isinstance(value, int):
-            raise TypeError('n_obs must be an integer')
-        elif isinstance(value, int):
-            self.observation_space = value
-
-    def _check_observation(self, x):
+    def _check_observation(self, values):
         """
         Check whether given value is a valid obeservation.
         """
-        if not isinstance(x, list) and all(spaces.MultiBinary(1).contains(i) for i in x):
-            raise AssertionError("Data must be list of MultiBinary.")
-        return True
+        return all(self.observation_space.contains(x) for x in values)
 
 class ContinuousAction(ActionSpace):
     """
@@ -318,23 +243,8 @@ class ContinuousAction(ActionSpace):
     def action_space(self):
         return ContinuousSpace()
 
-    def _check_action(self, x):
+    def _check_action(self, values):
         """
         Check whether given value is a valid action.
         """
-        if not isinstance(x, list) and all(self.action_space.contains(i) for i in x):
-            raise AssertionError("Data must be list of continuous.")
-        return True
-
-class LogProbModel(sciunit.Capability):
-    """
-    Capability for models that produce a log probability distribution
-    as a result of their predict function.
-
-    Models with this capability are required to have the following methods
-    """
-    def predict(self, *args, **kwargs):
-        """
-        Given stimulus, model should return log pdf or log pmf function.
-        """
-        raise NotImplementedError("Must implement predict returning log-pdf or log-pmf.")
+        return all(self.action_space.contains(x) for x in values)
