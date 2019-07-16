@@ -3,7 +3,7 @@ from gym import spaces
 import numpy as np
 from gym.utils import seeding
 from ...capabilities import Interactive, MultiBinaryObservation, Continuous, LogProbModel
-from ...continuous import Continuous
+from ...continuous import ContinuousSpace
 
 class CAMO(sciunit.Model, MultiBinaryObservation, Continuous, Interactive, LogProbModel):
 
@@ -38,7 +38,7 @@ class CAMO(sciunit.Model, MultiBinaryObservation, Continuous, Interactive, LogPr
         assert self._check_observation(stimuli) and self._check_action(actions)
         if not len(stimuli) == len(actions):
             raise AssertionError('stimuli and actions must be of the same length.')
-        self.action_space = Continuous()
+        self.action_space = ContinuousSpace()
         self.observation_space = len(stimuli[0])
 
     @property

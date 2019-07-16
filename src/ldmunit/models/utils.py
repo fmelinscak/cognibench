@@ -1,7 +1,7 @@
 import gym
 import sciunit
 import numpy as np
-import capabilities
+from ..capabilities import Interactive
 
 def simulate_single_env_single_model(env, multimodel, subject_idx, n_trials, seed=0):
     """
@@ -44,7 +44,7 @@ def simulate_single_env_single_model(env, multimodel, subject_idx, n_trials, see
     """
     assert isinstance(env, gym.Env)
     assert isinstance(multimodel, sciunit.Model)
-    assert isinstance(multimodel, capabilities.Interactive)
+    assert isinstance(multimodel, Interactive)
     assert env.observation_space == multimodel.observation_space, "Observation space must be the same between environment and the model"
     assert env.action_space == multimodel.action_space, "Action space must be the same between environment and the model"
     

@@ -1,6 +1,6 @@
 import sciunit
 from gym import spaces
-from .continuous import Continuous
+from .continuous import ContinuousSpace
 
 
 class Interactive(sciunit.Capability):
@@ -316,7 +316,7 @@ class Continuous(ActionSpace):
 
     @property
     def action_space(self):
-        return Continuous()
+        return ContinuousSpace()
 
     def _check_action(self, x):
         """

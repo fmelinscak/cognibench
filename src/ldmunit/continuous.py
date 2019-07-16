@@ -1,7 +1,7 @@
 import numpy as np
 import gym
 
-class Continuous(gym.Space):
+class ContinuousSpace(gym.Space):
     """
     Continuous space for numbers in R^1.
     """
@@ -45,4 +45,4 @@ class Continuous(gym.Space):
         return "Continuous"
 
     def __eq__(self, other):
-        return isinstance(other, Continuous)
+        return isinstance(other, ContinuousSpace)

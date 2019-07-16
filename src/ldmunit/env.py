@@ -33,7 +33,7 @@ import numpy as np
 import gym
 from gym import spaces
 from gym.utils import seeding
-from .continuous import Continuous
+from .continuous import ContinuousSpace
 
 class BanditEnv(gym.Env):
     """Bandit environment base to allow agents to interact with the class n-armed bandit
@@ -160,7 +160,7 @@ class BanditAssociateEnv(gym.Env):
         Info about the environment that the agents is not supposed to know. For instance,
         info can releal the index of the optimal arm, or the value of prior parameter.
         Can be useful to evaluate the agent's perfomance
-    action_space : Continuous
+    action_space : ContinuousSpace
         Environment only understand discrete action set in this space (set by length of p_dist).
     observation_space : gym.spaces.MultiBinary
         The multi-binary space set by the stimuli
@@ -174,7 +174,7 @@ class BanditAssociateEnv(gym.Env):
         assert len(set(map(len, (p_stimuli, stimuli, p_reward)))) == 1, "Stimuli and Probability list must be of equal length"
         self._n = len(stimuli[0])
         self.observation_space = spaces.MultiBinary(self._n)
-        self.action_space = Continuous()
+        self.action_space = ContinuousSpace()
         for s in stimuli:
             assert self.observation_space.contains(s), "Stimuli must be in the same MultiBinary space"
 
