@@ -12,21 +12,29 @@ def _test_multimodel(multimodel, stimuli, rewards, actions):
     
     Parameters
     ----------
-    model:    Multi-subject model. If you have a single-subject model
-              that works on data for one subject at a time, use
-              models.utils.multi_from_single to get a multi-subject
-              model that works on a single-subject at a time.
-    stimuli:  List of subject-specific stimuli. Each element of this list
-              must contain all the stimuli for the corresponding subject as a list.
-    rewards:  List of subject-specific rewards. Each element of this list
-              must contain all the rewards for the corresponding subject as a list.
-    actions:  List of subject-specific rewards. Each element of this list
-              must contain all the rewards for the corresponding subject as a list.
+    multimodel : sciunit.Model and capabilities.Interactive
+        Multi-subject model. If you have a single-subject model
+        that works on data for one subject at a time, use
+        models.utils.multi_from_single to get a multi-subject
+        model that works on a single-subject at a time.
+
+    stimuli : list of list
+        List of subject-specific stimuli. Each element of this list
+        must contain all the stimuli for the corresponding subject as a list.
+
+    rewards : list of list
+        List of subject-specific rewards. Each element of this list
+        must contain all the rewards for the corresponding subject as a list.
+
+    actions : list of list
+        List of subject-specific rewards. Each element of this list
+        must contain all the rewards for the corresponding subject as a list.
 
     Returns
     -------
-    res:      List of predictions. Each element of this list contains
-              all the predictions for the corresponding subject as a list.
+    list of list
+        List of predictions. Each element of this list contains
+        all the predictions for the corresponding subject as a list.
     """
     predictions = []
 
@@ -49,16 +57,19 @@ def _neg_loglikelihood(actions, predictions):
 
     Parameters
     ----------
-    actions:     List of subject-specific actions. Each element must be a list
-                 containing a series of actions.
-    predictions:  List of subject-specific predictions. Each element must be a list
-                 containing a series of predictions as logpdf or logpmf.
+    actions : list of list
+        List of subject-specific actions. Each element must be a list
+        containing a series of actions.
+    predictions : list of list
+        List of subject-specific predictions. Each element must be a list
+        containing a series of predictions as logpdf or logpmf.
 
     Returns
     -------
-    neg_loglike: Negative log-likelihood of the whole multi-subject model on the
-                 given action and prediction data. It is calculated as the sum of
-                 individual log probabilities for every action-prediction pairs.
+    float
+        Negative log-likelihood of the whole multi-subject model on the
+        given action and prediction data. It is calculated as the sum of
+        individual log probabilities for every action-prediction pairs.
     """
     neg_loglike = 0
     n_subjects = len(actions)
@@ -71,11 +82,35 @@ def _neg_loglikelihood(actions, predictions):
 class InteractiveTest(Test):
     """
     Perform interactive tests by feeding the input samples (stimuli) one at a
-    time.
+    time. This class is not intended to be used directly since it does not
+    specify how the score should be computed. In order to create concrete
+    interactive tests, create a subclass and specify how the score should be
+    computed.
+
+    See Also
+    --------
+    NLLTest, AICTest, BICTest for examples of concrete interactive test classes
     """
     required_capabilities = (Interactive, )
 
     def generate_prediction(self, multimodel):
+        """
+        Generate predictions from a multi-subject model one at a time.
+
+        Parameters
+        ----------
+        multimodel : sciunit.Model and capabilities.Interactive
+            Multi-subject model
+
+        Returns
+        -------
+        list of list
+            Predictions
+
+        See Also
+        --------
+        _test_multimodel
+        """
         stimuli = self.observation['stimuli']
         rewards = self.observation['rewards']
         actions = self.observation['actions']
@@ -93,6 +128,23 @@ class NLLTest(InteractiveTest):
     required_capabilities = InteractiveTest.required_capabilities + (LogProbModel,)
 
     def compute_score(self, observation, prediction):
+        """
+        Compute the negative log-likelihood score from observations and predictions
+
+        Parameters
+        ----------
+        observation : dict
+            Dictionary storing the actions in 'actions' key.
+
+        prediction : list of list
+            List of subject-specific predictions. Each element is a list and
+            stores the predictions for the corresponding subject.
+
+        Returns
+        -------
+        SmallerBetterScore
+            Negative log-likelihood.
+        """
         nll = _neg_loglikelihood(observation['actions'], prediction)
         return self.score_type(nll)
 
@@ -106,12 +158,38 @@ class AICTest(InteractiveTest):
     required_capabilities = InteractiveTest.required_capabilities + (LogProbModel,)
 
     def generate_prediction(self, multimodel):
+        """
+        This method simply calls the parent method for the actual functionality
+        after storing some necessary variables to compute the score later.
+
+        See Also
+        --------
+        InteractiveTest.generate_prediction
+        """
         # save variables necessary to compute score
         self.n_model_params = [len(m.paras) for m in multimodel.subject_models]
 
         return super().generate_prediction(multimodel)
 
     def compute_score(self, observation, prediction):
+        """
+        Compute the Akaike Information Criterion score from observations, predictions
+        and, model and input specific parameters stored during generate_prediction.
+
+        Parameters
+        ----------
+        observation : dict
+            Dictionary storing the actions in 'actions' key.
+
+        prediction : list of list
+            List of subject-specific predictions. Each element is a list and
+            stores the predictions for the corresponding subject.
+
+        Returns
+        -------
+        SmallerBetterScore
+            AIC
+        """
         nll = _neg_loglikelihood(observation['actions'], prediction)
         regularizer = 2 * sum(self.n_model_params)
         return self.score_type(nll + regularizer)
@@ -126,6 +204,14 @@ class BICTest(InteractiveTest):
     required_capabilities = InteractiveTest.required_capabilities + (LogProbModel,)
 
     def generate_prediction(self, multimodel):
+        """
+        This method simply calls the parent method for the actual functionality
+        after storing some necessary variables to compute the score later.
+
+        See Also
+        --------
+        InteractiveTest.generate_prediction
+        """
         # save variables necessary to compute score
         stimuli = self.observation['stimuli']
         self.n_model_params = [len(m.paras) for m in multimodel.subject_models]
@@ -134,6 +220,24 @@ class BICTest(InteractiveTest):
         return super().generate_prediction(multimodel)
 
     def compute_score(self, observation, prediction):
+        """
+        Compute the Bayesian Information Criterion score from observations, predictions
+        and, model and input specific parameters stored during generate_prediction.
+
+        Parameters
+        ----------
+        observation : dict
+            Dictionary storing the actions in 'actions' key.
+
+        prediction : list of list
+            List of subject-specific predictions. Each element is a list and
+            stores the predictions for the corresponding subject.
+
+        Returns
+        -------
+        SmallerBetterScore
+            BIC
+        """
         nll = _neg_loglikelihood(observation['actions'], prediction)
         regularizer = sum(p * q for p, q in zip(self.n_model_params, self.n_samples))
         return self.score_type(nll + regularizer)

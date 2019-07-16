@@ -4,7 +4,7 @@ import numpy as np
 import numpy.testing as npt
 from scipy import stats
 from src.ldmunit.models import associative_learning
-from src.ldmunit.continous import Continous
+from src.ldmunit.continuous import Continuous
 
 class Test_RwNormModel(unittest.TestCase):
     
@@ -14,7 +14,7 @@ class Test_RwNormModel(unittest.TestCase):
         self.model = associative_learning.RwNormModel(3, paras=paras)
 
     def test_action_space(self):
-        self.assertIsInstance(self.model.action_space, Continous)
+        self.assertIsInstance(self.model.action_space, Continuous)
 
     def test_observation_space(self):
         self.assertEqual(self.model.observation_space, spaces.MultiBinary(3))

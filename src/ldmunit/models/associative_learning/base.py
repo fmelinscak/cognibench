@@ -2,10 +2,10 @@ import sciunit
 from gym import spaces
 import numpy as np
 from gym.utils import seeding
-from ...capabilities import Interactive, MultiBinaryObservation, ContinousAction, LogProbModel
-from ...continous import Continous
+from ...capabilities import Interactive, MultiBinaryObservation, Continuous, LogProbModel
+from ...continuous import Continuous
 
-class CAMO(sciunit.Model, MultiBinaryObservation, ContinousAction, Interactive, LogProbModel):
+class CAMO(sciunit.Model, MultiBinaryObservation, Continuous, Interactive, LogProbModel):
 
     def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, seed=None, **params):
         self.n_obs = n_obs
@@ -38,7 +38,7 @@ class CAMO(sciunit.Model, MultiBinaryObservation, ContinousAction, Interactive, 
         assert self._check_observation(stimuli) and self._check_action(actions)
         if not len(stimuli) == len(actions):
             raise AssertionError('stimuli and actions must be of the same length.')
-        self.action_space = Continous()
+        self.action_space = Continuous()
         self.observation_space = len(stimuli[0])
 
     @property
