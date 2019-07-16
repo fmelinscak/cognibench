@@ -2,10 +2,13 @@ import sciunit
 from gym import spaces
 import numpy as np
 from gym.utils import seeding
-from ...capabilities import Interactive, MultiBinaryObservation, Continuous, LogProbModel
+from ...capabilities import MultiBinaryObservation, ContinuousAction
 from ...continuous import ContinuousSpace
 
-class CAMO(sciunit.Model, MultiBinaryObservation, Continuous, Interactive, LogProbModel):
+class CAMO(sciunit.Model, ContinuousAction, MultiBinaryObservation):
+    """
+    Base class for models that operate on continuous action spaces and multi-binary observation spaces.
+    """
 
     def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, seed=None, **params):
         self.n_obs = n_obs

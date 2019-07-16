@@ -4,8 +4,9 @@ from gym import spaces
 from scipy import stats
 
 from .base import DADO
+from ...capabilities import Interactive, LogProbModel
 
-class RandomRespondModel(DADO):
+class RandomRespondModel(DADO, Interactive, LogProbModel):
     """Random respond for discrete decision marking."""
     name = 'RandomRespondModel'
 

@@ -5,8 +5,9 @@ from gym import spaces
 from scipy import stats
 from scipy.stats import beta
 from .base import CAMO
+from ...capabilities import Interactive, LogProbModel
 
-class BetaBinomialModel(CAMO):
+class BetaBinomialModel(CAMO, Interactive, LogProbModel):
     name = 'BetaBinomial'
 
     def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, seed=None, **params):

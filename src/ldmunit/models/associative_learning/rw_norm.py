@@ -4,8 +4,9 @@ import gym
 from gym import spaces
 from scipy import stats
 from .base import CAMO
+from ...capabilities import Interactive, LogProbModel
 
-class RwNormModel(CAMO):
+class RwNormModel(CAMO, Interactive, LogProbModel):
     name = 'RwNorm'
 
     def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, seed=None, **params):
@@ -75,4 +76,3 @@ class RwNormModel(CAMO):
             self.hidden_state['w'] = w_curr
 
         return w_curr
-

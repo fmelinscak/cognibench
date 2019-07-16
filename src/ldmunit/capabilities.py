@@ -309,7 +309,7 @@ class MultiBinaryObservation(ObservationSpace):
             raise AssertionError("Data must be list of MultiBinary.")
         return True
 
-class Continuous(ActionSpace):
+class ContinuousAction(ActionSpace):
     """
     Capability to understand continuous actions (i.e. R^1 in continuous).
     """

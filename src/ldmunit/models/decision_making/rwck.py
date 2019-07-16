@@ -5,8 +5,9 @@ from scipy import stats
 from scipy.special import softmax
 
 from .base import DADO
+from ...capabilities import Interactive, LogProbModel
 
-class RWCKModel(DADO):
+class RWCKModel(DADO, Interactive, LogProbModel):
     """Rescorla Wagner Choice kernel Model for discrete decision marking."""
     name = "RWCKModel"
 

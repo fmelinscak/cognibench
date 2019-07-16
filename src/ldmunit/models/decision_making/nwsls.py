@@ -4,8 +4,9 @@ from gym import spaces
 from scipy import stats
 
 from .base import DADO
+from ...capabilities import Interactive, LogProbModel
 
-class NWSLSModel(DADO):
+class NWSLSModel(DADO, Interactive, LogProbModel):
     """Noisy-win-stay-lose-shift model"""
     name = 'NWSLSModel'
 
