@@ -11,7 +11,7 @@ class Test_RwNormModel(unittest.TestCase):
     def setUp(self):
         # load test data
         paras = {'w0': 0.1, 'alpha': 0.5, 'sigma': 0.5, 'b0': 0.5, 'b1': 0.5}
-        self.model = associative_learning.RwNormModel(3, paras=paras)
+        self.model = associative_learning.RwNormModel(3, **paras)
 
     def test_action_space(self):
         self.assertIsInstance(self.model.action_space, Continuous)
@@ -34,7 +34,7 @@ class Test_KrwNormModel(unittest.TestCase):
     def setUp(self):
         # load test data
         paras = {'w0': 0.1, 'sigma': 0.5, 'b0': 0.5, 'b1': 0.5, 'logSigmaWInit': 0.5, 'logTauSq': 0.5, 'logSigmaRSq': 0.5}
-        self.model = associative_learning.KrwNormModel(3, paras=paras)
+        self.model = associative_learning.KrwNormModel(3, **paras)
 
     def test_update(self):
         stimulus = np.array([0,1,0], dtype=np.int8)
@@ -60,7 +60,7 @@ class Test_LSSPDModel(unittest.TestCase):
     def setUp(self):
         # load test data
         paras = {'w0': 0.1, 'alpha': 0.5, 'b0': 0.5, 'b1': 0.5, 'mix_coef': 1, 'eta': 0.3, 'kappa': 0.4}
-        self.model = associative_learning.LSSPDModel(3, paras=paras)
+        self.model = associative_learning.LSSPDModel(3, **paras)
 
     def test_update(self):
         stimulus = np.array([0,1,0], dtype=np.int8)
@@ -84,7 +84,7 @@ class Test_LSSPDModel(unittest.TestCase):
     def setUp(self):
         # load test data
         paras = {'w0': 0.1, 'alpha': 0.5, 'b0': 0.5, 'b1': 0.5, 'mix_coef': 1, 'eta': 0.3, 'kappa': 0.4}
-        self.model = associative_learning.LSSPDModel(3, paras=paras)
+        self.model = associative_learning.LSSPDModel(3, **paras)
 
     def test_update(self):
         stimulus = np.array([0,1,0], dtype=np.int8)
@@ -108,7 +108,7 @@ class Test_BetaBinomialModel(unittest.TestCase):
     def setUp(self):
         # load test data
         paras = {'b0': 0.5, 'b1': 0.5, 'mix_coef': 1, 'sigma': 0.5}
-        self.model = associative_learning.BetaBinomialModel(3, paras=paras)
+        self.model = associative_learning.BetaBinomialModel(3, **paras)
 
     def test_update(self):
         stimulus = np.array([0,1,0], dtype=np.int8)

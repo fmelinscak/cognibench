@@ -37,7 +37,8 @@ class LDMModel(sciunit.Model):
 
     @seed.setter
     def seed(self, value):
-        self._rng, self._seed = seeding.np_random(seed=seeding.create_seed(max_bytes=4))
+        self._seed = value
+        self._rng, _ = seeding.np_random(seed=value)
 
     @property
     def hidden_state(self):

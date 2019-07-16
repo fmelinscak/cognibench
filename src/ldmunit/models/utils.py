@@ -169,28 +169,24 @@ class MultiMetaInteractive(type):
 
         def multi_init(self, param_list, *args, **kwargs):
             self.subject_models = []
-            for param in param_list:
-                self.subject_models.append(single_cls(*args, **kwargs, paras=param))
+            for param_dict in param_list:
+                self.subject_models.append(single_cls(*args, **param_dict, **kwargs))
         out_cls.__init__ = multi_init
 
         def multi_predict(self, idx, *args, **kwargs):
-            paras = self.subject_models[idx].paras
-            return self.subject_models[idx].predict(paras=paras, *args, **kwargs)
+            return self.subject_models[idx].predict(*args, **kwargs)
         out_cls.predict = multi_predict
 
         def multi_update(self, idx, *args, **kwargs):
-            paras = self.subject_models[idx].paras
-            return self.subject_models[idx].update(paras=paras, *args, **kwargs)
+            return self.subject_models[idx].update(*args, **kwargs)
         out_cls.update = multi_update
 
         def multi_act(self, idx, *args, **kwargs):
-            paras = self.subject_models[idx].paras
-            return self.subject_models[idx].act(paras=paras, *args, **kwargs)
+            return self.subject_models[idx].act(*args, **kwargs)
         out_cls.act = multi_act
 
         def multi_reset(self, idx, *args, **kwargs):
-            paras = self.subject_models[idx].paras
-            return self.subject_models[idx].reset(paras=paras, *args, **kwargs)
+            return self.subject_models[idx].reset(*args, **kwargs)
         out_cls.reset = multi_reset
 
         return out_cls

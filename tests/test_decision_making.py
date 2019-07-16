@@ -10,7 +10,7 @@ class Test_RWCKModel(unittest.TestCase):
     def setUp(self):
         # load test data
         paras = {'w0': 0.1, 'alpha': 0.5, 'alpha_c': 0.5, 'beta': 0.5, 'beta_c': 0.5}
-        self.model = decision_making.RWCKModel(3, 3, paras=paras)
+        self.model = decision_making.RWCKModel(3, 3, **paras)
 
     def test_empty_init(self):
         self.model = decision_making.RWCKModel()
@@ -52,7 +52,7 @@ class Test_NWSLSModel(unittest.TestCase):
     def setUp(self):
         # load test data
         paras = {'epsilon': 0.5}
-        self.model = decision_making.NWSLSModel(3, 3, paras=paras)
+        self.model = decision_making.NWSLSModel(3, 3, **paras)
 
     def test_empty_init(self):
         self.model = decision_making.NWSLSModel()
@@ -90,7 +90,7 @@ class Test_RandomRespondModel(unittest.TestCase):
     def setUp(self):
         # load test data
         paras = {'bias': 0.5, 'action_bias': 1}
-        self.model = decision_making.RandomRespondModel(3, 3, paras=paras)
+        self.model = decision_making.RandomRespondModel(3, 3, **paras)
 
     def test_empty_init(self):
         self.model = decision_making.RandomRespondModel()

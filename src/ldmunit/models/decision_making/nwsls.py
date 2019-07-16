@@ -1,4 +1,3 @@
-import sciunit
 import numpy as np
 from gym import spaces
 from scipy import stats
@@ -10,24 +9,17 @@ class NWSLSModel(DADO, Interactive, LogProbModel):
     """Noisy-win-stay-lose-shift model"""
     name = 'NWSLSModel'
 
-    def __init__(self, n_action=None, n_obs=None, paras=None, hidden_state=None, seed=None, name=None, **params):
-        return super().__init__(n_action=n_action, n_obs=n_obs, paras=paras, hidden_state=hidden_state, seed=seed, name=name, **params)
-        
-    def reset(self, paras=None):
-        if not (isinstance(self.n_action, int) and isinstance(self.n_obs, int)):
-            raise TypeError("action_space and observation_space must be set.")
+    def __init__(self, *args, epsilon, **kwargs):
+        paras = dict(epsilon=epsilon)
+        super().__init__(paras=paras, **kwargs)
 
-        hidden_state = dict(win=True, action=np.random.randint(0,self.n_action))
+    def reset(self):
+        self.hidden_state = dict(win=True, action=self.rng.randint(0, self.n_action))
 
-        self.hidden_state = hidden_state
-
-    def _get_rv(self, stimulus, paras=None):
+    def _get_rv(self, stimulus):
         assert self.observation_space.contains(stimulus)
 
-        if not paras:
-            paras = self.paras
-        
-        epsilon = paras['epsilon']
+        epsilon = self.paras['epsilon']
         n = self.n_action
 
         if self.hidden_state['win']:
@@ -40,18 +32,17 @@ class NWSLSModel(DADO, Interactive, LogProbModel):
 
         xk = np.arange(n)
         rv = stats.rv_discrete(name=None, values=(xk, pk))
-        if self.seed:
-            rv.random_state = self.seed
+        rv.random_state = self.seed
 
         return rv
 
-    def predict(self, stimulus, paras=None):
-        return self._get_rv(stimulus, paras=paras).logpmf
+    def predict(self, stimulus):
+        return self._get_rv(stimulus).logpmf
 
-    def act(self, stimulus, paras=None):
-        return self._get_rv(stimulus, paras=paras).rvs()
+    def act(self, stimulus):
+        return self._get_rv(stimulus).rvs()
         
-    def update(self, stimulus, reward, action, done, paras=None):
+    def update(self, stimulus, reward, action, done):
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
 

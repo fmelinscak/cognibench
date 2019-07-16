@@ -1,4 +1,3 @@
-import sciunit
 import numpy as np
 import gym
 from gym import spaces
@@ -9,24 +8,21 @@ from ...capabilities import Interactive, LogProbModel
 class RandomRespondModel(CAMO, Interactive, LogProbModel):
     name = 'RandomRespond'
 
-    def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, seed=None, **params):
-        return super().__init__(n_obs=n_obs, paras=paras, hidden_state=hidden_state, name=name, seed=seed, **params)
-        
-    def reset(self, paras=None):
-        self.hidden_state = None
+    def __init__(self, *args, mu, sigma, **kwargs):
+        paras = dict(mu=mu, sigma=sigma)
+        super().__init__(paras=paras, **kwargs)
 
-    def observation(self, stimulus, paras=None):
-        if not paras:
-            paras = self.paras
-        assert isinstance(self.observation_space, spaces.MultiBinary), "observation space must be set first"
+    def reset(self):
+        self.hidden_state = dict()
+
+    def observation(self, stimulus):
         assert self.observation_space.contains(stimulus)
 
-        mu_pred = paras['mu']
-        sd_pred = paras['sigma']
+        mu_pred = self.paras['mu']
+        sd_pred = self.paras['sigma']
         
         rv = stats.norm(loc=mu_pred, scale=sd_pred)
-        if self.seed:
-            rv.random_state = self.seed
+        rv.random_state = self.seed
 
         return rv
 
@@ -36,9 +32,6 @@ class RandomRespondModel(CAMO, Interactive, LogProbModel):
     def act(self, stimulus):
         return self.observation(stimulus).rvs()
 
-    def update(self, stimulus, reward, action, done, paras=None):
+    def update(self, stimulus, reward, action, done):
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
-
-        pass
-

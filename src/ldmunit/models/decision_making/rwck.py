@@ -1,4 +1,3 @@
-import sciunit
 import numpy as np
 from gym import spaces
 from scipy import stats
@@ -11,59 +10,53 @@ class RWCKModel(DADO, Interactive, LogProbModel):
     """Rescorla Wagner Choice kernel Model for discrete decision marking."""
     name = "RWCKModel"
 
-    def __init__(self, n_action=None, n_obs=None, paras=None, hidden_state=None, seed=None, name=None, **params):
-        return super().__init__(n_action=n_action, n_obs=n_obs, paras=paras, hidden_state=hidden_state, seed=seed, name=name, **params)
+    def __init__(self, *args, w0, beta, beta_c, alpha, alpha_c, **kwargs):
+        paras = {
+            'w0' : w0,
+            'beta' : beta,
+            'beta_c' : beta_c,
+            'alpha' : alpha,
+            'alpha_c' : alpha_c
+        }
+        super().__init__(paras=paras, **kwargs)
 
-    def reset(self, paras=None):
-        if not (isinstance(self.n_action, int) and isinstance(self.n_obs, int)):
-            raise TypeError("action_space and observation_space must be set.")
-        if not paras:
-            paras = self.paras
+    def reset(self):
+        w0 = self.paras['w0']
+        self.hidden_state = {'CK': np.zeros((self.n_obs, self.n_action)),
+                             'Q' : np.full((self.n_obs, self.n_action), w0)}
 
-        w0 = paras['w0']
-
-        hidden_state = {'CK': dict([[i, np.zeros(self.n_action)]    for i in range(self.n_obs)]),
-                        'Q' : dict([[i, np.full(self.n_action, w0)] for i in range(self.n_obs)])}
-        self.hidden_state = hidden_state
-
-    def _get_rv(self, stimulus, paras=None):
+    def _get_rv(self, stimulus):
         assert self.observation_space.contains(stimulus)
         CK, Q = self.hidden_state['CK'][stimulus], self.hidden_state['Q'][stimulus]
 
-        if not paras:
-            paras = self.paras
-
-        beta   = paras['beta']
-        beta_c = paras['beta_c']
+        beta   = self.paras['beta']
+        beta_c = self.paras['beta_c']
         V = beta * Q + beta_c * CK
 
         xk = np.arange(self.n_action)
         pk = softmax(V)
         rv = stats.rv_discrete(values=(xk, pk))
-        if self.seed:
-            rv.random_state = self.seed
+        rv.random_state = self.seed
 
         return rv
 
-    def predict(self, stimulus, paras=None):
-        return self._get_rv(stimulus, paras=paras).logpmf
+    def predict(self, stimulus):
+        return self._get_rv(stimulus).logpmf
 
-    def act(self, stimulus, paras=None):
-        return self._get_rv(stimulus, paras=paras).rvs()
+    def act(self, stimulus):
+        return self._get_rv(stimulus).rvs()
 
-    def update(self, stimulus, reward, action, done, paras=None):
+    def update(self, stimulus, reward, action, done):
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
-        if not paras:
-            paras = self.paras
 
         # get model's state
         CK, Q = self.hidden_state['CK'][stimulus], self.hidden_state['Q'][stimulus]
         
         if not done:
             # unpack parameters
-            alpha   = paras['alpha'  ]
-            alpha_c = paras['alpha_c']
+            alpha   = self.paras['alpha'  ]
+            alpha_c = self.paras['alpha_c']
 
             # update choice kernel
             CK = (1 - alpha_c) * CK
@@ -78,19 +71,20 @@ class RWCKModel(DADO, Interactive, LogProbModel):
 
         return CK, Q
 
+
 class RWModel(RWCKModel):
     """Rescorla Wagner Model for discrete decision marking."""
     name = "RWModel"
     
-    def __init__(self, n_action=None, n_obs=None, paras=None, hidden_state=None, seed=None, name=None, **params):
-        self.paras.update({'beta_c': 0})
-        return super().__init__(n_action=n_action, n_obs=n_obs, paras=paras, hidden_state=hidden_state, seed=seed, name=name, **params)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.paras['beta_c'] = 0
+
 
 class CKModel(RWCKModel):
     """Choice kernel Model for discrete decision marking."""
     name = "CKModel"
 
-    def __init__(self, n_action=None, n_obs=None, paras=None, hidden_state=None, seed=None, name=None, **params):
-        self.paras.update({'beta': 0})
-        return super().__init__(n_action=n_action, n_obs=n_obs, paras=paras, hidden_state=hidden_state, seed=seed, name=name, **params)
-
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.paras['beta'] = 0

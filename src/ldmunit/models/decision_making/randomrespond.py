@@ -1,4 +1,3 @@
-import sciunit
 import numpy as np
 from gym import spaces
 from scipy import stats
@@ -10,21 +9,18 @@ class RandomRespondModel(DADO, Interactive, LogProbModel):
     """Random respond for discrete decision marking."""
     name = 'RandomRespondModel'
 
-    def __init__(self, n_action=None, n_obs=None, paras=None, hidden_state=None, seed=None, name=None, **params):
-        return super().__init__(n_action=n_action, n_obs=n_obs, paras=paras, hidden_state=hidden_state, seed=seed, name=name, **params)
-        
+    def __init__(self, *args, bias, action_bias, **kwargs):
+        paras = dict(bias=bias, action_bias=action_bias)
+        super().__init__(paras=paras, **kwargs)
+
     def reset(self):
-        if not (isinstance(self.n_action, int) and isinstance(self.n_obs, int)):
-            raise TypeError("action_space and observation_space must be set.")
+        self.hidden_state = dict()
 
-        self.hidden_state = None
-
-    def _get_rv(self, stimulus, paras=None):
+    def _get_rv(self, stimulus):
         assert self.observation_space.contains(stimulus)
-        if not paras:
-            paras = self.paras
-        bias        = paras['bias']
-        action_bias = paras['action_bias']
+
+        bias        = self.paras['bias']
+        action_bias = self.paras['action_bias']
         action_bias = int(action_bias) if isinstance(action_bias, float) else action_bias
 
         n = self.n_action
@@ -33,21 +29,16 @@ class RandomRespondModel(DADO, Interactive, LogProbModel):
         
         xk = np.arange(n)
         rv = stats.rv_discrete(values=(xk, pk))
-        if self.seed:
-            rv.random_state = self.seed
+        rv.random_state = self.seed
 
         return rv
 
-    def predict(self, stimulus, paras=None):
-        return self._get_rv(stimulus, paras=paras).logpmf
+    def predict(self, stimulus):
+        return self._get_rv(stimulus).logpmf
 
-    def act(self, stimulus, paras=None):
-        return self._get_rv(stimulus, paras=paras).rvs()
+    def act(self, stimulus):
+        return self._get_rv(stimulus).rvs()
 
     def update(self, stimulus, reward, action, done):
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
-        pass
-
-
-

@@ -11,7 +11,7 @@ class Test_Unit(unittest.TestCase):
     def setUp(self):
         self.env = BanditEnv([0.01, 0.99])
         paras = {'w0': 0., 'alpha': 1, 'alpha_c': 1, 'beta': 1, 'beta_c': 1}
-        self.model = decision_making.RWCKModel(2, 2, paras=paras)
+        self.model = decision_making.RWCKModel(2, 2, **paras)
 
     def test_simulation(self):
         stimuli, rewards, actions = simulate(self.env, self.model, 100)

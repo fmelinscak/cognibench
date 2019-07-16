@@ -1,4 +1,3 @@
-import sciunit
 import numpy as np
 import gym
 from gym import spaces
@@ -10,48 +9,51 @@ from ...capabilities import Interactive, LogProbModel
 class BetaBinomialModel(CAMO, Interactive, LogProbModel):
     name = 'BetaBinomial'
 
-    def __init__(self, n_obs=None, paras=None, hidden_state=None, name=None, seed=None, **params):
-        return super().__init__(n_obs=n_obs, paras=paras, hidden_state=hidden_state, name=name, seed=seed, **params)
+    def __init__(self, *args, aInit=1, bInit=1, sigma, mix_coef, b0, b1, **kwargs):
+        paras = {
+            'aInit' : aInit,
+            'bInit' : bInit,
+            'sigma' : sigma,
+            'mix_coef' : mix_coef,
+            'b0' : b0,
+            'b1' : b1
+        }
+        super().__init__(paras=paras, **kwargs)
 
     def _set_a_b(self):
-        assert isinstance(self.n_obs, int), "observation space must be set"
-        a = np.float(self.paras['aInit']) if 'aInit' in self.paras else 1.
-        b = np.float(self.paras['bInit']) if 'aInit' in self.paras else 1.
-        return dict(a=np.ones(self.n_obs, dtype=np.float64), b=np.ones(self.n_obs, dtype=np.float64))
+        a = self.paras['aInit']
+        b = self.paras['bInit']
+        out = {'a' : a * np.ones(self.n_obs, dtype=np.float64),
+                'b' : b * np.ones(self.n_obs, dtype=np.float64)}
+        return out
 
-    def reset(self, paras=None):
-        assert isinstance(self.n_obs, int), "observation space must be set"
+    def reset(self):
         self.hidden_state = dict()
 
-    def observation(self, stimulus, paras=None):
-        if not paras:
-            paras = self.paras
-        assert isinstance(self.observation_space, spaces.MultiBinary), "observation space must be set first"
-        assert self.hidden_state, "hidden state must be set"
+    def observation(self, stimulus):
         assert self.observation_space.contains(stimulus)
 
-        sd_pred = paras['sigma']
+        sd_pred = self.paras['sigma']
         
         mu_pred = self._predict_reward(stimulus)
 
         rv = stats.norm(loc=mu_pred, scale=sd_pred)
-        if self.seed:
-            rv.random_state = self.seed
+        rv.random_state = self.seed
 
         return rv
 
 
-    def predict(self, stimulus, paras=None):
+    def predict(self, stimulus):
         if tuple(stimulus) not in self.hidden_state.keys():
             self._set_hidden_state(stimulus, self._set_a_b())
-        return self.observation(stimulus, paras).logpdf
+        return self.observation(stimulus).logpdf
 
-    def act(self, stimulus, paras=None):
+    def act(self, stimulus):
         if tuple(stimulus) not in self.hidden_state.keys():
             self._set_hidden_state(stimulus, self._set_a_b())
-        return self.observation(stimulus, paras).rvs()
+        return self.observation(stimulus).rvs()
 
-    def update(self, stimulus, reward, action, done, paras=None):
+    def update(self, stimulus, reward, action, done):
         assert self.observation_space.contains(stimulus)
         # get model's state
         if tuple(stimulus) not in self.hidden_state.keys():
@@ -75,12 +77,10 @@ class BetaBinomialModel(CAMO, Interactive, LogProbModel):
     def _get_hidden_state(self, key):
         return self.hidden_state[tuple(key)]
 
-    def _predict_reward(self, stimulus, paras=None):
-        if not paras:
-            paras = self.paras
-        mix_coef = paras['mix_coef']
-        b0 = paras['b0'] # intercept
-        b1 = paras['b1'] # slope
+    def _predict_reward(self, stimulus):
+        mix_coef = self.paras['mix_coef']
+        b0 = self.paras['b0'] # intercept
+        b1 = self.paras['b1'] # slope
 
         if tuple(stimulus) not in self.hidden_state.keys():
             self._set_hidden_state(stimulus, self._set_a_b())
