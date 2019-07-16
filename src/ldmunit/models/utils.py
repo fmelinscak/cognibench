@@ -3,20 +3,24 @@ import sciunit
 import numpy as np
 import capabilities
 
-# TODO: convert single-subject interfaces to multi-subject ones
-
-def simulate_single_env_single_model(env, model, n_trials, seed=0):
+def simulate_single_env_single_model(env, multimodel, subject_idx, n_trials, seed=0):
     """
-    Simulate the evolution of an environment and a model for a fixed
-    number of steps.
+    Simulate the evolution of an environment and a multi-subject model for a
+    fixed number of steps. Each subject model in the given multi-subject model
+    is simulated independently using the same initial environment and number
+    of trials.
 
     Parameters
     ----------
     env : gym.Env
         Environment.
 
-    model : sciunit.Model and capabilities.Interactive
-        Single subject model.
+    multimodel : sciunit.Model and capabilities.Interactive
+        Multi-subject model. If you have a single-subject model, refer to
+        multi_from_single_interactive .
+
+    subject_idx : int
+        Subject index of the model to simulate.
 
     n_trials : int
         Number of trials to perform. In each trial, model predicts the
@@ -39,39 +43,34 @@ def simulate_single_env_single_model(env, model, n_trials, seed=0):
         List of actions performed by the model in each trial.
     """
     assert isinstance(env, gym.Env)
-    assert isinstance(model, sciunit.Model)
-    assert isinstance(model, capabilities.Interactive)
-    assert env.observation_space == model.observation_space, "Observation space must be the same between environment and the model"
-    assert env.action_space == model.action_space, "Action space must be the same between environment and the model"
+    assert isinstance(multimodel, sciunit.Model)
+    assert isinstance(multimodel, capabilities.Interactive)
+    assert env.observation_space == multimodel.observation_space, "Observation space must be the same between environment and the model"
+    assert env.action_space == multimodel.action_space, "Action space must be the same between environment and the model"
     
+    subject_actions = []
+    subject_rewards = []
+    subject_stimuli = []
     initial_stimulus = env.reset()
     env.seed(seed)
-    actions = []
-    rewards = []
-    stimuli = []
-
-    stimuli.append(initial_stimulus)
-
+    subject_stimuli.append(initial_stimulus)
     for i in range(n_trials):
-        s = stimuli[-1]
-        a = model.act(s)
-
+        s = subject_stimuli[-1]
+        a = multimodel.act(subject_idx, s)
         s_next, r, done, _ = env.step(a)
-
-        model.update(s, r, a, done)
-        
-        actions.append(a)
-        rewards.append(r)
-        stimuli.append(s_next)
-    
+        multimodel.update(subject_idx, s, r, a, done)
+        subject_actions.append(a)
+        subject_rewards.append(r)
+        subject_stimuli.append(s_next)
     env.close()
 
-    return stimuli[1:], rewards, actions
+    return subject_stimuli[1:], subject_rewards, subject_actions
 
-def simulate_multi_env_single_model(env_iterable, model, n_trials, seed=0):
+def simulate_multi_env_multi_model(env_iterable, multimodel, n_trials, seed=0):
     """
-    Simulate the evolution of a series of environments with a single model that
-    is reset only at the beginning and then continuously updated.
+    Simulate the evolution of a multiple of environments with multi-subject model.
+    Each subject specific model is reset only at the beginning and then continuously
+    updated using the given sequence of environments.
 
     Parameters
     ----------
@@ -79,8 +78,10 @@ def simulate_multi_env_single_model(env_iterable, model, n_trials, seed=0):
         Sequence of environments to simulate in the same order as they are given.
         This iterable is used to construct a complete list of environments at the start.
 
-    model : sciunit.Model and capabilities.Interactive
-        Single subject model that is reset only at the beginning.
+    multimodel : sciunit.Model and capabilities.Interactive
+        Multi-subject model. Each subject-specific model is reset only once before simulating
+        all the environments one after another. If you have a single-subject model, refer to
+        multi_from_single_interactive .
 
     n_trials : int or iterable of int
         Number of trials to perform. If int, then each environment is simulated
@@ -94,17 +95,17 @@ def simulate_multi_env_single_model(env_iterable, model, n_trials, seed=0):
 
     Returns
     -------
-    stimuli : list
-        List which is the result of concatenating resulting stimuli lists for each
-        environment.
+    stimuli : list of list
+        Each element of this list is a subject list which is the result of concatenating
+        resulting stimuli lists for each environment.
 
-    rewards : list
-        List which is the result of concatenating resulting rewards lists for each
-        environment.
+    rewards : list of list
+        Each element of this list is a subject list which is the result of concatenating
+        resulting rewards lists for each environment.
 
-    actions : list
-        List which is the result of concatenating resulting actions lists for each
-        environment.
+    actions : list of list
+        Each element of this list is a subject list which is the result of concatenating
+        resulting actions lists for each environment.
 
     See Also
     --------
@@ -118,79 +119,24 @@ def simulate_multi_env_single_model(env_iterable, model, n_trials, seed=0):
         if len(n_trials_list) != len(env_list):
             raise ValueError('n_trials must be int or iterable of same length as env_list')
 
-    actions = []
-    rewards = []
     stimuli = []
-    model.reset()
-    for n, env in zip(n_trials_list, env_list):
-        s, r, a = simulate_single_env_single_model(env, model, n, seed)
-        stimuli.extend(s)
-        rewards.extend(r)
-        actions.extend(a)
-    
-    return stimuli, rewards, actions
-
-def simulate(env, model, n_trials, seed=0):
-    """
-    Simulate a single- or multi-subject on one or more environments and return the
-    results as list of lists.
-
-    Parameters
-    ----------
-    env : gym.Env or iterable of gym.Env
-        A single environment or iterable of environments.
-        Refer to simulate_multi_env_single_model
-
-    model : sciunit.Model and capabilities.Interactive
-        Single- or multi-subject model. If a multi-subject model is passed, then each
-        individual model will be simulated separately. Refer to simulate_multi_env_single_model
-
-    n_trials : int or iterable of int
-        Refer to simulate_multi_env_single_model
-
-    seed :
-        Refer to simulate_multi_env_single_model
-
-    Returns
-    -------
-    stimuli : list or list of list
-        If a single-subject model is passed, returns a list of stimuli explained in
-        simulate_multi_env_single_model. If a multi-subject model is passed, each element
-        of this list is the resulting list from simulate_multi_env_single_model.
-    
-    rewards : list or list of list
-        If a single-subject model is passed, returns a list of rewards explained in
-        simulate_multi_env_single_model. If a multi-subject model is passed, each element
-        of this list is the resulting list from simulate_multi_env_single_model.
-
-    actions : list or list of list
-        If a single-subject model is passed, returns a list of actions explained in
-        simulate_multi_env_single_model. If a multi-subject model is passed, each element
-        of this list is the resulting list from simulate_multi_env_single_model.
-
-    See Also
-    --------
-    simulate_multi_env_single_model
-    """
-    try:
-        it = iter(env)
-    except TypeError:
-        env = [env]
-
-    actions = []
     rewards = []
-    stimuli = []
-    if hasattr(model, 'models'):
-        for m in model.models:
-            m.reset()
-            s, r, a = simulate_multi_env_single_model(env, m, n_trials, seed)
-            stimuli.append(s)
-            rewards.append(r)
-            actions.append(a)
-
-    else:
-        stimuli, rewards, actions = simulate_multi_env_single_model(env, model, n_trials, seed)
-
+    actions = []
+    n_models = len(multimodel)
+    for subject_idx in range(n_models):
+        multimodel.reset(subject_idx)
+        subject_stimuli = []
+        subject_rewards = []
+        subject_actions = []
+        for n, env in zip(n_trials_list, env_list):
+            s, r, a = simulate_single_env_single_model(env, multimodel, subject_idx, n, seed)
+            subject_stimuli.extend(s)
+            subject_rewards.extend(r)
+            subject_actions.extend(a)
+        stimuli.append(subject_stimuli)
+        rewards.append(subject_rewards)
+        actions.append(subject_actions)
+    
     return stimuli, rewards, actions
 
 class MultiMetaInteractive(type):
