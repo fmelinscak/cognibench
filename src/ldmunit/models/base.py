@@ -17,7 +17,8 @@ class LDMModel(sciunit.Model):
             Hidden state of the model. (Default: empty dict)
 
         seed : int
-            Random seed. Must be a nonnegative integer. (Default: None)
+            Random seed. Must be a nonnegative integer. If seed is None,
+            random state is set randomly by gym.utils.seeding. (Default: None)
         """
         self.seed = seed
         self.paras = paras
@@ -29,10 +30,25 @@ class LDMModel(sciunit.Model):
 
     @property
     def seed(self):
+        """
+        Returns
+        -------
+        int or None
+            Random seed used to initialize the random number generator.
+            Seed is None only if it was omitted during model initialization.
+        """
         return self._seed
 
     @property
     def rng(self):
+        """
+        Returns
+        -------
+        np.random.RandomState
+            Random number generator state. Use this object as an np.random
+            replacement to generate random numbers. This way, you can reproduce
+            your results if you always use the same seed during model initialization.
+        """
         return self._rng
 
     @seed.setter
@@ -45,6 +61,11 @@ class LDMModel(sciunit.Model):
         return self._hidden_state
 
     def reset(self):
+        """
+        Reset the hidden state of the model. Subclasses should override
+        this method with suitable default hidden state values so that hidden
+        state is set to this default during object initialization.
+        """
         self.hidden_state = dict()
 
     @hidden_state.setter

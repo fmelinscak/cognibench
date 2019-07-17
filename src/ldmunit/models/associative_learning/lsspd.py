@@ -4,13 +4,55 @@ from gym import spaces
 from scipy import stats
 from .base import CAMO
 from ...capabilities import Interactive, LogProbModel
+from ...utils import is_arraylike
 
 class LSSPDModel(CAMO, Interactive, LogProbModel):
+    """
+    LSSPD model implementation.
+    """
+    # TODO: what is the name of this model?
     name = 'LSSPD'
 
-    def __init__(self, *args, w0, alpha, b0, b1, sigma, mix_coef, eta, kappa, **kwargs):
+    def __init__(self, *args, w, alpha, b0, b1, sigma, mix_coef, eta, kappa, **kwargs):
+        """
+        Parameters
+        ----------
+        w : float or array-like
+            Initial value of weight vector w. If float, then all elements of the
+            weight vector is set to this value. If array-like, must have the same
+            length as the dimension of the observation space.
+
+        alpha : float or array-like
+            Initial value of associability vector alpha. If float, then all elements of the
+            weight vector is set to this value. If array-like, must have the same
+            length as the dimension of the observation space.
+
+        b0 : float
+            Intercept used when computing the mean of normal distribution from reward.
+
+        b1 : float
+            Slope used when computing the mean of the normal distribution from reward.
+
+        sigma : float
+            Standard deviation of the normal distribution used to generate observations.
+            Must be nonnegative.
+
+        mix_coef : float
+            Mixing coefficient used in the convex combination of weight and associability vectors.
+            Must be in [0, 1] range.
+
+        eta : float
+            Learning rate for alpha updates. Must be nonnegative.
+
+        kappa : float
+            Learning rate for w updates. Must be nonnegative.
+        """
+        assert sigma >= 0, 'sigma must be nonnegative'
+        assert mix_coef >= 0 and mix_coef <= 1, 'mix_coef must be in range [0, 1]'
+        assert eta >= 0, 'eta must be nonnegative'
+        assert kappa >= 0, 'kappa must be nonnegative'
         paras = {
-            'w0' : w0,
+            'w' : w,
             'alpha' : alpha,
             'b0' : b0,
             'b1' : b1,
@@ -20,33 +62,50 @@ class LSSPDModel(CAMO, Interactive, LogProbModel):
             'kappa' : kappa
         }
         super().__init__(paras=paras, **kwargs)
+        if is_arraylike(w):
+            assert len(w) == self.n_obs, 'w must have the same length as the dimension of the observation space'
+        if is_arraylike(alpha):
+            assert len(alpha) == self.n_obs, 'alpha must have the same length as the dimension of the observation space'
 
     def reset(self):
-        w0 = self.paras['w0'] if 'w0' in self.paras else 0
+        w = self.paras['w'] if 'w' in self.paras else 0
         alpha = self.paras['alpha'] if 'alpha' in self.paras else 0
 
-        try:
-            it = iter(w0)
-            w0 = np.array(w0)
-        except TypeError:
-            w0 = np.full(self.n_obs, w0)
+        if is_arraylike(w):
+            w = np.array(w)
+        else:
+            w = np.full(self.n_obs, w)
 
-        try:
-            it = iter(alpha)
+        if is_arraylike(alpha):
             alpha = np.array(alpha)
-        except TypeError:
+        else:
             alpha = np.full(self.n_obs, alpha)
 
-        self.hidden_state = {'w'    : w0,
+        self.hidden_state = {'w'    : w,
                              'alpha': alpha}
 
     def observation(self, stimulus):
+        """
+        Get the reward random variable for the given stimulus.
+
+        Parameters
+        ----------
+        stimulus : array-like
+            Single stimulus from the observation space.
+
+        Returns
+        -------
+        scipy.stats.norm
+            Normal random variable with mean equal to linearly transformed
+            version of the convex combination of weight and associability vectors,
+            and standard deviation equal to sigma model parameter.
+        """
         assert self.observation_space.contains(stimulus)
 
-        b0 = self.paras['b0'] # intercept
-        b1 = self.paras['b1'] # slope
+        b0 = self.paras['b0']
+        b1 = self.paras['b1']
         sd_pred = self.paras['sigma']
-        mix_coef = self.paras['mix_coef'] # proportion of the weights signal in the mixture of weight and associability signals
+        mix_coef = self.paras['mix_coef']
         
         w_curr = self.hidden_state['w']
         alpha  = self.hidden_state['alpha']

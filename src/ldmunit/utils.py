@@ -1,4 +1,5 @@
 import functools
+import numpy as np
 
 
 def partialclass(cls, *args, **kwargs):
@@ -25,3 +26,7 @@ def partialclass(cls, *args, **kwargs):
         __init__ = functools.partialmethod(cls.__init__, *args, **kwargs)
 
     return OutCls
+
+
+def is_arraylike(x):
+    return np.ndim(x) != 0

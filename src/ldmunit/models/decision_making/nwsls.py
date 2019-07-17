@@ -6,12 +6,22 @@ from .base import DADO
 from ...capabilities import Interactive, LogProbModel
 
 class NWSLSModel(DADO, Interactive, LogProbModel):
-    """Noisy-win-stay-lose-shift model"""
+    """
+    Noisy-win-stay-lose-shift model implementation.
+    """
     name = 'NWSLSModel'
 
     def __init__(self, *args, epsilon, **kwargs):
+        """
+        Parameters
+        ----------
+        epsilon : int
+            Number of loose actions. Must be nonnegative and less than or equal
+            to the dimension of the action space.
+        """
         paras = dict(epsilon=epsilon)
         super().__init__(paras=paras, **kwargs)
+        assert epsilon >= 0 and epsilon <= self.n_action, 'epsilon must be in range [0, n_action]'
 
     def reset(self):
         self.hidden_state = dict(win=True, action=self.rng.randint(0, self.n_action))

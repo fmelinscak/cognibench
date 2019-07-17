@@ -4,34 +4,71 @@ from gym import spaces
 from scipy import stats
 from .base import CAMO
 from ...capabilities import Interactive, LogProbModel
+from ...utils import is_arraylike
 
 class KrwNormModel(CAMO, Interactive, LogProbModel):
+    """
+    Kalman Rescorla-Wagner model implementation.
+    """
     name = 'KrwNorm'
 
-    def __init__(self, *args, w0, sigma, b0, b1, logSigmaWInit, logTauSq, logSigmaRSq, **kwargs):
+    def __init__(self, *args, w, sigma, b0, b1, sigmaWInit, tauSq, sigmaRSq, **kwargs):
+        """
+        Parameters
+        ----------
+        w : float or array-like
+            Initial value of weight vector w. If float, then all elements of the
+            weight vector is set to this value. If array-like, must have the same
+            length as the dimension of the observation space.
+
+        sigma : float
+            Standard deviation of the normal distribution used to generate observations.
+            Must be nonnegative.
+
+        b0 : float
+            Intercept used when computing the mean of normal distribution from reward.
+
+        b1 : float
+            Slope used when computing the mean of the normal distribution from reward.
+
+        sigmaWInit : float
+            Diagonal elements of the covariance matrix C is set to sigmaWInit.
+
+        tauSq : float
+            Diagonal elements of the transition noise variance matrix Q is set to tauSq.
+            Must be nonnegative.
+
+        sigmaRSq : float
+            Additive factor used in the denominator when computing the Kalman gain K.
+            Must be nonnegative.
+        """
+        assert sigma >= 0, 'sigma must be nonnegative'
+        assert tauSq >= 0, 'tauSq must be nonnegative'
+        assert sigmaRSq >= 0, 'tauSq must be nonnegative'
         paras = {
-            'w0' : w0,
+            'w' : w,
             'sigma' : sigma,
             'b0' : b0,
             'b1' : b1,
-            'logSigmaWInit' : logSigmaWInit,
-            'logTauSq' : logTauSq,
-            'logSigmaRSq' : logSigmaRSq
+            'sigmaWInit' : sigmaWInit,
+            'tauSq' : tauSq,
+            'sigmaRSq' : sigmaRSq
         }
         super().__init__(paras=paras, **kwargs)
+        if is_arraylike(w):
+            assert len(w) == self.n_obs, 'w must have the same length as the dimension of the observation space'
 
     def reset(self):
-        w0 = self.paras['w0'] if 'w0' in self.paras else 0
-        try:
-            it = iter(w0)
-            w0 = np.array(w0, dtype=np.float64)
-        except TypeError:
-            w0 = np.full(self.n_obs, w0, dtype=np.float64)
+        w = self.paras['w'] if 'w' in self.paras else 0
+        if is_arraylike(w):
+            w = np.array(w, dtype=np.float64)
+        else:
+            w = np.full(self.n_obs, w, dtype=np.float64)
 
-        logSigmaWInit = self.paras['logSigmaWInit']
-        C =  np.exp(logSigmaWInit) * np.identity(self.n_obs) # Initial weight covariance matrix
+        sigmaWInit = self.paras['sigmaWInit']
+        C =  sigmaWInit * np.identity(self.n_obs)
 
-        self.hidden_state = {'w': np.full(self.n_obs, w0),
+        self.hidden_state = {'w': np.full(self.n_obs, w),
                              'C': C}
 
     def predict(self, stimulus):
@@ -47,6 +84,21 @@ class KrwNormModel(CAMO, Interactive, LogProbModel):
         return rhat
 
     def observation(self, stimulus):
+        """
+        Get the reward random variable for the given stimulus.
+
+        Parameters
+        ----------
+        stimulus : array-like
+            Single stimulus from the observation space.
+
+        Returns
+        -------
+        scipy.stats.norm
+            Normal random variable with mean equal to linearly transformed
+            reward using b0 and b1 parameters, and standard deviation equal
+            to sigma model parameter.
+        """
         assert self.hidden_state, "hidden state must be set"
         assert self.observation_space.contains(stimulus)
 
@@ -70,9 +122,9 @@ class KrwNormModel(CAMO, Interactive, LogProbModel):
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
 
-        tauSq = np.exp(self.paras['logTauSq']) # State diffusion variance
+        tauSq = self.paras['tauSq'] # State diffusion variance
         Q = tauSq * np.identity(self.n_obs) # Transition noise variance (transformed to positive reals); constant over time
-        sigmaRSq = np.exp(self.paras['logSigmaRSq'])
+        sigmaRSq = self.paras['sigmaRSq']
 
         
         w_curr = self.hidden_state['w']
