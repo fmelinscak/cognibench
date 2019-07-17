@@ -42,12 +42,6 @@ def simulate_single_env_single_model(env, multimodel, subject_idx, n_trials, see
     actions : list
         List of actions performed by the model in each trial.
     """
-    assert isinstance(env, gym.Env)
-    assert isinstance(multimodel, sciunit.Model)
-    assert isinstance(multimodel, Interactive)
-    assert env.observation_space == multimodel.observation_space, "Observation space must be the same between environment and the model"
-    assert env.action_space == multimodel.action_space, "Action space must be the same between environment and the model"
-    
     subject_actions = []
     subject_rewards = []
     subject_stimuli = []
@@ -112,17 +106,17 @@ def simulate_multi_env_multi_model(env_iterable, multimodel, n_trials, seed=0):
     simulate_single_env_single_model
     """
     env_list = list(env_iterable)
-    if isinstance(n_trials, int):
-        n_trials_list = np.repeat(n_trials, len(env_list), dtype=int)
+    if np.issubdtype(type(n_trials), np.integer):
+        n_trials_list = np.repeat(n_trials, len(env_list))
     else:
         n_trials_list = list(n_trials)
-        if len(n_trials_list) != len(env_list):
-            raise ValueError('n_trials must be int or iterable of same length as env_list')
+        assert all(np.issubdtype(type(x), np.integer) for x in n_trials_list), 'All elements of n_trials must be int'
+        assert len(n_trials_list) == len(env_list), 'n_trials must be int or iterable of same length as env_list'
 
     stimuli = []
     rewards = []
     actions = []
-    n_models = len(multimodel)
+    n_models = len(multimodel.subject_models)
     for subject_idx in range(n_models):
         multimodel.reset(subject_idx)
         subject_stimuli = []

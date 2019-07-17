@@ -29,4 +29,14 @@ def partialclass(cls, *args, **kwargs):
 
 
 def is_arraylike(x):
+    """
+    Returns
+    -------
+    bool
+        True if the input is an array-like object.
+
+    See Also
+    --------
+    https://docs.scipy.org/doc/numpy/reference/generated/numpy.isscalar.html
+    """
     return np.ndim(x) != 0

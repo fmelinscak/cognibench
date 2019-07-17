@@ -5,6 +5,30 @@ from scipy import stats
 from scipy.stats import beta
 from .base import CAMO
 from ...capabilities import Interactive, LogProbModel
+from collections.abc import MutableMapping
+
+
+class DictWithBinarySequenceKeys(MutableMapping):
+    def __init__(self, *args, **kwargs):
+        self._storage = dict()
+        self.update(dict(*args, **kwargs))
+
+    def __getitem__(self, key):
+        return self._storage[tuple(key)]
+
+    def __setitem__(self, key, val):
+        self._storage[tuple(key)] = val
+
+    def __delitem__(self, key):
+        del self._storage[tuple(key)]
+
+    def __iter__(self):
+        return iter(self._storage)
+
+    def __len__(self):
+        return len(self._storage)
+
+
 
 class BetaBinomialModel(CAMO, Interactive, LogProbModel):
     """
@@ -73,7 +97,7 @@ class BetaBinomialModel(CAMO, Interactive, LogProbModel):
         """
         Reset the hidden state to its default value.
         """
-        self.hidden_state = dict()
+        self.hidden_state = DictWithBinarySequenceKeys()
 
     def observation(self, stimulus):
         """
@@ -81,7 +105,7 @@ class BetaBinomialModel(CAMO, Interactive, LogProbModel):
 
         Parameters
         ----------
-        stimulus : array-like
+        stimulus : np.ndarray
             Single stimulus from the observation space.
 
         Returns
@@ -103,38 +127,30 @@ class BetaBinomialModel(CAMO, Interactive, LogProbModel):
 
 
     def predict(self, stimulus):
-        if tuple(stimulus) not in self.hidden_state.keys():
-            self._set_hidden_state(stimulus, self._get_default_a_b())
+        if stimulus not in self.hidden_state.keys():
+            self.hidden_state[stimulus] = self._get_default_a_b()
         return self.observation(stimulus).logpdf
 
     def act(self, stimulus):
-        if tuple(stimulus) not in self.hidden_state.keys():
-            self._set_hidden_state(stimulus, self._get_default_a_b())
+        if stimulus not in self.hidden_state.keys():
+            self.hidden_state[stimulus] = self._get_default_a_b()
         return self.observation(stimulus).rvs()
 
     def update(self, stimulus, reward, action, done):
         assert self.observation_space.contains(stimulus)
         # get model's state
-        if tuple(stimulus) not in self.hidden_state.keys():
-            self._set_hidden_state(stimulus, self._get_default_a_b())
-        a = self._get_hidden_state(stimulus)['a']
-        b = self._get_hidden_state(stimulus)['b']
+        if stimulus not in self.hidden_state.keys():
+            self.hidden_state[stimulus] = self._get_default_a_b()
+        a = self.hidden_state[stimulus]['a']
+        b = self.hidden_state[stimulus]['b']
 
         if not done:
             a += (1 - stimulus) * (1 - reward) + stimulus * reward
             b += (1 - stimulus) * reward + stimulus * (1 - reward)
-            old = self._get_hidden_state(stimulus)
-            old['a'] = a
-            old['b'] = b
-            self._set_hidden_state(stimulus, old)
+            self.hidden_state[stimulus]['a'] = a
+            self.hidden_state[stimulus]['b'] = b
 
         return a, b
-
-    def _set_hidden_state(self, key, val):
-        self.hidden_state[tuple(key)] = val
-
-    def _get_hidden_state(self, key):
-        return self.hidden_state[tuple(key)]
 
     def _predict_reward(self, stimulus):
         """
@@ -146,9 +162,9 @@ class BetaBinomialModel(CAMO, Interactive, LogProbModel):
         slope = self.paras['slope']
 
         if tuple(stimulus) not in self.hidden_state.keys():
-            self._set_hidden_state(stimulus, self._get_default_a_b())
-        a = self._get_hidden_state(stimulus)['a']
-        b = self._get_hidden_state(stimulus)['b']
+            self.hidden_state[stimulus] = self._get_default_a_b()
+        a = self.hidden_state['stimulus']['a']
+        b = self.hidden_state['stimulus']['b']
 
         mu      = beta(a,b).mean()
         entropy = beta(a,b).entropy()

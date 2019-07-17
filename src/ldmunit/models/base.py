@@ -1,5 +1,6 @@
 import sciunit
 from gym.utils import seeding
+from collections.abc import Mapping
 
 
 class LDMModel(sciunit.Model):
@@ -72,7 +73,7 @@ class LDMModel(sciunit.Model):
     def hidden_state(self, value):
         if value is None:
             self._hidden_state = dict()
-        elif not isinstance(value, dict):
+        elif not isinstance(value, Mapping):
             raise TypeError("hidden_state must be of dict type")
         else:
             self._hidden_state = value
@@ -85,7 +86,7 @@ class LDMModel(sciunit.Model):
     def paras(self, value):
         if value is None:
             self._paras = dict()
-        elif not isinstance(value, dict):
+        elif not isinstance(value, Mapping):
             raise TypeError("paras must be of dict type")
         else:
             self._paras = value
