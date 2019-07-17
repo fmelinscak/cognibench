@@ -183,6 +183,8 @@ class MultiMetaInteractive(type):
             return self.subject_models[idx].reset(*args, **kwargs)
         out_cls.reset = multi_reset
 
+        out_cls.__doc__ = single_cls.__doc__
+
         return out_cls
 
 def multi_from_single_interactive(single_cls):

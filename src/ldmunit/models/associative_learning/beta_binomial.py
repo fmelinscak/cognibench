@@ -9,6 +9,9 @@ from collections.abc import MutableMapping
 
 
 class DictWithBinarySequenceKeys(MutableMapping):
+    """
+    Mapping where keys are binary sequences such as [0, 1, 1], [1, 0, 1], etc.
+    """
     def __init__(self, *args, **kwargs):
         self._storage = dict()
         self.update(dict(*args, **kwargs))
@@ -27,7 +30,6 @@ class DictWithBinarySequenceKeys(MutableMapping):
 
     def __len__(self):
         return len(self._storage)
-
 
 
 class BetaBinomialModel(CAMO, Interactive, LogProbModel):
@@ -163,8 +165,8 @@ class BetaBinomialModel(CAMO, Interactive, LogProbModel):
 
         if tuple(stimulus) not in self.hidden_state.keys():
             self.hidden_state[stimulus] = self._get_default_a_b()
-        a = self.hidden_state['stimulus']['a']
-        b = self.hidden_state['stimulus']['b']
+        a = self.hidden_state[stimulus]['a']
+        b = self.hidden_state[stimulus]['b']
 
         mu      = beta(a,b).mean()
         entropy = beta(a,b).entropy()
