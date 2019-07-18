@@ -36,7 +36,7 @@ class BetaBinomialModel(CAMO, Interactive, LogProbModel):
     """
     Interactive beta-binomial model implementation.
 
-    Occurence and non-occurence counts are stored in variables a and b, respectively.
+    Occurence and non-occurence counts are stored in variables `a` and `b`, respectively.
 
     Example
     -------
@@ -54,10 +54,10 @@ class BetaBinomialModel(CAMO, Interactive, LogProbModel):
         Parameters
         ----------
         a : float
-            Initial value of occurence count variable a. Must be positive.
+            Initial value of occurence count variable `a`. Must be positive.
 
         b : float
-            Initial value of non-occurence count variable b. Must be positive.
+            Initial value of non-occurence count variable `b`. Must be positive.
 
         sigma : float
             Standard deviation of the normal distribution used to generate observations.
@@ -71,6 +71,12 @@ class BetaBinomialModel(CAMO, Interactive, LogProbModel):
 
         slope : float
             Slope used when computing the reward.
+
+        Other Parameters
+        ----------------
+        **kwargs : any type
+            All the mandatory keyword-only arguments required by :class:`ldmunit.models.associative_learning.base.CAMO` must also be
+            provided during initialization.
         """
         assert a > 0, 'a must be positive'
         assert b > 0, 'b must be positive'
@@ -108,12 +114,12 @@ class BetaBinomialModel(CAMO, Interactive, LogProbModel):
 
         Parameters
         ----------
-        stimulus : np.ndarray
+        stimulus : :class:`np.ndarray`
             Single stimulus from the observation space.
 
         Returns
         -------
-        scipy.stats.norm
+        :class:`scipy.stats.rv_continuous`
             Normal random variable with mean equal to reward and
             standard deviation equal to sigma model parameter.
         """
@@ -130,16 +136,61 @@ class BetaBinomialModel(CAMO, Interactive, LogProbModel):
 
 
     def predict(self, stimulus):
+        """
+        Predict the log-pdf over the continuous action space by using the
+        given stimulus as input.
+
+        Parameters
+        ----------
+        stimulus : array-like
+            A stimulus from the multi-binary observation space for this model. For
+            example, `[0, 1, 1]`.
+
+        Returns
+        -------
+        method
+            :py:meth:`scipy.stats.rv_continuous.logpdf` method over the continuous action space.
+        """
         if stimulus not in self.hidden_state.keys():
             self.hidden_state[stimulus] = self._get_default_a_b()
         return self.observation(stimulus).logpdf
 
     def act(self, stimulus):
+        """
+        Return an action for the given stimulus.
+
+        Parameters
+        ----------
+        stimulus : array-like
+            A stimulus from the multi-binary observation space for this model. For
+            example, `[0, 1, 1]`.
+
+        Returns
+        -------
+        float
+            An action from the continuous action space.
+        """
         if stimulus not in self.hidden_state.keys():
             self.hidden_state[stimulus] = self._get_default_a_b()
         return self.observation(stimulus).rvs()
 
     def update(self, stimulus, reward, action, done):
+        """
+        Update the hidden state of the model based on input stimulus, action performed
+        by the model and reward.
+
+        Parameters
+        ----------
+        stimulus : array-like
+            A stimulus from the multi-binary observation space for this model. For
+            example, `[0, 1, 1]`.
+
+        reward : float
+            The reward for the action.
+
+        done : bool
+            If True, do not update the hidden state.
+        """
         assert self.observation_space.contains(stimulus)
         # get model's state
         if stimulus not in self.hidden_state.keys():

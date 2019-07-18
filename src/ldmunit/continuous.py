@@ -3,11 +3,11 @@ import gym
 
 class ContinuousSpace(gym.Space):
     """
-    Continuous space for numbers in R^1.
+    Continuous space for numbers in :math:`\mathbb{R}`.
     """
     def __init__(self):
         """
-        Initialize the space using np.float64
+        Initialize the space using float64 :class:`numpy.dtype`
         """
         super().__init__((), np.float64)
 
@@ -16,12 +16,12 @@ class ContinuousSpace(gym.Space):
 
     def contains(self, x):
         """
-        Assert if a value is in R^1 space. Integers and floating numbers (including np.ndarray)
-        will also be included.
+        Assert if a value is in :math:`\mathbb{R}` space. Integers and floating numbers
+        (including :class:`numpy.ndarray`) will also be included.
 
         Parameters
         ----------
-        x : int or float or np.ndarray
+        x : int or float or :class:`numpy.ndarray`
             Value to check
 
         Returns

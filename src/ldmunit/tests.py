@@ -3,19 +3,19 @@ from sciunit import Test
 from .scores import SmallerBetterScore
 from .capabilities import Interactive, LogProbModel
 
-def _test_multimodel(multimodel, stimuli, rewards, actions):
+def test_multimodel(multimodel, stimuli, rewards, actions):
     """
-    _test_multimodel is a private utility function which trains
+    test_multimodel is a utility function which trains
     a multi-subject model on a list of stimulus, reward, action
     triples for each subject. The list of predictions after each
     predict step is returned.
     
     Parameters
     ----------
-    multimodel : sciunit.Model and capabilities.Interactive
+    multimodel : :class:`sciunit.models.Model` and :class:`ldmunit.capabilities.Interactive`
         Multi-subject model. If you have a single-subject model
         that works on data for one subject at a time, use
-        models.utils.multi_from_single to get a multi-subject
+        :func:`ldmunit.models.utils.multi_from_single_interactive` to get a multi-subject
         model that works on a single-subject at a time.
 
     stimuli : list of list
@@ -49,7 +49,7 @@ def _test_multimodel(multimodel, stimuli, rewards, actions):
     return predictions
 
 
-def _neg_loglikelihood(actions, predictions):
+def neg_loglikelihood(actions, predictions):
     """
     Compute negative log-likelihood of a multimodel using a collection of
     subject-specific true action and model prediction lists. Each prediction
@@ -89,7 +89,7 @@ class InteractiveTest(Test):
 
     See Also
     --------
-    NLLTest, AICTest, BICTest for examples of concrete interactive test classes
+    :class:`NLLTest`, :class:`AICTest`, :class:`BICTest` for examples of concrete interactive test classes
     """
     required_capabilities = (Interactive, )
 
@@ -99,7 +99,7 @@ class InteractiveTest(Test):
 
         Parameters
         ----------
-        multimodel : sciunit.Model and capabilities.Interactive
+        multimodel : :class:`sciunit.models.Model` and :class:`ldmunit.capabilities.Interactive`
             Multi-subject model
 
         Returns
@@ -109,13 +109,13 @@ class InteractiveTest(Test):
 
         See Also
         --------
-        _test_multimodel
+        :func:`test_multimodel`
         """
         stimuli = self.observation['stimuli']
         rewards = self.observation['rewards']
         actions = self.observation['actions']
 
-        predictions = _test_multimodel(multimodel, stimuli, rewards, actions)
+        predictions = test_multimodel(multimodel, stimuli, rewards, actions)
         return predictions
 
 
@@ -124,6 +124,7 @@ class NLLTest(InteractiveTest):
     Perform interactive test on models that produce a log pdf/pmf as their
     predictions. Negative log-likelihood (NLL) function is used as the score.
     """
+
     score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1000)
     required_capabilities = InteractiveTest.required_capabilities + (LogProbModel,)
 
@@ -142,10 +143,10 @@ class NLLTest(InteractiveTest):
 
         Returns
         -------
-        SmallerBetterScore
+        :class:`ldmunit.scores.SmallerBetterScore`
             Negative log-likelihood.
         """
-        nll = _neg_loglikelihood(observation['actions'], prediction)
+        nll = neg_loglikelihood(observation['actions'], prediction)
         return self.score_type(nll)
 
 
@@ -164,7 +165,7 @@ class AICTest(InteractiveTest):
 
         See Also
         --------
-        InteractiveTest.generate_prediction
+        :func:`InteractiveTest.generate_prediction`
         """
         # save variables necessary to compute score
         self.n_model_params = [len(m.paras) for m in multimodel.subject_models]
@@ -187,10 +188,10 @@ class AICTest(InteractiveTest):
 
         Returns
         -------
-        SmallerBetterScore
+        :class:`ldmunit.scores.SmallerBetterScore`
             AIC
         """
-        nll = _neg_loglikelihood(observation['actions'], prediction)
+        nll = neg_loglikelihood(observation['actions'], prediction)
         regularizer = 2 * sum(self.n_model_params)
         return self.score_type(nll + regularizer)
 
@@ -210,7 +211,7 @@ class BICTest(InteractiveTest):
 
         See Also
         --------
-        InteractiveTest.generate_prediction
+        :func:`InteractiveTest.generate_prediction`
         """
         # save variables necessary to compute score
         stimuli = self.observation['stimuli']
@@ -235,9 +236,9 @@ class BICTest(InteractiveTest):
 
         Returns
         -------
-        SmallerBetterScore
+        :class:`ldmunit.scores.SmallerBetterScore`
             BIC
         """
-        nll = _neg_loglikelihood(observation['actions'], prediction)
+        nll = neg_loglikelihood(observation['actions'], prediction)
         regularizer = sum(p * q for p, q in zip(self.n_model_params, self.n_samples))
         return self.score_type(nll + regularizer)

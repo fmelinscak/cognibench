@@ -5,7 +5,7 @@ from .continuous import ContinuousSpace
 
 
 class Interactive(sciunit.Capability):
-    """Capability to interact with an environment (i.e. gym.Env)
+    """Capability to interact with an environment (i.e. :class:`gym.Env`)
 
     Models with this capability are required to have the following methods to be 
     able to respond to environment and update themselves in an interactive manner.
@@ -53,7 +53,7 @@ class LogProbModel(sciunit.Capability):
 
 class ActionSpace(sciunit.Capability):
     """
-    Capability to understand action in a given space (gym.spaces).
+    Capability to understand action in a given space (:class:`gym.spaces.Space`).
     """
 
     @property
@@ -61,14 +61,14 @@ class ActionSpace(sciunit.Capability):
         """
         Returns
         -------
-        gym.spaces
+        :class:`gym.spaces.Space`
             Models only understand action in this space.
         """
         raise NotImplementedError("Must have action_space attribute.")
 
 class ObservationSpace(sciunit.Capability):
     """
-    Capability to understand action in a given space (gym.spaces).
+    Capability to understand action in a given space (:class:`gym.spaces.Space`).
     """
 
     @property
@@ -76,14 +76,14 @@ class ObservationSpace(sciunit.Capability):
         """
         Returns
         -------
-        gym.spaces
+        :class:`gym.spaces.Space`
             Models only understand observation/stimulus in this space.
         """
         raise NotImplementedError("Must have observation_space attribute.")
 
 class DiscreteObservation(ObservationSpace):
     """
-    Capability to understand observation/stimulus/cues in a given discrete space (gym.spaces.Discrete).
+    Capability to understand observation/stimulus/cues in a given discrete space (:class:`gym.spaces.Discrete`).
     """
 
     @property
@@ -91,20 +91,20 @@ class DiscreteObservation(ObservationSpace):
         """
         Returns
         -------
-        gym.spaces.Discrete
-            Models only understand observation in the gym.spaces.Discrete set.
+        :class:`gym.spaces.Discrete`
+            Models only understand observation in the :class:`gym.spaces.Discrete` set.
         """
         return self._observation_space
 
     @observation_space.setter
     def observation_space(self, value):
         """
-        Set the gym.spaces.Discrete set.
+        Set the :class:`gym.spaces.Discrete` set.
 
         Parameters
         ----------
-        value : int or gym.spaces.Discrete
-            Observation_space will be set to the gym.spaces.Discrete accordingly.
+        value : int or :class:`gym.spaces.Discrete`
+            Observation_space will be set to the :class:`gym.spaces.Discrete` accordingly.
         """
         if isinstance(value, spaces.Discrete):
             self._observation_space = value
@@ -131,7 +131,7 @@ class DiscreteObservation(ObservationSpace):
 
 class DiscreteAction(ActionSpace):
     """
-    Capability to understand action in a given discrete space (gym.spaces.Discrete).
+    Capability to understand action in a given discrete space (:class:`gym.spaces.Discrete`).
     """
 
     @property
@@ -139,8 +139,8 @@ class DiscreteAction(ActionSpace):
         """
         Returns
         -------
-        gym.spaces.Discrete
-            Models only understand action in the gym.spaces.Discrete set.
+        :class:`gym.spaces.Discrete`
+            Models only understand action in the :class:`gym.spaces.Discrete` set.
         """
         return self._action_space
 
@@ -149,10 +149,10 @@ class DiscreteAction(ActionSpace):
         """
         Parameters
         ----------
-        value : None, int, gym.spaces.Discrete
-            observation_space set to class gym.spaces.Discrete when passed None 
-            (default). With a int or an instance of gym.spaces.Discrete, observation_space 
-            will be set to the gym.spaces.Discrete accordingly.
+        value : None, int, :class:`gym.spaces.Discrete`
+            observation_space set to class :class:`gym.spaces.Discrete` when passed None 
+            (default). With a int or an instance of :class:`gym.spaces.Discrete`, observation_space 
+            will be set to the :class:`gym.spaces.Discrete` accordingly.
         """
         if isinstance(value, spaces.Discrete):
             self._action_space = value
@@ -179,7 +179,7 @@ class DiscreteAction(ActionSpace):
 
 class MultiBinaryObservation(ObservationSpace):
     """
-    Capability to understand actions in a given multi-binary space (gym.spaces.MultiBinary).
+    Capability to understand actions in a given multi-binary space (:class:`gym.spaces.MultiBinary`).
     """
 
     @property
@@ -187,8 +187,8 @@ class MultiBinaryObservation(ObservationSpace):
         """
         Returns
         -------
-        gym.spaces.MultiBinary
-            Models only understand observation/stimulus in the gym.spaces.MultiBinary set.
+        :class:`gym.spaces.MultiBinary`
+            Models only understand observation/stimulus in the :class:`gym.spaces.MultiBinary` set.
             For example np.array([0, 1, 0, 1])
 
         Example
@@ -206,10 +206,10 @@ class MultiBinaryObservation(ObservationSpace):
         """
         Parameters
         ----------
-        value : None or int or gym.spaces.MultiBinary
-            observation_space set to class gym.spaces.MultiBinary when passed None 
-            (default). With a int or an instance of gym.spaces.MultiBinary, observation_space 
-            will be set to the gym.spaces.MultiBinary accordingly.
+        value : None or int or :class:`gym.spaces.MultiBinary`
+            observation_space set to class :class:`gym.spaces.MultiBinary` when passed None 
+            (default). With a int or an instance of :class:`gym.spaces.MultiBinary`, observation_space 
+            will be set to the :class:`gym.spaces.MultiBinary` accordingly.
         """
         if isinstance(value, spaces.MultiBinary):
             self._observation_space = value
@@ -236,7 +236,7 @@ class MultiBinaryObservation(ObservationSpace):
 
 class ContinuousAction(ActionSpace):
     """
-    Capability to understand continuous actions (i.e. R^1 in continuous).
+    Capability to understand continuous actions (i.e. :math:`\mathbb{R}` in continuous).
     """
 
     @property

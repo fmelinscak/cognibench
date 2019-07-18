@@ -73,11 +73,11 @@ class SmallerBetterScore(scores.FloatScore):
         Parameters
         ----------
         value : float
-            Score value to color. If None, function uses self.score
+            Score value to color. If None, function uses `self.score`
 
         See Also
         --------
-        scores.FloatScore.color
+        :py:mod:`sciunit.scores`
         """
         if value is not None:
             self.score = value

@@ -4,19 +4,18 @@ import numpy as np
 
 def partialclass(cls, *args, **kwargs):
     """
-    Partially initialize a by partially binding its `__init__` method with the given input arguments. The returned class
+    Partially initialize a class by binding its `__init__` method with the given input arguments. The returned class
     can be initialized by passing the remaining arguments required for initialization.
 
     Parameters
     ----------
     cls : type
-        Any class type such as scores.SmallerBetterScore
+        Any class type.
 
     Returns
     -------
     class
-        A new class that is partially initialized using the arguments
-        passed in `*args` and `**kwargs` .
+        A new class that is partially initialized using the `*args` and `**kwargs` arguments.
 
     See Also
     --------

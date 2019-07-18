@@ -45,7 +45,7 @@ class LDMModel(sciunit.Model):
         """
         Returns
         -------
-        np.random.RandomState
+        :class:`numpy.random.RandomState`
             Random number generator state. Use this object as an np.random
             replacement to generate random numbers. This way, you can reproduce
             your results if you always use the same seed during model initialization.

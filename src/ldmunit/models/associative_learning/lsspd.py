@@ -46,6 +46,12 @@ class LSSPDModel(CAMO, Interactive, LogProbModel):
 
         kappa : float
             Learning rate for w updates. Must be nonnegative.
+
+        Other Parameters
+        ----------------
+        **kwargs : any type
+            All the mandatory keyword-only arguments required by :class:`ldmunit.models.associative_learning.base.CAMO` must also be
+            provided during initialization.
         """
         assert sigma >= 0, 'sigma must be nonnegative'
         assert mix_coef >= 0 and mix_coef <= 1, 'mix_coef must be in range [0, 1]'
@@ -68,6 +74,9 @@ class LSSPDModel(CAMO, Interactive, LogProbModel):
             assert len(alpha) == self.n_obs, 'alpha must have the same length as the dimension of the observation space'
 
     def reset(self):
+        """
+        Reset the hidden state to its default value.
+        """
         w = self.paras['w'] if 'w' in self.paras else 0
         alpha = self.paras['alpha'] if 'alpha' in self.paras else 0
 
@@ -90,15 +99,14 @@ class LSSPDModel(CAMO, Interactive, LogProbModel):
 
         Parameters
         ----------
-        stimulus : array-like
+        stimulus : :class:`np.ndarray`
             Single stimulus from the observation space.
 
         Returns
         -------
-        scipy.stats.norm
-            Normal random variable with mean equal to linearly transformed
-            version of the convex combination of weight and associability vectors,
-            and standard deviation equal to sigma model parameter.
+        :class:`scipy.stats.rv_continuous`
+            Normal random variable with mean equal to reward and
+            standard deviation equal to sigma model parameter.
         """
         assert self.observation_space.contains(stimulus)
 
@@ -119,9 +127,38 @@ class LSSPDModel(CAMO, Interactive, LogProbModel):
         return rv
 
     def predict(self, stimulus):
+        """
+        Predict the log-pdf over the continuous action space by using the
+        given stimulus as input.
+
+        Parameters
+        ----------
+        stimulus : array-like
+            A stimulus from the multi-binary observation space for this model. For
+            example, `[0, 1, 1]`.
+
+        Returns
+        -------
+        method
+            :py:meth:`scipy.stats.rv_continuous.logpdf` method over the continuous action space.
+        """
         return self.observation(stimulus).logpdf
 
     def act(self, stimulus):
+        """
+        Return an action for the given stimulus.
+
+        Parameters
+        ----------
+        stimulus : array-like
+            A stimulus from the multi-binary observation space for this model. For
+            example, `[0, 1, 1]`.
+
+        Returns
+        -------
+        float
+            An action from the continuous action space.
+        """
         return self.observation(stimulus).rvs()
 
     def _predict_reward(self, stimulus):
@@ -131,6 +168,22 @@ class LSSPDModel(CAMO, Interactive, LogProbModel):
         return rhat
         
     def update(self, stimulus, reward, action, done):
+        """
+        Update the hidden state of the model based on input stimulus, action performed
+        by the model and reward.
+
+        Parameters
+        ----------
+        stimulus : array-like
+            A stimulus from the multi-binary observation space for this model. For
+            example, `[0, 1, 1]`.
+
+        reward : float
+            The reward for the action.
+
+        done : bool
+            If True, do not update the hidden state.
+        """
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
 

@@ -16,7 +16,7 @@ class DADO(LDMModel, DiscreteAction, DiscreteObservation):
         n_action : int
             Dimension of the action space.
 
-        n_obs :
+        n_obs : int
             Dimension of the observation space.
         """
         assert n_action > 0, 'n_action must be positive'

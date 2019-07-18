@@ -12,10 +12,10 @@ def simulate_single_env_single_model(env, multimodel, subject_idx, n_trials, see
 
     Parameters
     ----------
-    env : gym.Env
+    env : :class:`gym.Env`
         Environment.
 
-    multimodel : sciunit.Model and capabilities.Interactive
+    multimodel : :class:`sciunit.models.Model` and :class:`ldmunit.capabilities.Interactive`
         Multi-subject model. If you have a single-subject model, refer to
         multi_from_single_interactive .
 
@@ -68,14 +68,14 @@ def simulate_multi_env_multi_model(env_iterable, multimodel, n_trials, seed=0):
 
     Parameters
     ----------
-    env_iterable : iterable of gym.Env
+    env_iterable : iterable of :class:`gym.Env`
         Sequence of environments to simulate in the same order as they are given.
         This iterable is used to construct a complete list of environments at the start.
 
-    multimodel : sciunit.Model and capabilities.Interactive
+    multimodel : :class:`sciunit.models.Model` and :class:`ldmunit.capabilities.Interactive`
         Multi-subject model. Each subject-specific model is reset only once before simulating
         all the environments one after another. If you have a single-subject model, refer to
-        multi_from_single_interactive .
+        :func:`multi_from_single_interactive` .
 
     n_trials : int or iterable of int
         Number of trials to perform. If int, then each environment is simulated
@@ -137,7 +137,7 @@ class MultiMetaInteractive(type):
     """
     MultiMetaInteractive is a metaclass for creating multi-subject models from
     interactive single-subject ones. The input single-subject model should
-    implement all the requirements of an interactive model (see capabilities.Interactive).
+    implement all the requirements of an interactive model (see :class:`ldmunit.capabilities.Interactive`).
 
     The classes created by this metaclass implement all four methods of an
     interactive method. In addition, each method takes an additional subject
@@ -194,13 +194,13 @@ def multi_from_single_interactive(single_cls):
 
     Parameters
     ----------
-    single_cls : capabilities.Interactive
+    single_cls : :class:`ldmunit.capabilities.Interactive`
         A single-subject model class implementing capabilities.Interactive interface.
 
     Returns
     -------
     MultiSubjectModel
-        A multi-subject model class implementing capabilities.Interactive interface.
+        A multi-subject model class implementing :class:`ldmunit.capabilities.Interactive` interface.
         Each required method now takes a subject index as their first argument.
     """
     multi_cls_name = 'Multi' + single_cls.name

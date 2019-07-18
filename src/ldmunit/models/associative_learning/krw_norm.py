@@ -41,6 +41,12 @@ class KrwNormModel(CAMO, Interactive, LogProbModel):
         sigmaRSq : float
             Additive factor used in the denominator when computing the Kalman gain K.
             Must be nonnegative.
+
+        Other Parameters
+        ----------------
+        **kwargs : any type
+            All the mandatory keyword-only arguments required by :class:`ldmunit.models.associative_learning.base.CAMO` must also be
+            provided during initialization.
         """
         assert sigma >= 0, 'sigma must be nonnegative'
         assert tauSq >= 0, 'tauSq must be nonnegative'
@@ -59,6 +65,9 @@ class KrwNormModel(CAMO, Interactive, LogProbModel):
             assert len(w) == self.n_obs, 'w must have the same length as the dimension of the observation space'
 
     def reset(self):
+        """
+        Reset the hidden state to its default value.
+        """
         w = self.paras['w'] if 'w' in self.paras else 0
         if is_arraylike(w):
             w = np.array(w, dtype=np.float64)
@@ -72,9 +81,38 @@ class KrwNormModel(CAMO, Interactive, LogProbModel):
                              'C': C}
 
     def predict(self, stimulus):
+        """
+        Predict the log-pdf over the continuous action space by using the
+        given stimulus as input.
+
+        Parameters
+        ----------
+        stimulus : array-like
+            A stimulus from the multi-binary observation space for this model. For
+            example, `[0, 1, 1]`.
+
+        Returns
+        -------
+        method
+            :py:meth:`scipy.stats.rv_continuous.logpdf` method over the continuous action space.
+        """
         return self.observation(stimulus).logpdf
 
     def act(self, stimulus):
+        """
+        Return an action for the given stimulus.
+
+        Parameters
+        ----------
+        stimulus : array-like
+            A stimulus from the multi-binary observation space for this model. For
+            example, `[0, 1, 1]`.
+
+        Returns
+        -------
+        float
+            An action from the continuous action space.
+        """
         return self.observation(stimulus).rvs()
 
     def _predict_reward(self, stimulus):
@@ -94,7 +132,7 @@ class KrwNormModel(CAMO, Interactive, LogProbModel):
 
         Returns
         -------
-        scipy.stats.norm
+        :class:`scipy.stats.rv_continuous`
             Normal random variable with mean equal to linearly transformed
             reward using b0 and b1 parameters, and standard deviation equal
             to sigma model parameter.
@@ -119,6 +157,25 @@ class KrwNormModel(CAMO, Interactive, LogProbModel):
         return rv
 
     def update(self, stimulus, reward, action, done):
+        """
+        Update the hidden state of the model based on input stimulus, action performed
+        by the model and reward.
+
+        Parameters
+        ----------
+        stimulus : array-like
+            A stimulus from the multi-binary observation space for this model. For
+            example, `[0, 1, 1]`.
+
+        reward : float
+            The reward for the action.
+
+        action : float
+            Action performed by the model.
+
+        done : bool
+            If True, do not update the hidden state.
+        """
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
 
