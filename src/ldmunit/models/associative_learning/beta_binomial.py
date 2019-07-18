@@ -38,12 +38,13 @@ class BetaBinomialModel(CAMO, Interactive, LogProbModel):
 
     Occurence and non-occurence counts are stored in variables a and b, respectively.
 
-    Reward is calculated as
+    Example
+    -------
+    >>> # Reward is calculated as
     >>> mu = mean(Beta(a, b))
     >>> h  = entropy(Beta(a, b))
     >>> reward = intercept + slope * np.dot(stimulus, (mix_coef * mu  + (1 - mix_coef) * entropy))
-
-    Observation is a normal random variable:
+    >>> # Observation is a normal random variable:
     >>> observation = Normal(reward, sigma)
     """
     name = 'BetaBinomial'

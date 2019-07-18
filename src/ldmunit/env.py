@@ -1,4 +1,10 @@
 """
+Some parts of BanditEnv class were inspired by the code at
+`<https://github.com/JKCooper2/gym-bandits/blob/master/gym_bandits/bandit.py>`_. We
+include a modified version of this code below. The license and copyright notices
+of the original bandit.py code (not LDMUnit library) is given below in env.py.
+"""
+"""
 MIT License
 
 Copyright (c) 2016 Jesse Cooper
@@ -20,13 +26,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-"""
-
-"""
-Some parts of BanditEnv class were inspired by the code at
-https://github.com/JKCooper2/gym-bandits/blob/master/gym_bandits/bandit.py . We
-include a modified version of this code below. The license and copyright notices
-of the original bandit.py code (not LDMUnit library) is given above.
 """
 
 import numpy as np
@@ -127,6 +126,9 @@ class BanditEnv(gym.Env):
         return self.observation_space.sample()
 
     def render(self, mode='human', close=False):
+        """
+        Not implemented
+        """
         pass
 
 class BanditAssociateEnv(gym.Env):
@@ -143,7 +145,7 @@ class BanditAssociateEnv(gym.Env):
         A list of stimulus in the same gym.spaces.MultiBinary space.
     p_stimuli : list
         A list of probabilities that a stimulus will occur.
-    p_reward ; list
+    p_reward : list
         A list of probabilities of the likelihood that a particular stimuli will pay out.
     info : str
         Info about the environment that the agents is not supposed to know. For instance,
@@ -154,7 +156,7 @@ class BanditAssociateEnv(gym.Env):
     ----------
     p_stimuli : list
         A list of probabilities that a stimulus will occur.
-    p_reward ; list
+    p_reward : list
         A list of probabilities of the likelihood that a particular stimuli will pay out.
     info : str
         Info about the environment that the agents is not supposed to know. For instance,
@@ -247,4 +249,7 @@ class BanditAssociateEnv(gym.Env):
         return observation
 
     def render(self, mode='human', close=False):
+        """
+        Not implemented
+        """
         pass

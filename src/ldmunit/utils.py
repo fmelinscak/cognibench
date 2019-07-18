@@ -4,7 +4,7 @@ import numpy as np
 
 def partialclass(cls, *args, **kwargs):
     """
-    Partially initialize a by partially binding its __init__ method with the given input arguments. The returned class
+    Partially initialize a by partially binding its `__init__` method with the given input arguments. The returned class
     can be initialized by passing the remaining arguments required for initialization.
 
     Parameters
@@ -16,11 +16,11 @@ def partialclass(cls, *args, **kwargs):
     -------
     class
         A new class that is partially initialized using the arguments
-        passed in *args and **kwargs .
+        passed in `*args` and `**kwargs` .
 
     See Also
     --------
-    https://stackoverflow.com/questions/38911146/python-equivalent-of-functools-partial-for-a-class-constructor
+    `<https://stackoverflow.com/questions/38911146/python-equivalent-of-functools-partial-for-a-class-constructor>`_.
     """
     class OutCls(cls):
         __init__ = functools.partialmethod(cls.__init__, *args, **kwargs)
@@ -37,6 +37,6 @@ def is_arraylike(x):
 
     See Also
     --------
-    https://docs.scipy.org/doc/numpy/reference/generated/numpy.isscalar.html
+    `<https://docs.scipy.org/doc/numpy/reference/generated/numpy.isscalar.html>`_.
     """
     return np.ndim(x) != 0
