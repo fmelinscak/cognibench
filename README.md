@@ -33,11 +33,11 @@ We use built-in `unittest` module for testing ldmunit. To perform checks, type
 
 ## Information for Developers
 If you want to extend ldmunit, you need to use the development environment and `conda`.
-To create the `ldmunit_dev` conda environment, use
+To create the `ldmunit` conda environment, use
 
 ```bash
-conda env create -f environment_dev.yml
-conda activate ldmunit_dev
+conda env create -f environment.yml
+conda activate ldmunit
 ```
 
 ### Generating Local Documentation
