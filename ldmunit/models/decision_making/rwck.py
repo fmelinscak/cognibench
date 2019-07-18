@@ -6,6 +6,7 @@ from scipy.special import softmax
 from .base import DADO
 from ...capabilities import Interactive, LogProbModel
 
+
 class RWCKModel(DADO, Interactive, LogProbModel):
     """
     Rescorla-Wagner Choice Kernel model implementation.
@@ -47,19 +48,12 @@ class RWCKModel(DADO, Interactive, LogProbModel):
         """
         assert eta >= 0, 'eta must be nonnegative'
         assert eta_c >= 0, 'eta_c must be nonnegative'
-        paras = {
-            'w' : w,
-            'beta' : beta,
-            'beta_c' : beta_c,
-            'eta' : eta,
-            'eta_c' : eta_c
-        }
+        paras = {'w': w, 'beta': beta, 'beta_c': beta_c, 'eta': eta, 'eta_c': eta_c}
         super().__init__(paras=paras, **kwargs)
 
     def reset(self):
         w = self.paras['w']
-        self.hidden_state = {'CK': np.zeros((self.n_obs, self.n_action)),
-                             'Q' : np.full((self.n_obs, self.n_action), w)}
+        self.hidden_state = {'CK': np.zeros((self.n_obs, self.n_action)), 'Q': np.full((self.n_obs, self.n_action), w)}
 
     def _get_rv(self, stimulus):
         """
@@ -69,7 +63,7 @@ class RWCKModel(DADO, Interactive, LogProbModel):
         CK_i = self.hidden_state['CK'][stimulus]
         Q_i = self.hidden_state['Q'][stimulus]
 
-        beta   = self.paras['beta']
+        beta = self.paras['beta']
         beta_c = self.paras['beta_c']
         V = beta * Q_i + beta_c * CK_i
 
@@ -137,10 +131,10 @@ class RWCKModel(DADO, Interactive, LogProbModel):
 
         # get model's state
         CK, Q = self.hidden_state['CK'][stimulus], self.hidden_state['Q'][stimulus]
-        
+
         if not done:
             # unpack parameters
-            eta   = self.paras['eta']
+            eta = self.paras['eta']
             eta_c = self.paras['eta_c']
 
             # update choice kernel
@@ -152,7 +146,7 @@ class RWCKModel(DADO, Interactive, LogProbModel):
             Q[action] += eta * delta
 
             self.hidden_state['CK'][stimulus] = CK
-            self.hidden_state['Q' ][stimulus] = Q
+            self.hidden_state['Q'][stimulus] = Q
 
         return CK, Q
 
@@ -163,7 +157,7 @@ class RWModel(RWCKModel):
     Rescorla-Wagner Choice Kernel model
     """
     name = "RWModel"
-    
+
     def __init__(self, **kwargs):
         """
         Rescorla-Wagner is implemented as a special case of RWCK by setting

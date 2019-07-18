@@ -5,6 +5,7 @@ from scipy import stats
 from .base import DADO
 from ...capabilities import Interactive, LogProbModel
 
+
 class RandomRespondModel(DADO, Interactive, LogProbModel):
     """
     Random respond model that predicts random actions for any
@@ -46,13 +47,13 @@ class RandomRespondModel(DADO, Interactive, LogProbModel):
         """
         assert self.observation_space.contains(stimulus)
 
-        bias        = self.paras['bias']
+        bias = self.paras['bias']
         action_bias = self.paras['action_bias']
 
         n = self.n_action
         pk = np.full(n, (1 - bias) / (n - 1))
         pk[action_bias] = bias
-        
+
         xk = np.arange(n)
         rv = stats.rv_discrete(values=(xk, pk))
         rv.random_state = self.seed

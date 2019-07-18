@@ -5,6 +5,7 @@ from scipy import stats
 from .base import DADO
 from ...capabilities import Interactive, LogProbModel
 
+
 class NWSLSModel(DADO, Interactive, LogProbModel):
     """
     Noisy-win-stay-lose-shift model implementation.
@@ -49,7 +50,7 @@ class NWSLSModel(DADO, Interactive, LogProbModel):
             prob_action = 1 - epsilon / n
         else:
             prob_action = epsilon / n
-    
+
         pk = np.full(n, (1 - prob_action) / (n - 1))
         pk[self.hidden_state['action']] = prob_action
 
@@ -91,7 +92,7 @@ class NWSLSModel(DADO, Interactive, LogProbModel):
             An action from the action space.
         """
         return self._get_rv(stimulus).rvs()
-        
+
     def update(self, stimulus, reward, action, done):
         """
         Update the hidden state of the model based on input stimulus, action performed

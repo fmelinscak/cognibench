@@ -3,6 +3,7 @@ from sciunit import Test
 from .scores import SmallerBetterScore
 from .capabilities import Interactive, LogProbModel
 
+
 def test_multimodel(multimodel, stimuli, rewards, actions):
     """
     test_multimodel is a utility function which trains
@@ -126,7 +127,7 @@ class NLLTest(InteractiveTest):
     """
 
     score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1000)
-    required_capabilities = InteractiveTest.required_capabilities + (LogProbModel,)
+    required_capabilities = InteractiveTest.required_capabilities + (LogProbModel, )
 
     def compute_score(self, observation, prediction):
         """
@@ -156,7 +157,7 @@ class AICTest(InteractiveTest):
     predictions. Akaike Information Criterion (AIC) function is used as the score.
     """
     score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1000)
-    required_capabilities = InteractiveTest.required_capabilities + (LogProbModel,)
+    required_capabilities = InteractiveTest.required_capabilities + (LogProbModel, )
 
     def generate_prediction(self, multimodel):
         """
@@ -202,7 +203,7 @@ class BICTest(InteractiveTest):
     predictions. Bayesian Information Criterion (BIC) function is used as the score.
     """
     score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1000)
-    required_capabilities = InteractiveTest.required_capabilities + (LogProbModel,)
+    required_capabilities = InteractiveTest.required_capabilities + (LogProbModel, )
 
     def generate_prediction(self, multimodel):
         """

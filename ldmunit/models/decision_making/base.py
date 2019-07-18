@@ -4,11 +4,11 @@ import numpy as np
 from ...capabilities import DiscreteAction, DiscreteObservation
 from .. import LDMModel
 
+
 class DADO(LDMModel, DiscreteAction, DiscreteObservation):
     """
     Base class for models that operate on discrete action and discrete observation spaces.
     """
-
     def __init__(self, *args, n_action, n_obs, **kwargs):
         """
         Parameters
@@ -21,7 +21,7 @@ class DADO(LDMModel, DiscreteAction, DiscreteObservation):
         """
         assert n_action > 0, 'n_action must be positive'
         assert n_obs > 0, 'n_obs must be positive'
-        self.action_space = n_action 
+        self.action_space = n_action
         self.observation_space = n_obs
         super().__init__(**kwargs)
 

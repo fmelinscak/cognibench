@@ -34,6 +34,7 @@ from gym import spaces
 from gym.utils import seeding
 from .continuous import ContinuousSpace
 
+
 class BanditEnv(gym.Env):
     """Bandit environment base to allow agents to interact with the class n-armed bandit
     in different variations
@@ -121,7 +122,7 @@ class BanditEnv(gym.Env):
         """Reset the n-bandit env.
 
         Since there is no memory preserved by the environment no operation on the env.
-        """        
+        """
         return self.observation_space.sample()
 
     def render(self, mode='human', close=False):
@@ -129,6 +130,7 @@ class BanditEnv(gym.Env):
         Not implemented
         """
         pass
+
 
 class BanditAssociateEnv(gym.Env):
     """Environment base to allow agents to learn from stimulus occuring at different
@@ -172,7 +174,8 @@ class BanditAssociateEnv(gym.Env):
             raise ValueError("All probabilities must be between 0 and 1")
         if min(p_reward) < 0 or max(p_reward) > 1:
             raise ValueError("All probabilities must be between 0 and 1")
-        assert len(set(map(len, (p_stimuli, stimuli, p_reward)))) == 1, "Stimuli and Probability list must be of equal length"
+        assert len(set(map(
+            len, (p_stimuli, stimuli, p_reward)))) == 1, "Stimuli and Probability list must be of equal length"
         self._n = len(stimuli[0])
         self.observation_space = spaces.MultiBinary(self._n)
         self.action_space = ContinuousSpace()
@@ -183,7 +186,6 @@ class BanditAssociateEnv(gym.Env):
         self.p_stimuli = p_stimuli
         self.p_reward = p_reward
         self.info = info
-
 
         self.seed()
 
@@ -218,9 +220,8 @@ class BanditAssociateEnv(gym.Env):
             Information about the environment.
         """
         assert self.action_space.contains(action), "Action does not fit in the environment's action_space"
-        
-        obs_idx = self.np_random.choice(range(len(self.stimuli)), 
-                                   p=self.p_stimuli, replace=True)
+
+        obs_idx = self.np_random.choice(range(len(self.stimuli)), p=self.p_stimuli, replace=True)
         reward = 0
         done = False
         observation = self.stimuli[obs_idx]
@@ -241,9 +242,8 @@ class BanditAssociateEnv(gym.Env):
         -------
         observation : :class:`numpy.ndarray`
             One of the stimulus from the pre-set list
-        """  
-        obs_idx = self.np_random.choice(range(len(self.stimuli)), 
-                                   p=self.p_stimuli, replace=True)
+        """
+        obs_idx = self.np_random.choice(range(len(self.stimuli)), p=self.p_stimuli, replace=True)
         observation = self.stimuli[obs_idx]
         return observation
 

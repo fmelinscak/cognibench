@@ -5,6 +5,7 @@ from scipy import stats
 from .base import CAMO
 from ...capabilities import Interactive, LogProbModel
 
+
 class RandomRespondModel(CAMO, Interactive, LogProbModel):
     """
     Random respond model that predicts random actions for any
@@ -59,7 +60,7 @@ class RandomRespondModel(CAMO, Interactive, LogProbModel):
 
         mu_pred = self.paras['mu']
         sd_pred = self.paras['sigma']
-        
+
         rv = stats.norm(loc=mu_pred, scale=sd_pred)
         rv.random_state = self.seed
 

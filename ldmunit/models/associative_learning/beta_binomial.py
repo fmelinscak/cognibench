@@ -82,14 +82,7 @@ class BetaBinomialModel(CAMO, Interactive, LogProbModel):
         assert b > 0, 'b must be positive'
         assert sigma >= 0, 'sigma must be nonnegative'
         assert mix_coef >= 0 and mix_coef <= 1, 'mix_coef must be in range [0, 1]'
-        paras = {
-            'a' : a,
-            'b' : b,
-            'sigma' : sigma,
-            'mix_coef' : mix_coef,
-            'intercept' : intercept,
-            'slope' : slope
-        }
+        paras = {'a': a, 'b': b, 'sigma': sigma, 'mix_coef': mix_coef, 'intercept': intercept, 'slope': slope}
         super().__init__(paras=paras, **kwargs)
 
     def _get_default_a_b(self):
@@ -98,8 +91,7 @@ class BetaBinomialModel(CAMO, Interactive, LogProbModel):
         """
         a = self.paras['a']
         b = self.paras['b']
-        out = {'a' : a * np.ones(self.n_obs, dtype=np.float64),
-                'b' : b * np.ones(self.n_obs, dtype=np.float64)}
+        out = {'a': a * np.ones(self.n_obs, dtype=np.float64), 'b': b * np.ones(self.n_obs, dtype=np.float64)}
         return out
 
     def reset(self):
@@ -126,14 +118,13 @@ class BetaBinomialModel(CAMO, Interactive, LogProbModel):
         assert self.observation_space.contains(stimulus)
 
         sd_pred = self.paras['sigma']
-        
+
         mu_pred = self._predict_reward(stimulus)
 
         rv = stats.norm(loc=mu_pred, scale=sd_pred)
         rv.random_state = self.seed
 
         return rv
-
 
     def predict(self, stimulus):
         """
@@ -220,9 +211,9 @@ class BetaBinomialModel(CAMO, Interactive, LogProbModel):
         a = self.hidden_state[stimulus]['a']
         b = self.hidden_state[stimulus]['b']
 
-        mu      = beta(a,b).mean()
-        entropy = beta(a,b).entropy()
+        mu = beta(a, b).mean()
+        entropy = beta(a, b).entropy()
 
-        rhat = intercept + slope * np.dot(stimulus, (mix_coef * mu  + (1 - mix_coef) * entropy))
-        
+        rhat = intercept + slope * np.dot(stimulus, (mix_coef * mu + (1 - mix_coef) * entropy))
+
         return rhat

@@ -14,6 +14,7 @@ DATA_PATH = pathjoin('..', 'data')
 # sciunit CWD directory should contain config.json file
 sciunit.settings['CWD'] = getcwd()
 
+
 def test_all_decision_making_models():
     # Tests
     # -----------------------------------------------
@@ -105,9 +106,12 @@ def test_all_associative_learning_models():
     aic_bb_test = AICTest(name='Beta Binomial sim AIC', observation=bb)
     bic_bb_test = BICTest(name='Beta Binomial sim BIC', observation=bb)
 
-    nll_al_suite = sciunit.TestSuite([nll_rr_al_test, nll_rw_norm_test, nll_krw_norm_test, nll_lsspd_test, nll_bb_test], name="NLL suite for associative learning")
-    aic_al_suite = sciunit.TestSuite([aic_rr_al_test, aic_rw_norm_test, aic_krw_norm_test, aic_lsspd_test, aic_bb_test], name="AIC suite for associative learning")
-    bic_al_suite = sciunit.TestSuite([bic_rr_al_test, bic_rw_norm_test, bic_krw_norm_test, bic_lsspd_test, bic_bb_test], name="BIC suite for associative learning")
+    nll_al_suite = sciunit.TestSuite([nll_rr_al_test, nll_rw_norm_test, nll_krw_norm_test, nll_lsspd_test, nll_bb_test],
+                                     name="NLL suite for associative learning")
+    aic_al_suite = sciunit.TestSuite([aic_rr_al_test, aic_rw_norm_test, aic_krw_norm_test, aic_lsspd_test, aic_bb_test],
+                                     name="AIC suite for associative learning")
+    bic_al_suite = sciunit.TestSuite([bic_rr_al_test, bic_rw_norm_test, bic_krw_norm_test, bic_lsspd_test, bic_bb_test],
+                                     name="BIC suite for associative learning")
 
     # Associative learning models
     # -----------------------------------------------

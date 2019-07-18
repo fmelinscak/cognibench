@@ -6,6 +6,7 @@ from .base import CAMO
 from ...capabilities import Interactive, LogProbModel
 from ...utils import is_arraylike
 
+
 class LSSPDModel(CAMO, Interactive, LogProbModel):
     """
     LSSPD model implementation.
@@ -58,14 +59,14 @@ class LSSPDModel(CAMO, Interactive, LogProbModel):
         assert eta >= 0, 'eta must be nonnegative'
         assert kappa >= 0, 'kappa must be nonnegative'
         paras = {
-            'w' : w,
-            'alpha' : alpha,
-            'b0' : b0,
-            'b1' : b1,
-            'sigma' : sigma,
-            'mix_coef' : mix_coef,
-            'eta' : eta,
-            'kappa' : kappa
+            'w': w,
+            'alpha': alpha,
+            'b0': b0,
+            'b1': b1,
+            'sigma': sigma,
+            'mix_coef': mix_coef,
+            'eta': eta,
+            'kappa': kappa
         }
         super().__init__(paras=paras, **kwargs)
         if is_arraylike(w):
@@ -90,8 +91,7 @@ class LSSPDModel(CAMO, Interactive, LogProbModel):
         else:
             alpha = np.full(self.n_obs, alpha)
 
-        self.hidden_state = {'w'    : w,
-                             'alpha': alpha}
+        self.hidden_state = {'w': w, 'alpha': alpha}
 
     def observation(self, stimulus):
         """
@@ -114,9 +114,9 @@ class LSSPDModel(CAMO, Interactive, LogProbModel):
         b1 = self.paras['b1']
         sd_pred = self.paras['sigma']
         mix_coef = self.paras['mix_coef']
-        
+
         w_curr = self.hidden_state['w']
-        alpha  = self.hidden_state['alpha']
+        alpha = self.hidden_state['alpha']
 
         # Predict response
         mu_pred = b0 + b1 * np.dot(stimulus, (mix_coef * w_curr + (1 - mix_coef) * alpha))
@@ -166,7 +166,7 @@ class LSSPDModel(CAMO, Interactive, LogProbModel):
         w_curr = self.hidden_state['w']
         rhat = np.dot(stimulus, w_curr.T)
         return rhat
-        
+
     def update(self, stimulus, reward, action, done):
         """
         Update the hidden state of the model based on input stimulus, action performed
@@ -187,19 +187,18 @@ class LSSPDModel(CAMO, Interactive, LogProbModel):
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
 
-        eta   = self.paras['eta'] # Proportion of pred. error. in the updated associability value
-        kappa = self.paras['kappa'] # Fixed learning rate for the cue weight update
-        
+        eta = self.paras['eta']  # Proportion of pred. error. in the updated associability value
+        kappa = self.paras['kappa']  # Fixed learning rate for the cue weight update
+
         w_curr = self.hidden_state['w']
-        alpha  = self.hidden_state['alpha']
+        alpha = self.hidden_state['alpha']
 
         rhat = self._predict_reward(stimulus)
-
 
         if not done:
             delta = reward - rhat
 
-            w_curr += kappa * delta * alpha * stimulus # alpha, stimulus size: (n_obs,)
+            w_curr += kappa * delta * alpha * stimulus  # alpha, stimulus size: (n_obs,)
 
             # if stimulus[i] = 1
             # alpha[i] = eta * abs(pred_err) + (1 - eta) * alpha[i]
@@ -208,7 +207,7 @@ class LSSPDModel(CAMO, Interactive, LogProbModel):
             # alpha[i] += eta * abs(pred_err)
             alpha -= eta * np.multiply(alpha, stimulus)
             alpha += eta * abs(delta) * stimulus
-            np.clip(alpha, a_min=0, a_max=1, out=alpha) # Enforce upper bound on alpha
+            np.clip(alpha, a_min=0, a_max=1, out=alpha)  # Enforce upper bound on alpha
 
             self.hidden_state['w'] = w_curr
             self.hidden_state['alpha'] = alpha

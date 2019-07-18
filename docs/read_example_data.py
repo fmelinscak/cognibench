@@ -21,7 +21,7 @@ def get_observation_from_idx(filepath, idx, np_array=False):
         df = pd.read_csv(filepath)
     assert idx in df['sub'].values, "subject index not in dataframe"
     res = df.loc[df['sub'] == idx]
-    res = res.loc[:,['rewards','actions','stimuli']]
+    res = res.loc[:, ['rewards', 'actions', 'stimuli']]
     out = res.to_dict(orient='list')
     return out
 
@@ -35,7 +35,7 @@ def get_simulation_data(filepath, n_sub, np_array=False):
         df_dict = get_observation_from_idx(filepath, i, np_array=np_array)
         for k, v in df_dict.items():
             res[k].append(v)
-    
+
     return res
 
 
@@ -57,5 +57,5 @@ def get_model_params(filepath):
                 val = int(val)
             par[key] = val
         paras_list.append(par)
-    
+
     return paras_list

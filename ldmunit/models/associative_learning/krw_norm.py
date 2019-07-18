@@ -6,6 +6,7 @@ from .base import CAMO
 from ...capabilities import Interactive, LogProbModel
 from ...utils import is_arraylike
 
+
 class KrwNormModel(CAMO, Interactive, LogProbModel):
     """
     Kalman Rescorla-Wagner model implementation.
@@ -52,13 +53,13 @@ class KrwNormModel(CAMO, Interactive, LogProbModel):
         assert tauSq >= 0, 'tauSq must be nonnegative'
         assert sigmaRSq >= 0, 'tauSq must be nonnegative'
         paras = {
-            'w' : w,
-            'sigma' : sigma,
-            'b0' : b0,
-            'b1' : b1,
-            'sigmaWInit' : sigmaWInit,
-            'tauSq' : tauSq,
-            'sigmaRSq' : sigmaRSq
+            'w': w,
+            'sigma': sigma,
+            'b0': b0,
+            'b1': b1,
+            'sigmaWInit': sigmaWInit,
+            'tauSq': tauSq,
+            'sigmaRSq': sigmaRSq
         }
         super().__init__(paras=paras, **kwargs)
         if is_arraylike(w):
@@ -75,10 +76,9 @@ class KrwNormModel(CAMO, Interactive, LogProbModel):
             w = np.full(self.n_obs, w, dtype=np.float64)
 
         sigmaWInit = self.paras['sigmaWInit']
-        C =  sigmaWInit * np.identity(self.n_obs)
+        C = sigmaWInit * np.identity(self.n_obs)
 
-        self.hidden_state = {'w': np.full(self.n_obs, w),
-                             'C': C}
+        self.hidden_state = {'w': np.full(self.n_obs, w), 'C': C}
 
     def predict(self, stimulus):
         """
@@ -140,10 +140,10 @@ class KrwNormModel(CAMO, Interactive, LogProbModel):
         assert self.hidden_state, "hidden state must be set"
         assert self.observation_space.contains(stimulus)
 
-        b0 = self.paras['b0'] # intercept
-        b1 = self.paras['b1'] # slope
+        b0 = self.paras['b0']  # intercept
+        b1 = self.paras['b1']  # slope
         sd_pred = self.paras['sigma']
-        
+
         w_curr = self.hidden_state['w']
 
         rhat = self._predict_reward(stimulus)
@@ -179,28 +179,28 @@ class KrwNormModel(CAMO, Interactive, LogProbModel):
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
 
-        tauSq = self.paras['tauSq'] # State diffusion variance
-        Q = tauSq * np.identity(self.n_obs) # Transition noise variance (transformed to positive reals); constant over time
+        tauSq = self.paras['tauSq']  # State diffusion variance
+        Q = tauSq * np.identity(
+            self.n_obs)  # Transition noise variance (transformed to positive reals); constant over time
         sigmaRSq = self.paras['sigmaRSq']
 
-        
         w_curr = self.hidden_state['w']
         C_curr = self.hidden_state['C']
 
         rhat = self._predict_reward(stimulus)
 
-        if not done:                
+        if not done:
             # Kalman prediction step
-            w_pred = w_curr # No mean-shift for the weight distribution evolution (only stochastic evolution)
-            C_pred = C_curr + Q # Update covariance
+            w_pred = w_curr  # No mean-shift for the weight distribution evolution (only stochastic evolution)
+            C_pred = C_curr + Q  # Update covariance
 
             # get pred_error
             delta = reward - rhat
 
             # Kalman update step
-            K = C_pred.dot(stimulus) / (stimulus.dot(C_pred.dot(stimulus)) + sigmaRSq) # (n_obs,)
-            w_updt = w_pred + K * delta # Mean updated with prediction error
-            C_updt = C_pred - K * stimulus * C_pred # Covariance updated
+            K = C_pred.dot(stimulus) / (stimulus.dot(C_pred.dot(stimulus)) + sigmaRSq)  # (n_obs,)
+            w_updt = w_pred + K * delta  # Mean updated with prediction error
+            C_updt = C_pred - K * stimulus * C_pred  # Covariance updated
 
             self.hidden_state['w'] = w_updt
             self.hidden_state['C'] = C_updt

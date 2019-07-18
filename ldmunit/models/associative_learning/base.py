@@ -5,11 +5,11 @@ from ...capabilities import MultiBinaryObservation, ContinuousAction
 from ...continuous import ContinuousSpace
 from .. import LDMModel
 
+
 class CAMO(LDMModel, ContinuousAction, MultiBinaryObservation):
     """
     Base class for models that operate on continuous action and multi-binary observation spaces.
     """
-
     def __init__(self, *args, n_obs, **kwargs):
         """
         Parameters
@@ -43,4 +43,3 @@ class CAMO(LDMModel, ContinuousAction, MultiBinaryObservation):
             raise AssertionError('stimuli and actions must be of the same length.')
         self.action_space = ContinuousSpace()
         self.observation_space = len(stimuli[0])
-

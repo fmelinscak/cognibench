@@ -6,6 +6,7 @@ from .base import CAMO
 from ...capabilities import Interactive, LogProbModel
 from ...utils import is_arraylike
 
+
 class RwNormModel(CAMO, Interactive, LogProbModel):
     """
     Rescorla-Wagner model implementation.
@@ -42,13 +43,7 @@ class RwNormModel(CAMO, Interactive, LogProbModel):
         """
         assert sigma >= 0, 'sigma must be nonnegative'
         assert eta >= 0, 'eta must be nonnegative'
-        paras = {
-            'w' : w,
-            'b0' : b0,
-            'b1' : b1,
-            'sigma' : sigma,
-            'eta' : eta
-        }
+        paras = {'w': w, 'b0': b0, 'b1': b1, 'sigma': sigma, 'eta': eta}
         super().__init__(paras=paras, **kwargs)
         if is_arraylike(w):
             assert len(w) == self.n_obs, 'w must have the same length as the dimension of the observation space'
@@ -122,10 +117,10 @@ class RwNormModel(CAMO, Interactive, LogProbModel):
         assert self.hidden_state, "hidden state must be set"
         assert self.observation_space.contains(stimulus)
 
-        b0 = self.paras['b0'] # intercept
-        b1 = self.paras['b1'] # slope
+        b0 = self.paras['b0']  # intercept
+        b1 = self.paras['b1']  # slope
         sd_pred = self.paras['sigma']
-        
+
         w_curr = self.hidden_state['w']
 
         rhat = self._predict_reward(stimulus)
@@ -161,7 +156,7 @@ class RwNormModel(CAMO, Interactive, LogProbModel):
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
 
-        eta  = self.paras['eta']
+        eta = self.paras['eta']
         w_curr = self.hidden_state['w']
 
         rhat = self._predict_reward(stimulus)

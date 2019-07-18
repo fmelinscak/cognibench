@@ -1,6 +1,7 @@
 import numpy as np
 import gym
 
+
 class ContinuousSpace(gym.Space):
     """
     Continuous space for numbers in :math:`\mathbb{R}`.

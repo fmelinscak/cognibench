@@ -3,6 +3,7 @@ import sciunit
 import numpy as np
 from ..capabilities import Interactive
 
+
 def simulate_single_env_single_model(env, multimodel, subject_idx, n_trials, seed=0):
     """
     Simulate the evolution of an environment and a multi-subject model for a
@@ -59,6 +60,7 @@ def simulate_single_env_single_model(env, multimodel, subject_idx, n_trials, see
     env.close()
 
     return subject_stimuli[1:], subject_rewards, subject_actions
+
 
 def simulate_multi_env_multi_model(env_iterable, multimodel, n_trials, seed=0):
     """
@@ -130,8 +132,9 @@ def simulate_multi_env_multi_model(env_iterable, multimodel, n_trials, seed=0):
         stimuli.append(subject_stimuli)
         rewards.append(subject_rewards)
         actions.append(subject_actions)
-    
+
     return stimuli, rewards, actions
+
 
 class MultiMetaInteractive(type):
     """
@@ -165,27 +168,33 @@ class MultiMetaInteractive(type):
             self.subject_models = []
             for param_dict in param_list:
                 self.subject_models.append(single_cls(*args, **param_dict, **kwargs))
+
         out_cls.__init__ = multi_init
 
         def multi_predict(self, idx, *args, **kwargs):
             return self.subject_models[idx].predict(*args, **kwargs)
+
         out_cls.predict = multi_predict
 
         def multi_update(self, idx, *args, **kwargs):
             return self.subject_models[idx].update(*args, **kwargs)
+
         out_cls.update = multi_update
 
         def multi_act(self, idx, *args, **kwargs):
             return self.subject_models[idx].act(*args, **kwargs)
+
         out_cls.act = multi_act
 
         def multi_reset(self, idx, *args, **kwargs):
             return self.subject_models[idx].reset(*args, **kwargs)
+
         out_cls.reset = multi_reset
 
         out_cls.__doc__ = single_cls.__doc__
 
         return out_cls
+
 
 def multi_from_single_interactive(single_cls):
     """

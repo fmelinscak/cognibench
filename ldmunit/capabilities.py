@@ -10,13 +10,12 @@ class Interactive(sciunit.Capability):
     Models with this capability are required to have the following methods to be 
     able to respond to environment and update themselves in an interactive manner.
     """
-
     def predict(self, *args, **kwargs):
         """
         Given stimulus, model should return the prediction.
         """
         raise NotImplementedError("Must implement predict.")
-    
+
     def reset(self, *args, **kwargs):
         """
         Reset the hidden state of the model to initial state.
@@ -38,6 +37,7 @@ class Interactive(sciunit.Capability):
         """
         raise NotImplementedError("Must implement act")
 
+
 class LogProbModel(sciunit.Capability):
     """
     Capability for models that produce a log probability distribution
@@ -51,11 +51,11 @@ class LogProbModel(sciunit.Capability):
         """
         raise NotImplementedError("Must implement predict returning log-pdf or log-pmf.")
 
+
 class ActionSpace(sciunit.Capability):
     """
     Capability to understand action in a given space (:class:`gym.spaces.Space`).
     """
-
     @property
     def action_space(self):
         """
@@ -66,11 +66,11 @@ class ActionSpace(sciunit.Capability):
         """
         raise NotImplementedError("Must have action_space attribute.")
 
+
 class ObservationSpace(sciunit.Capability):
     """
     Capability to understand action in a given space (:class:`gym.spaces.Space`).
     """
-
     @property
     def observation_space(self):
         """
@@ -81,11 +81,11 @@ class ObservationSpace(sciunit.Capability):
         """
         raise NotImplementedError("Must have observation_space attribute.")
 
+
 class DiscreteObservation(ObservationSpace):
     """
     Capability to understand observation/stimulus/cues in a given discrete space (:class:`gym.spaces.Discrete`).
     """
-
     @property
     def observation_space(self):
         """
@@ -129,11 +129,11 @@ class DiscreteObservation(ObservationSpace):
         """
         return all(np.issubdtype(type(x), np.integer) for x in values)
 
+
 class DiscreteAction(ActionSpace):
     """
     Capability to understand action in a given discrete space (:class:`gym.spaces.Discrete`).
     """
-
     @property
     def action_space(self):
         """
@@ -177,11 +177,11 @@ class DiscreteAction(ActionSpace):
         """
         return all(np.issubdtype(type(x), np.integer) for x in values)
 
+
 class MultiBinaryObservation(ObservationSpace):
     """
     Capability to understand actions in a given multi-binary space (:class:`gym.spaces.MultiBinary`).
     """
-
     @property
     def observation_space(self):
         """
@@ -234,11 +234,11 @@ class MultiBinaryObservation(ObservationSpace):
         """
         return all(self.observation_space.contains(x) for x in values)
 
+
 class ContinuousAction(ActionSpace):
     """
     Capability to understand continuous actions (i.e. :math:`\mathbb{R}` in continuous).
     """
-
     @property
     def action_space(self):
         return ContinuousSpace()
