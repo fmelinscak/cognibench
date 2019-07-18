@@ -4,7 +4,7 @@ import sciunit
 import pandas as pd
 from os import getcwd
 from os.path import join as pathjoin
-sys.path.append(pathjoin('..', 'src'))
+sys.path.append('..')
 from ldmunit.models import decision_making, associative_learning
 from ldmunit.models.utils import multi_from_single_interactive
 from ldmunit.tests import NLLTest, AICTest, BICTest

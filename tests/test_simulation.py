@@ -3,9 +3,9 @@ from gym import spaces
 import numpy as np
 import numpy.testing as npt
 from scipy import stats
-from src.ldmunit.models import decision_making
-from src.ldmunit.env import BanditEnv
-from src.ldmunit.models.utils import multi_from_single_interactive, simulate_multi_env_multi_model
+from ldmunit.models import decision_making
+from ldmunit.env import BanditEnv
+from ldmunit.models.utils import multi_from_single_interactive, simulate_multi_env_multi_model
 
 class Test_Unit(unittest.TestCase):
     def setUp(self):
