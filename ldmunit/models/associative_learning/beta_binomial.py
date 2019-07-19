@@ -3,8 +3,8 @@ import gym
 from gym import spaces
 from scipy import stats
 from scipy.stats import beta
-from .base import CAMO
-from ...capabilities import Interactive, LogProbModel
+from ldmunit.models import CAMO
+from ldmunit.capabilities import Interactive, LogProbModel
 from collections.abc import MutableMapping
 
 

@@ -1,1 +1,1 @@
-from .base import LDMModel
+from .base import LDMModel, DADO, CAMO

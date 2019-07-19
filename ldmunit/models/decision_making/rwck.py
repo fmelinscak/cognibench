@@ -3,8 +3,8 @@ from gym import spaces
 from scipy import stats
 from scipy.special import softmax
 
-from .base import DADO
-from ...capabilities import Interactive, LogProbModel
+from ldmunit.models import DADO
+from ldmunit.capabilities import Interactive, LogProbModel
 
 
 class RWCKModel(DADO, Interactive, LogProbModel):

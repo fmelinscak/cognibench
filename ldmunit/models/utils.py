@@ -1,7 +1,7 @@
 import gym
 import sciunit
 import numpy as np
-from ..capabilities import Interactive
+from ldmunit.capabilities import Interactive
 
 
 def simulate_single_env_single_model(env, multimodel, subject_idx, n_trials, seed=0):

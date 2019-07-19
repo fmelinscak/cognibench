@@ -2,8 +2,8 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
-from .base import CAMO
-from ...capabilities import Interactive, LogProbModel
+from ldmunit.models import CAMO
+from ldmunit.capabilities import Interactive, LogProbModel
 
 
 class RandomRespondModel(CAMO, Interactive, LogProbModel):

@@ -94,6 +94,22 @@ class InteractiveTest(Test):
     """
     required_capabilities = (Interactive, )
 
+    def __init__(self, *args, **kwargs):
+        """
+        Other Parameters
+        ----------------
+        **kwargs : any type
+            All the keyword arguments are passed to `__init__` method of :class:`sciunit.tests.Test`.
+            `observation` dictionary must contain 'stimuli', 'rewards' and 'actions' keys.
+            Value for each these keys must be a list of list (or any other iterable) where
+            outer list is over subjects and inner list is over samples.
+
+        See Also
+        --------
+        :py:meth:`InteractiveTest.generate_prediction`
+        """
+        super().__init__(*args, **kwargs)
+
     def generate_prediction(self, multimodel):
         """
         Generate predictions from a multi-subject model one at a time.
