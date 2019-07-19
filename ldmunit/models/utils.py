@@ -157,7 +157,7 @@ class MultiMetaInteractive(type):
     multi_from_single_interactive
     """
     def __new__(cls, name, bases, dct):
-        single_cls = dct['single_cls']
+        single_cls = bases[0]
         base_classes = (single_cls.__bases__)
         out_cls = super().__new__(cls, name, base_classes, dct)
 
@@ -191,8 +191,6 @@ class MultiMetaInteractive(type):
 
         out_cls.reset = multi_reset
 
-        out_cls.__doc__ = single_cls.__doc__
-
         return out_cls
 
 
@@ -212,5 +210,8 @@ def multi_from_single_interactive(single_cls):
         A multi-subject model class implementing :class:`ldmunit.capabilities.Interactive` interface.
         Each required method now takes a subject index as their first argument.
     """
-    multi_cls_name = 'Multi' + single_cls.name
-    return MultiMetaInteractive(multi_cls_name, (), {'single_cls': single_cls})
+    multi_cls_name = 'Multi' + single_cls.__name__
+    return MultiMetaInteractive(multi_cls_name, (single_cls, ), {
+        'name': single_cls.name,
+        '__doc__': single_cls.__doc__
+    })
