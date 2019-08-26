@@ -6,11 +6,17 @@ class ContinuousSpace(gym.Space):
     """
     Continuous space for numbers in :math:`\mathbb{R}`.
     """
-    def __init__(self):
+    def __init__(self, shape=None):
         """
         Initialize the space using float64 :class:`numpy.dtype`
+
+        Parameters
+        ----------
+        shape : tuple of int
+            Shape of the continuous space. By default, creates a one-dimensional
+            continuous space. (Default: None)
         """
-        super().__init__((), np.float64)
+        super().__init__(shape, np.float64)
 
     def sample(self):
         pass

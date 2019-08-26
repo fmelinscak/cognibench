@@ -156,6 +156,7 @@ class CAMO(LDMModel, ContinuousAction, MultiBinaryObservation):
             4 binary values. Must be positive.
         """
         assert n_obs > 0, 'n_obs must be positive'
+        self.action_space = ContinuousSpace()
         self.observation_space = n_obs
         super().__init__(**kwargs)
 

@@ -239,12 +239,46 @@ class ContinuousAction(ActionSpace):
     """
     Capability to understand continuous actions (i.e. :math:`\mathbb{R}` in continuous).
     """
+
     @property
     def action_space(self):
-        return ContinuousSpace()
+        return self._action_space
+
+    @action_space.setter
+    def action_space(self, value):
+        if isinstance(value, ContinuousSpace):
+            self._action_space = value
+        elif isinstance(value, tuple):
+            self._action_space = ContinuousSpace(shape=value)
+        else:
+            raise TypeError("observation_space must be a shape tuple or ContinuousSpace")
 
     def _check_action(self, values):
         """
         Check whether given value is a valid action.
         """
         return all(self.action_space.contains(x) for x in values)
+
+
+class ContinuousObservation(ObservationSpace):
+    """
+    Capability to understand continuous observations (i.e. :math:`\mathbb{R}` in continuous).
+    """
+    @property
+    def observation_space(self):
+        return self._observation_space
+
+    @observation_space.setter
+    def observation_space(self, value):
+        if isinstance(value, ContinuousSpace):
+            self._observation_space = value
+        elif isinstance(value, tuple):
+            self._observation_space = ContinuousSpace(shape=value)
+        else:
+            raise TypeError("observation_space must be a shape tuple or ContinuousSpace")
+
+    def _check_observation(self, values):
+        """
+        Check whether given value is a valid observation.
+        """
+        return all(self.observation_space.contains(x) for x in values)
