@@ -4,7 +4,9 @@ from .get_pBetter import get_pBetter
 from .CPC18_BEASTsd_simulation import CPC18_BEASTsd_simulation
 
 
-def CPC18_BEASTsd_pred(Ha, pHa, La, LotShapeA, LotNumA, Hb, pHb, Lb, LotShapeB, LotNumB, Amb, Corr):
+def CPC18_BEASTsd_pred(
+    Ha, pHa, La, LotShapeA, LotNumA, Hb, pHb, Lb, LotShapeB, LotNumB, Amb, Corr
+):
     # Prediction of BEAST.sd model for one problem
     #
     #  This function gets as input 12 parameters which define a problem in CPC18

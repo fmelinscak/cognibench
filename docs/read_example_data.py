@@ -7,7 +7,7 @@ def from_np_array(array_string):
     """
     Construct a numpy.ndarray from its string representation.
     """
-    array_string = ','.join(array_string.replace('[ ', '[').split())
+    array_string = ",".join(array_string.replace("[ ", "[").split())
     return np.array(ast.literal_eval(array_string))
 
 
@@ -16,13 +16,13 @@ def get_observation_from_idx(filepath, idx, np_array=False):
     Read observation for a single index.
     """
     if np_array:
-        df = pd.read_csv(filepath, converters={'stimuli': from_np_array})
+        df = pd.read_csv(filepath, converters={"stimuli": from_np_array})
     else:
         df = pd.read_csv(filepath)
-    assert idx in df['sub'].values, "subject index not in dataframe"
-    res = df.loc[df['sub'] == idx]
-    res = res.loc[:, ['rewards', 'actions', 'stimuli']]
-    out = res.to_dict(orient='list')
+    assert idx in df["sub"].values, "subject index not in dataframe"
+    res = df.loc[df["sub"] == idx]
+    res = res.loc[:, ["rewards", "actions", "stimuli"]]
+    out = res.to_dict(orient="list")
     return out
 
 
@@ -30,7 +30,7 @@ def get_simulation_data(filepath, n_sub, np_array=False):
     """
     Read example simulation data files.
     """
-    res = {'rewards': [], 'actions': [], 'stimuli': []}
+    res = {"rewards": [], "actions": [], "stimuli": []}
     for i in range(n_sub):
         df_dict = get_observation_from_idx(filepath, i, np_array=np_array)
         for k, v in df_dict.items():

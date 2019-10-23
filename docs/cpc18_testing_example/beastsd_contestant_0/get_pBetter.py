@@ -13,13 +13,13 @@ def get_pBetter(DistX, DistY, corr, accuracy=10000):
     nXbetter = 0
     nYbetter = 0
 
-    for j in range(1, accuracy+1):
+    for j in range(1, accuracy + 1):
         rndNum = np.random.uniform(size=2)
         sampleX = distSample(DistX[:, 0], DistX[:, 1], rndNum[0])
         if corr == 1:
             sampleY = distSample(DistY[:, 0], DistY[:, 1], rndNum[0])
         elif corr == -1:
-            sampleY = distSample(DistY[:, 0], DistY[:, 1], 1-rndNum[0])
+            sampleY = distSample(DistY[:, 0], DistY[:, 1], 1 - rndNum[0])
         else:
             sampleY = distSample(DistY[:, 0], DistY[:, 1], rndNum[1])
         nXbetter = nXbetter + int(sampleX > sampleY)

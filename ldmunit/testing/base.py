@@ -10,7 +10,7 @@ class LDMTest(Test):
 
     def check_capabilities(self, model, **kwargs):
         if not isinstance(model, LDMModel):
-            raise Error(f'Model {model} is not an instance of LDMModel')
+            raise Error(f"Model {model} is not an instance of LDMModel")
         super().check_capabilities(model, **kwargs)
 
 
@@ -26,7 +26,8 @@ class InteractiveTest(LDMTest):
     --------
     :class:`NLLTest`, :class:`AICTest`, :class:`BICTest` for examples of concrete interactive test classes
     """
-    required_capabilities = (Interactive, )
+
+    required_capabilities = (Interactive,)
 
     def __init__(self, *args, **kwargs):
         """
@@ -58,13 +59,16 @@ class InteractiveTest(LDMTest):
         list of list
             Predictions
         """
-        stimuli = self.observation['stimuli']
-        rewards = self.observation['rewards']
-        actions = self.observation['actions']
+        stimuli = self.observation["stimuli"]
+        rewards = self.observation["rewards"]
+        actions = self.observation["actions"]
 
         predictions = []
 
-        for subject_idx, (subject_stimuli, subject_rewards, subject_actions) in enumerate(zip(stimuli, rewards, actions)):
+        for (
+            subject_idx,
+            (subject_stimuli, subject_rewards, subject_actions),
+        ) in enumerate(zip(stimuli, rewards, actions)):
             multimodel.reset(subject_idx)
             subject_predictions = []
             for s, r, a in zip(subject_stimuli, subject_rewards, subject_actions):
@@ -110,7 +114,7 @@ class BatchTest(LDMTest):
         list
             Predictions
         """
-        stimuli = self.observation['stimuli']
+        stimuli = self.observation["stimuli"]
 
         predictions = []
         for s in stimuli:

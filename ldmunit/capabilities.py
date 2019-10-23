@@ -10,6 +10,7 @@ class Interactive(sciunit.Capability):
     Models with this capability are required to have the following methods to be 
     able to respond to environment and update themselves in an interactive manner.
     """
+
     def update(self, *args, **kwargs):
         """
         Given stimulus, rewards and action, the model should updates its 
@@ -23,6 +24,7 @@ class PredictsLogpdf(sciunit.Capability):
     Capability for models that produce a log probability distribution
     as a result of their predict function.
     """
+
     pass
 
 
@@ -30,6 +32,7 @@ class ActionSpace(sciunit.Capability):
     """
     Capability to understand action in a given space (:class:`gym.spaces.Space`).
     """
+
     @property
     def action_space(self):
         """
@@ -45,6 +48,7 @@ class ObservationSpace(sciunit.Capability):
     """
     Capability to understand action in a given space (:class:`gym.spaces.Space`).
     """
+
     @property
     def observation_space(self):
         """
@@ -60,6 +64,7 @@ class DiscreteObservation(ObservationSpace):
     """
     Capability to understand observation/stimulus/cues in a given discrete space (:class:`gym.spaces.Discrete`).
     """
+
     @property
     def observation_space(self):
         """
@@ -108,6 +113,7 @@ class DiscreteAction(ActionSpace):
     """
     Capability to understand action in a given discrete space (:class:`gym.spaces.Discrete`).
     """
+
     @property
     def action_space(self):
         """
@@ -156,6 +162,7 @@ class MultiBinaryObservation(ObservationSpace):
     """
     Capability to understand actions in a given multi-binary space (:class:`gym.spaces.MultiBinary`).
     """
+
     @property
     def observation_space(self):
         """
@@ -225,7 +232,9 @@ class ContinuousAction(ActionSpace):
         elif isinstance(value, tuple):
             self._action_space = ContinuousSpace(shape=value)
         else:
-            raise TypeError("observation_space must be a shape tuple or ContinuousSpace")
+            raise TypeError(
+                "observation_space must be a shape tuple or ContinuousSpace"
+            )
 
     def _check_action(self, values):
         """
@@ -238,6 +247,7 @@ class ContinuousObservation(ObservationSpace):
     """
     Capability to understand continuous observations (i.e. :math:`\mathbb{R}` in continuous).
     """
+
     @property
     def observation_space(self):
         return self._observation_space
@@ -249,7 +259,9 @@ class ContinuousObservation(ObservationSpace):
         elif isinstance(value, tuple):
             self._observation_space = ContinuousSpace(shape=value)
         else:
-            raise TypeError("observation_space must be a shape tuple or ContinuousSpace")
+            raise TypeError(
+                "observation_space must be a shape tuple or ContinuousSpace"
+            )
 
     def _check_observation(self, values):
         """

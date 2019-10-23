@@ -21,7 +21,8 @@ class SmallerBetterScore(scores.FloatScore):
     will be displayed using the maximum red color. All the values in between
     get assigned a color using linear interpolation between red and green.
     """
-    _description = ('Score values where smaller is better')
+
+    _description = "Score values where smaller is better"
 
     def __init__(self, score, *args, min_score, max_score, **kwargs):
         """

@@ -17,6 +17,7 @@ class RWCKModel(DADO, Interactive, PredictsLogpdf):
     >>> logits = beta * Q_i + beta_c * CK_i
     >>> probs = softmax(logits)
     """
+
     name = "RWCKModel"
 
     def __init__(self, *args, w, beta, beta_c, eta, eta_c, **kwargs):
@@ -46,25 +47,28 @@ class RWCKModel(DADO, Interactive, PredictsLogpdf):
             All the mandatory keyword-only arguments required by :class:`ldmunit.models.decision_making.base.DADO` must also be
             provided during initialization.
         """
-        assert eta >= 0, 'eta must be nonnegative'
-        assert eta_c >= 0, 'eta_c must be nonnegative'
-        paras = {'w': w, 'beta': beta, 'beta_c': beta_c, 'eta': eta, 'eta_c': eta_c}
+        assert eta >= 0, "eta must be nonnegative"
+        assert eta_c >= 0, "eta_c must be nonnegative"
+        paras = {"w": w, "beta": beta, "beta_c": beta_c, "eta": eta, "eta_c": eta_c}
         super().__init__(paras=paras, **kwargs)
 
     def reset(self):
-        w = self.paras['w']
-        self.hidden_state = {'CK': np.zeros((self.n_obs, self.n_action)), 'Q': np.full((self.n_obs, self.n_action), w)}
+        w = self.paras["w"]
+        self.hidden_state = {
+            "CK": np.zeros((self.n_obs, self.n_action)),
+            "Q": np.full((self.n_obs, self.n_action), w),
+        }
 
     def _get_rv(self, stimulus):
         """
         Return a random variable object from the given stimulus.
         """
         assert self.observation_space.contains(stimulus)
-        CK_i = self.hidden_state['CK'][stimulus]
-        Q_i = self.hidden_state['Q'][stimulus]
+        CK_i = self.hidden_state["CK"][stimulus]
+        Q_i = self.hidden_state["Q"][stimulus]
 
-        beta = self.paras['beta']
-        beta_c = self.paras['beta_c']
+        beta = self.paras["beta"]
+        beta_c = self.paras["beta_c"]
         V = beta * Q_i + beta_c * CK_i
 
         xk = np.arange(self.n_action)
@@ -130,12 +134,12 @@ class RWCKModel(DADO, Interactive, PredictsLogpdf):
         assert self.observation_space.contains(stimulus)
 
         # get model's state
-        CK, Q = self.hidden_state['CK'][stimulus], self.hidden_state['Q'][stimulus]
+        CK, Q = self.hidden_state["CK"][stimulus], self.hidden_state["Q"][stimulus]
 
         if not done:
             # unpack parameters
-            eta = self.paras['eta']
-            eta_c = self.paras['eta_c']
+            eta = self.paras["eta"]
+            eta_c = self.paras["eta_c"]
 
             # update choice kernel
             CK = (1 - eta_c) * CK
@@ -145,8 +149,8 @@ class RWCKModel(DADO, Interactive, PredictsLogpdf):
             delta = reward - Q[action]
             Q[action] += eta * delta
 
-            self.hidden_state['CK'][stimulus] = CK
-            self.hidden_state['Q'][stimulus] = Q
+            self.hidden_state["CK"][stimulus] = CK
+            self.hidden_state["Q"][stimulus] = Q
 
         return CK, Q
 
@@ -156,6 +160,7 @@ class RWModel(RWCKModel):
     Rescorla-Wagner model implementation as a special case of
     Rescorla-Wagner Choice Kernel model
     """
+
     name = "RWModel"
 
     def __init__(self, **kwargs):
@@ -164,7 +169,7 @@ class RWModel(RWCKModel):
         `beta_c` parameter to 0.
         """
         super().__init__(**kwargs)
-        self.paras['beta_c'] = 0
+        self.paras["beta_c"] = 0
 
 
 class CKModel(RWCKModel):
@@ -172,6 +177,7 @@ class CKModel(RWCKModel):
     Choice Kernel model implementation as a special case of
     Rescorla-Wagner Choice Kernel model
     """
+
     name = "CKModel"
 
     def __init__(self, **kwargs):
@@ -180,4 +186,4 @@ class CKModel(RWCKModel):
         `beta` parameter to 0.
         """
         super().__init__(**kwargs)
-        self.paras['beta'] = 0
+        self.paras["beta"] = 0

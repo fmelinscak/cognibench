@@ -6,6 +6,7 @@ class ContinuousSpace(gym.Space):
     """
     Continuous space for numbers in :math:`\mathbb{R}`.
     """
+
     def __init__(self, shape=None):
         """
         Initialize the space using float64 :class:`numpy.dtype`
@@ -37,12 +38,16 @@ class ContinuousSpace(gym.Space):
         """
         if isinstance(x, float):
             as_float = x
-        elif isinstance(x, (np.generic, np.ndarray)) and (x.dtype.kind in np.typecodes['AllFloat'] and x.shape == ()):
+        elif isinstance(x, (np.generic, np.ndarray)) and (
+            x.dtype.kind in np.typecodes["AllFloat"] and x.shape == ()
+        ):
             as_float = float(x)
         # ensure compatiable with int
         elif isinstance(x, int):
             as_float = float(x)
-        elif isinstance(x, (np.generic, np.ndarray)) and (x.dtype.kind in np.typecodes['AllInteger'] and x.shape == ()):
+        elif isinstance(x, (np.generic, np.ndarray)) and (
+            x.dtype.kind in np.typecodes["AllInteger"] and x.shape == ()
+        ):
             as_float = float(x)
         else:
             return False

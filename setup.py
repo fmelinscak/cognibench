@@ -14,13 +14,12 @@ setuptools.setup(
     url="https://github.com/fmelinscak/ldmunit",
     packages=setuptools.find_packages(),
     install_requires=[
-        'numpy>=1.16.2'
-        'scipy>=1.2.1',
-        'pandas>=0.24.2',
-        'gym',
-        'sciunit'
+        "numpy>=1.16.2" "scipy>=1.2.1",
+        "pandas>=0.24.2",
+        "gym",
+        "sciunit",
     ],
-    python_requires='>=3.6.8',
+    python_requires=">=3.6.8",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

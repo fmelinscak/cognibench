@@ -10,7 +10,8 @@ class NWSLSModel(DADO, Interactive, PredictsLogpdf):
     """
     Noisy-win-stay-lose-shift model implementation.
     """
-    name = 'NWSLSModel'
+
+    name = "NWSLSModel"
 
     def __init__(self, *args, epsilon, **kwargs):
         """
@@ -28,7 +29,9 @@ class NWSLSModel(DADO, Interactive, PredictsLogpdf):
         """
         paras = dict(epsilon=epsilon)
         super().__init__(paras=paras, **kwargs)
-        assert epsilon >= 0 and epsilon <= self.n_action, 'epsilon must be in range [0, n_action]'
+        assert (
+            epsilon >= 0 and epsilon <= self.n_action
+        ), "epsilon must be in range [0, n_action]"
 
     def reset(self):
         """
@@ -43,16 +46,16 @@ class NWSLSModel(DADO, Interactive, PredictsLogpdf):
         """
         assert self.observation_space.contains(stimulus)
 
-        epsilon = self.paras['epsilon']
+        epsilon = self.paras["epsilon"]
         n = self.n_action
 
-        if self.hidden_state['win']:
+        if self.hidden_state["win"]:
             prob_action = 1 - epsilon / n
         else:
             prob_action = epsilon / n
 
         pk = np.full(n, (1 - prob_action) / (n - 1))
-        pk[self.hidden_state['action']] = prob_action
+        pk[self.hidden_state["action"]] = prob_action
 
         xk = np.arange(n)
         rv = stats.rv_discrete(name=None, values=(xk, pk))
@@ -112,5 +115,5 @@ class NWSLSModel(DADO, Interactive, PredictsLogpdf):
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
 
-        self.hidden_state['win'] = reward == 1
-        self.hidden_state['action'] = action
+        self.hidden_state["win"] = reward == 1
+        self.hidden_state["action"] = action

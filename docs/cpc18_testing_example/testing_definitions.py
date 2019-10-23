@@ -12,13 +12,14 @@ import importlib
 # models according to MSE
 #####################################################
 
+
 class MSETest(InteractiveTest):
     """
     Perform interactive test and produce mean squared error as the score.
     """
 
     score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1)
-    required_capabilities = InteractiveTest.required_capabilities + (ContinuousAction, )
+    required_capabilities = InteractiveTest.required_capabilities + (ContinuousAction,)
 
     def compute_score(self, observation, prediction):
         """
@@ -39,12 +40,12 @@ class MSETest(InteractiveTest):
             Mean squared error (MSE).
         """
         mse = 0.0
-        action = observation['actions']
+        action = observation["actions"]
         n_total_actions = 0
         for subject_acts, subject_pred in zip(action, prediction):
             n_total_actions += len(subject_acts)
             for act, pred in zip(subject_acts, subject_pred):
-                mse += np.sum((act - pred)**2)
+                mse += np.sum((act - pred) ** 2)
         mse /= n_total_actions
 
         return self.score_type(mse)
@@ -65,10 +66,11 @@ class MSETest(InteractiveTest):
 class BEASTsdModel(LDMModel, Interactive, ContinuousAction):
     """
     """
+
     name = "BEASTsd"
 
     def __init__(self, *args, import_base_path, **kwargs):
-        import_file = '{}.CPC18_BEASTsd_pred'.format(import_base_path)
+        import_file = "{}.CPC18_BEASTsd_pred".format(import_base_path)
         self.module = importlib.import_module(import_file)
         super().__init__(*args, **kwargs)
 

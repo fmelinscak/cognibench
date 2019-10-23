@@ -11,8 +11,9 @@ class LSSPDModel(CAMO, Interactive, PredictsLogpdf):
     """
     LSSPD model implementation.
     """
+
     # TODO: what is the name of this model?
-    name = 'LSSPD'
+    name = "LSSPD"
 
     def __init__(self, *args, w, alpha, b0, b1, sigma, mix_coef, eta, kappa, **kwargs):
         """
@@ -54,32 +55,36 @@ class LSSPDModel(CAMO, Interactive, PredictsLogpdf):
             All the mandatory keyword-only arguments required by :class:`ldmunit.models.associative_learning.base.CAMO` must also be
             provided during initialization.
         """
-        assert sigma >= 0, 'sigma must be nonnegative'
-        assert mix_coef >= 0 and mix_coef <= 1, 'mix_coef must be in range [0, 1]'
-        assert eta >= 0, 'eta must be nonnegative'
-        assert kappa >= 0, 'kappa must be nonnegative'
+        assert sigma >= 0, "sigma must be nonnegative"
+        assert mix_coef >= 0 and mix_coef <= 1, "mix_coef must be in range [0, 1]"
+        assert eta >= 0, "eta must be nonnegative"
+        assert kappa >= 0, "kappa must be nonnegative"
         paras = {
-            'w': w,
-            'alpha': alpha,
-            'b0': b0,
-            'b1': b1,
-            'sigma': sigma,
-            'mix_coef': mix_coef,
-            'eta': eta,
-            'kappa': kappa
+            "w": w,
+            "alpha": alpha,
+            "b0": b0,
+            "b1": b1,
+            "sigma": sigma,
+            "mix_coef": mix_coef,
+            "eta": eta,
+            "kappa": kappa,
         }
         super().__init__(paras=paras, **kwargs)
         if is_arraylike(w):
-            assert len(w) == self.n_obs, 'w must have the same length as the dimension of the observation space'
+            assert (
+                len(w) == self.n_obs
+            ), "w must have the same length as the dimension of the observation space"
         if is_arraylike(alpha):
-            assert len(alpha) == self.n_obs, 'alpha must have the same length as the dimension of the observation space'
+            assert (
+                len(alpha) == self.n_obs
+            ), "alpha must have the same length as the dimension of the observation space"
 
     def reset(self):
         """
         Reset the hidden state to its default value.
         """
-        w = self.paras['w'] if 'w' in self.paras else 0
-        alpha = self.paras['alpha'] if 'alpha' in self.paras else 0
+        w = self.paras["w"] if "w" in self.paras else 0
+        alpha = self.paras["alpha"] if "alpha" in self.paras else 0
 
         if is_arraylike(w):
             w = np.array(w)
@@ -91,7 +96,7 @@ class LSSPDModel(CAMO, Interactive, PredictsLogpdf):
         else:
             alpha = np.full(self.n_obs, alpha)
 
-        self.hidden_state = {'w': w, 'alpha': alpha}
+        self.hidden_state = {"w": w, "alpha": alpha}
 
     def observation(self, stimulus):
         """
@@ -110,16 +115,18 @@ class LSSPDModel(CAMO, Interactive, PredictsLogpdf):
         """
         assert self.observation_space.contains(stimulus)
 
-        b0 = self.paras['b0']
-        b1 = self.paras['b1']
-        sd_pred = self.paras['sigma']
-        mix_coef = self.paras['mix_coef']
+        b0 = self.paras["b0"]
+        b1 = self.paras["b1"]
+        sd_pred = self.paras["sigma"]
+        mix_coef = self.paras["mix_coef"]
 
-        w_curr = self.hidden_state['w']
-        alpha = self.hidden_state['alpha']
+        w_curr = self.hidden_state["w"]
+        alpha = self.hidden_state["alpha"]
 
         # Predict response
-        mu_pred = b0 + b1 * np.dot(stimulus, (mix_coef * w_curr + (1 - mix_coef) * alpha))
+        mu_pred = b0 + b1 * np.dot(
+            stimulus, (mix_coef * w_curr + (1 - mix_coef) * alpha)
+        )
 
         rv = stats.norm(loc=mu_pred, scale=sd_pred)
         rv.random_state = self.seed
@@ -163,7 +170,7 @@ class LSSPDModel(CAMO, Interactive, PredictsLogpdf):
 
     def _predict_reward(self, stimulus):
         assert self.observation_space.contains(stimulus)
-        w_curr = self.hidden_state['w']
+        w_curr = self.hidden_state["w"]
         rhat = np.dot(stimulus, w_curr.T)
         return rhat
 
@@ -187,11 +194,13 @@ class LSSPDModel(CAMO, Interactive, PredictsLogpdf):
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
 
-        eta = self.paras['eta']  # Proportion of pred. error. in the updated associability value
-        kappa = self.paras['kappa']  # Fixed learning rate for the cue weight update
+        eta = self.paras[
+            "eta"
+        ]  # Proportion of pred. error. in the updated associability value
+        kappa = self.paras["kappa"]  # Fixed learning rate for the cue weight update
 
-        w_curr = self.hidden_state['w']
-        alpha = self.hidden_state['alpha']
+        w_curr = self.hidden_state["w"]
+        alpha = self.hidden_state["alpha"]
 
         rhat = self._predict_reward(stimulus)
 
@@ -209,7 +218,7 @@ class LSSPDModel(CAMO, Interactive, PredictsLogpdf):
             alpha += eta * abs(delta) * stimulus
             np.clip(alpha, a_min=0, a_max=1, out=alpha)  # Enforce upper bound on alpha
 
-            self.hidden_state['w'] = w_curr
-            self.hidden_state['alpha'] = alpha
+            self.hidden_state["w"] = w_curr
+            self.hidden_state["alpha"] = alpha
 
         return w_curr, alpha

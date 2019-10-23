@@ -112,8 +112,12 @@ def simulate_multi_env_multi_model(env_iterable, multimodel, n_trials, seed=0):
         n_trials_list = np.repeat(n_trials, len(env_list))
     else:
         n_trials_list = list(n_trials)
-        assert all(np.issubdtype(type(x), np.integer) for x in n_trials_list), 'All elements of n_trials must be int'
-        assert len(n_trials_list) == len(env_list), 'n_trials must be int or iterable of same length as env_list'
+        assert all(
+            np.issubdtype(type(x), np.integer) for x in n_trials_list
+        ), "All elements of n_trials must be int"
+        assert len(n_trials_list) == len(
+            env_list
+        ), "n_trials must be int or iterable of same length as env_list"
 
     stimuli = []
     rewards = []
@@ -125,7 +129,9 @@ def simulate_multi_env_multi_model(env_iterable, multimodel, n_trials, seed=0):
         subject_rewards = []
         subject_actions = []
         for n, env in zip(n_trials_list, env_list):
-            s, r, a = simulate_single_env_single_model(env, multimodel, subject_idx, n, seed)
+            s, r, a = simulate_single_env_single_model(
+                env, multimodel, subject_idx, n, seed
+            )
             subject_stimuli.extend(s)
             subject_rewards.extend(r)
             subject_actions.extend(a)
@@ -156,9 +162,10 @@ class MultiMetaInteractive(type):
     --------
     multi_from_single_interactive
     """
+
     def __new__(cls, name, bases, dct):
         single_cls = bases[0]
-        base_classes = (single_cls.__bases__)
+        base_classes = single_cls.__bases__
         out_cls = super().__new__(cls, name, base_classes, dct)
 
         # TODO: is there a clean way to make this metaclass more generic?
@@ -210,8 +217,9 @@ def multi_from_single_interactive(single_cls):
         A multi-subject model class implementing :class:`ldmunit.capabilities.Interactive` interface.
         Each required method now takes a subject index as their first argument.
     """
-    multi_cls_name = 'Multi' + single_cls.__name__
-    return MultiMetaInteractive(multi_cls_name, (single_cls, ), {
-        'name': single_cls.name,
-        '__doc__': single_cls.__doc__
-    })
+    multi_cls_name = "Multi" + single_cls.__name__
+    return MultiMetaInteractive(
+        multi_cls_name,
+        (single_cls,),
+        {"name": single_cls.name, "__doc__": single_cls.__doc__},
+    )

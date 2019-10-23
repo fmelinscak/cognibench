@@ -11,7 +11,8 @@ class RwNormModel(CAMO, Interactive, PredictsLogpdf):
     """
     Rescorla-Wagner model implementation.
     """
-    name = 'RwNorm'
+
+    name = "RwNorm"
 
     def __init__(self, *args, w, b0, b1, sigma, eta, **kwargs):
         """
@@ -41,21 +42,23 @@ class RwNormModel(CAMO, Interactive, PredictsLogpdf):
             All the mandatory keyword-only arguments required by :class:`ldmunit.models.associative_learning.base.CAMO` must also be
             provided during initialization.
         """
-        assert sigma >= 0, 'sigma must be nonnegative'
-        assert eta >= 0, 'eta must be nonnegative'
-        paras = {'w': w, 'b0': b0, 'b1': b1, 'sigma': sigma, 'eta': eta}
+        assert sigma >= 0, "sigma must be nonnegative"
+        assert eta >= 0, "eta must be nonnegative"
+        paras = {"w": w, "b0": b0, "b1": b1, "sigma": sigma, "eta": eta}
         super().__init__(paras=paras, **kwargs)
         if is_arraylike(w):
-            assert len(w) == self.n_obs, 'w must have the same length as the dimension of the observation space'
+            assert (
+                len(w) == self.n_obs
+            ), "w must have the same length as the dimension of the observation space"
 
     def reset(self):
-        w = self.paras['w'] if 'w' in self.paras else 0
+        w = self.paras["w"] if "w" in self.paras else 0
         if is_arraylike(w):
             w = np.array(w, dtype=np.float64)
         else:
             w = np.full(self.n_obs, w, dtype=np.float64)
 
-        self.hidden_state = {'w': w}
+        self.hidden_state = {"w": w}
 
     def predict(self, stimulus):
         """
@@ -94,7 +97,7 @@ class RwNormModel(CAMO, Interactive, PredictsLogpdf):
 
     def _predict_reward(self, stimulus):
         assert self.observation_space.contains(stimulus)
-        w_curr = self.hidden_state['w']
+        w_curr = self.hidden_state["w"]
         rhat = np.dot(stimulus, w_curr.T)
         return rhat
 
@@ -117,11 +120,11 @@ class RwNormModel(CAMO, Interactive, PredictsLogpdf):
         assert self.hidden_state, "hidden state must be set"
         assert self.observation_space.contains(stimulus)
 
-        b0 = self.paras['b0']  # intercept
-        b1 = self.paras['b1']  # slope
-        sd_pred = self.paras['sigma']
+        b0 = self.paras["b0"]  # intercept
+        b1 = self.paras["b1"]  # slope
+        sd_pred = self.paras["sigma"]
 
-        w_curr = self.hidden_state['w']
+        w_curr = self.hidden_state["w"]
 
         rhat = self._predict_reward(stimulus)
 
@@ -156,14 +159,14 @@ class RwNormModel(CAMO, Interactive, PredictsLogpdf):
         assert self.action_space.contains(action)
         assert self.observation_space.contains(stimulus)
 
-        eta = self.paras['eta']
-        w_curr = self.hidden_state['w']
+        eta = self.paras["eta"]
+        w_curr = self.hidden_state["w"]
 
         rhat = self._predict_reward(stimulus)
 
         if not done:
             delta = reward - rhat
             w_curr += eta * delta * stimulus
-            self.hidden_state['w'] = w_curr
+            self.hidden_state["w"] = w_curr
 
         return w_curr

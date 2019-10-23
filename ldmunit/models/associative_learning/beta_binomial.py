@@ -12,6 +12,7 @@ class DictWithBinarySequenceKeys(MutableMapping):
     """
     Mapping where keys are binary sequences such as [0, 1, 1], [1, 0, 1], etc.
     """
+
     def __init__(self, *args, **kwargs):
         self._storage = dict()
         self.update(dict(*args, **kwargs))
@@ -47,7 +48,8 @@ class BetaBinomialModel(CAMO, Interactive, PredictsLogpdf):
     >>> # Observation is a normal random variable:
     >>> observation = Normal(reward, sigma)
     """
-    name = 'BetaBinomial'
+
+    name = "BetaBinomial"
 
     def __init__(self, *args, a=1, b=1, sigma, mix_coef, intercept, slope, **kwargs):
         """
@@ -78,20 +80,30 @@ class BetaBinomialModel(CAMO, Interactive, PredictsLogpdf):
             All the mandatory keyword-only arguments required by :class:`ldmunit.models.associative_learning.base.CAMO` must also be
             provided during initialization.
         """
-        assert a > 0, 'a must be positive'
-        assert b > 0, 'b must be positive'
-        assert sigma >= 0, 'sigma must be nonnegative'
-        assert mix_coef >= 0 and mix_coef <= 1, 'mix_coef must be in range [0, 1]'
-        paras = {'a': a, 'b': b, 'sigma': sigma, 'mix_coef': mix_coef, 'intercept': intercept, 'slope': slope}
+        assert a > 0, "a must be positive"
+        assert b > 0, "b must be positive"
+        assert sigma >= 0, "sigma must be nonnegative"
+        assert mix_coef >= 0 and mix_coef <= 1, "mix_coef must be in range [0, 1]"
+        paras = {
+            "a": a,
+            "b": b,
+            "sigma": sigma,
+            "mix_coef": mix_coef,
+            "intercept": intercept,
+            "slope": slope,
+        }
         super().__init__(paras=paras, **kwargs)
 
     def _get_default_a_b(self):
         """
         Get default occurence and non-occurence counts.
         """
-        a = self.paras['a']
-        b = self.paras['b']
-        out = {'a': a * np.ones(self.n_obs, dtype=np.float64), 'b': b * np.ones(self.n_obs, dtype=np.float64)}
+        a = self.paras["a"]
+        b = self.paras["b"]
+        out = {
+            "a": a * np.ones(self.n_obs, dtype=np.float64),
+            "b": b * np.ones(self.n_obs, dtype=np.float64),
+        }
         return out
 
     def reset(self):
@@ -117,7 +129,7 @@ class BetaBinomialModel(CAMO, Interactive, PredictsLogpdf):
         """
         assert self.observation_space.contains(stimulus)
 
-        sd_pred = self.paras['sigma']
+        sd_pred = self.paras["sigma"]
 
         mu_pred = self._predict_reward(stimulus)
 
@@ -186,14 +198,14 @@ class BetaBinomialModel(CAMO, Interactive, PredictsLogpdf):
         # get model's state
         if stimulus not in self.hidden_state.keys():
             self.hidden_state[stimulus] = self._get_default_a_b()
-        a = self.hidden_state[stimulus]['a']
-        b = self.hidden_state[stimulus]['b']
+        a = self.hidden_state[stimulus]["a"]
+        b = self.hidden_state[stimulus]["b"]
 
         if not done:
             a += (1 - stimulus) * (1 - reward) + stimulus * reward
             b += (1 - stimulus) * reward + stimulus * (1 - reward)
-            self.hidden_state[stimulus]['a'] = a
-            self.hidden_state[stimulus]['b'] = b
+            self.hidden_state[stimulus]["a"] = a
+            self.hidden_state[stimulus]["b"] = b
 
         return a, b
 
@@ -202,18 +214,20 @@ class BetaBinomialModel(CAMO, Interactive, PredictsLogpdf):
         Predict the reward from the given stimulus using beta-binomial model
         equations.
         """
-        mix_coef = self.paras['mix_coef']
-        intercept = self.paras['intercept']
-        slope = self.paras['slope']
+        mix_coef = self.paras["mix_coef"]
+        intercept = self.paras["intercept"]
+        slope = self.paras["slope"]
 
         if tuple(stimulus) not in self.hidden_state.keys():
             self.hidden_state[stimulus] = self._get_default_a_b()
-        a = self.hidden_state[stimulus]['a']
-        b = self.hidden_state[stimulus]['b']
+        a = self.hidden_state[stimulus]["a"]
+        b = self.hidden_state[stimulus]["b"]
 
         mu = beta(a, b).mean()
         entropy = beta(a, b).entropy()
 
-        rhat = intercept + slope * np.dot(stimulus, (mix_coef * mu + (1 - mix_coef) * entropy))
+        rhat = intercept + slope * np.dot(
+            stimulus, (mix_coef * mu + (1 - mix_coef) * entropy)
+        )
 
         return rhat

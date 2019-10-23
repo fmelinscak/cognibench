@@ -11,7 +11,8 @@ class RandomRespondModel(CAMO, Interactive, PredictsLogpdf):
     Random respond model that predicts random actions for any
     kind of observation.
     """
-    name = 'RandomRespond'
+
+    name = "RandomRespond"
 
     def __init__(self, *args, mu, sigma, **kwargs):
         """
@@ -31,7 +32,7 @@ class RandomRespondModel(CAMO, Interactive, PredictsLogpdf):
             All the mandatory keyword-only arguments required by :class:`ldmunit.models.associative_learning.base.CAMO` must also be
             provided during initialization.
         """
-        assert sigma >= 0, 'sigma must be nonnegative'
+        assert sigma >= 0, "sigma must be nonnegative"
         paras = dict(mu=mu, sigma=sigma)
         super().__init__(paras=paras, **kwargs)
 
@@ -58,8 +59,8 @@ class RandomRespondModel(CAMO, Interactive, PredictsLogpdf):
         """
         assert self.observation_space.contains(stimulus)
 
-        mu_pred = self.paras['mu']
-        sd_pred = self.paras['sigma']
+        mu_pred = self.paras["mu"]
+        sd_pred = self.paras["sigma"]
 
         rv = stats.norm(loc=mu_pred, scale=sd_pred)
         rv.random_state = self.seed

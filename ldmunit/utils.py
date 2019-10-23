@@ -21,6 +21,7 @@ def partialclass(cls, *args, **kwargs):
     --------
     `<https://stackoverflow.com/questions/38911146/python-equivalent-of-functools-partial-for-a-class-constructor>`_.
     """
+
     class OutCls(cls):
         __init__ = functools.partialmethod(cls.__init__, *args, **kwargs)
 

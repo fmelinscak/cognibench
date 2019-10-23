@@ -65,8 +65,8 @@ class MSETest(BatchTest):
         :class:`ldmunit.scores.SmallerBetterScore`
             Mean squared error.
         """
-        action = observation['actions']
-        mse = np.mean((action - prediction)**2)
+        action = observation["actions"]
+        mse = np.mean((action - prediction) ** 2)
         return self.score_type(mse)
 
 
@@ -77,7 +77,7 @@ class NLLTest(InteractiveTest):
     """
 
     score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1000)
-    required_capabilities = InteractiveTest.required_capabilities + (PredictsLogpdf, )
+    required_capabilities = InteractiveTest.required_capabilities + (PredictsLogpdf,)
 
     def compute_score(self, observation, prediction):
         """
@@ -97,7 +97,7 @@ class NLLTest(InteractiveTest):
         :class:`ldmunit.scores.SmallerBetterScore`
             Negative log-likelihood.
         """
-        nll = neg_loglikelihood(observation['actions'], prediction)
+        nll = neg_loglikelihood(observation["actions"], prediction)
         return self.score_type(nll)
 
 
@@ -106,8 +106,9 @@ class AICTest(InteractiveTest):
     Perform interactive test on models that produce a log pdf/pmf as their
     predictions. Akaike Information Criterion (AIC) function is used as the score.
     """
+
     score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1000)
-    required_capabilities = InteractiveTest.required_capabilities + (PredictsLogpdf, )
+    required_capabilities = InteractiveTest.required_capabilities + (PredictsLogpdf,)
 
     def generate_prediction(self, multimodel):
         """
@@ -119,7 +120,9 @@ class AICTest(InteractiveTest):
         :func:`InteractiveTest.generate_prediction`
         """
         # save variables necessary to compute score
-        self.n_model_params = np.array([len(m.paras) for m in multimodel.subject_models])
+        self.n_model_params = np.array(
+            [len(m.paras) for m in multimodel.subject_models]
+        )
 
         return super().generate_prediction(multimodel)
 
@@ -142,7 +145,7 @@ class AICTest(InteractiveTest):
         :class:`ldmunit.scores.SmallerBetterScore`
             AIC
         """
-        nll = neg_loglikelihood(observation['actions'], prediction)
+        nll = neg_loglikelihood(observation["actions"], prediction)
         regularizer = 2 * np.sum(self.n_model_params)
         return self.score_type(nll + regularizer)
 
@@ -152,8 +155,9 @@ class BICTest(InteractiveTest):
     Perform interactive test on models that produce a log pdf/pmf as their
     predictions. Bayesian Information Criterion (BIC) function is used as the score.
     """
+
     score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1000)
-    required_capabilities = InteractiveTest.required_capabilities + (PredictsLogpdf, )
+    required_capabilities = InteractiveTest.required_capabilities + (PredictsLogpdf,)
 
     def generate_prediction(self, multimodel):
         """
@@ -165,8 +169,10 @@ class BICTest(InteractiveTest):
         :func:`InteractiveTest.generate_prediction`
         """
         # save variables necessary to compute score
-        stimuli = self.observation['stimuli']
-        self.n_model_params = np.array([len(m.paras) for m in multimodel.subject_models])
+        stimuli = self.observation["stimuli"]
+        self.n_model_params = np.array(
+            [len(m.paras) for m in multimodel.subject_models]
+        )
         self.n_samples = np.array([len(s) for s in stimuli])
 
         return super().generate_prediction(multimodel)
@@ -190,6 +196,6 @@ class BICTest(InteractiveTest):
         :class:`ldmunit.scores.SmallerBetterScore`
             BIC
         """
-        nll = neg_loglikelihood(observation['actions'], prediction)
+        nll = neg_loglikelihood(observation["actions"], prediction)
         regularizer = np.dot(self.n_model_params, self.n_samples)
         return self.score_type(nll + regularizer)

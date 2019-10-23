@@ -66,6 +66,7 @@ class BanditEnv(gym.Env):
     observation_space : :class:`gym.spaces.Discrete`
         There is no observation/stimulus/cue in bandit environment.
     """
+
     def __init__(self, p_dist, info={}):
         if min(p_dist) < 0 or max(p_dist) > 1:
             raise ValueError("All probabilities must be between 0 and 1")
@@ -107,7 +108,9 @@ class BanditEnv(gym.Env):
         info : str
             Information about the environment.
         """
-        assert self.action_space.contains(action), "Action does not fit in the environment's action_space"
+        assert self.action_space.contains(
+            action
+        ), "Action does not fit in the environment's action_space"
         reward = 0
         done = False
         observation = 0
@@ -125,7 +128,7 @@ class BanditEnv(gym.Env):
         """
         return self.observation_space.sample()
 
-    def render(self, mode='human', close=False):
+    def render(self, mode="human", close=False):
         """
         Not implemented
         """
@@ -169,18 +172,22 @@ class BanditAssociateEnv(gym.Env):
         The multi-binary space set by the stimuli
          
     """
+
     def __init__(self, stimuli, p_stimuli, p_reward, info={}):
         if min(p_stimuli) < 0 or max(p_stimuli) > 1 or sum(p_stimuli) != 1:
             raise ValueError("All probabilities must be between 0 and 1")
         if min(p_reward) < 0 or max(p_reward) > 1:
             raise ValueError("All probabilities must be between 0 and 1")
-        assert len(set(map(
-            len, (p_stimuli, stimuli, p_reward)))) == 1, "Stimuli and Probability list must be of equal length"
+        assert (
+            len(set(map(len, (p_stimuli, stimuli, p_reward)))) == 1
+        ), "Stimuli and Probability list must be of equal length"
         self._n = len(stimuli[0])
         self.observation_space = spaces.MultiBinary(self._n)
         self.action_space = ContinuousSpace()
         for s in stimuli:
-            assert self.observation_space.contains(s), "Stimuli must be in the same MultiBinary space"
+            assert self.observation_space.contains(
+                s
+            ), "Stimuli must be in the same MultiBinary space"
 
         self.stimuli = stimuli
         self.p_stimuli = p_stimuli
@@ -219,9 +226,13 @@ class BanditAssociateEnv(gym.Env):
         info : str
             Information about the environment.
         """
-        assert self.action_space.contains(action), "Action does not fit in the environment's action_space"
+        assert self.action_space.contains(
+            action
+        ), "Action does not fit in the environment's action_space"
 
-        obs_idx = self.np_random.choice(range(len(self.stimuli)), p=self.p_stimuli, replace=True)
+        obs_idx = self.np_random.choice(
+            range(len(self.stimuli)), p=self.p_stimuli, replace=True
+        )
         reward = 0
         done = False
         observation = self.stimuli[obs_idx]
@@ -243,11 +254,13 @@ class BanditAssociateEnv(gym.Env):
         observation : :class:`numpy.ndarray`
             One of the stimulus from the pre-set list
         """
-        obs_idx = self.np_random.choice(range(len(self.stimuli)), p=self.p_stimuli, replace=True)
+        obs_idx = self.np_random.choice(
+            range(len(self.stimuli)), p=self.p_stimuli, replace=True
+        )
         observation = self.stimuli[obs_idx]
         return observation
 
-    def render(self, mode='human', close=False):
+    def render(self, mode="human", close=False):
         """
         Not implemented
         """
