@@ -39,7 +39,7 @@ class BanditEnv(gym.Env):
     """Bandit environment base to allow agents to interact with the class n-armed bandit
     in different variations
 
-    BanditEnv will initialize a :class:`gym.Env` instance in which rewards (1 or 0) will be 
+    BanditEnv will initialize a :class:`gym.Env` instance in which rewards (1 or 0) will be
     randomly rewarded towards the agents with the probability set.
 
     Parameters
@@ -139,8 +139,8 @@ class BanditAssociateEnv(gym.Env):
     """Environment base to allow agents to learn from stimulus occuring at different
     probabilities.
 
-    BanditEnv will initialize a :class:`gym.Env` instance in which rewards (1 or 0) will be 
-    randomly rewarded towards pre-set stimuli. The occurance of the stimulus 
+    BanditEnv will initialize a :class:`gym.Env` instance in which rewards (1 or 0) will be
+    randomly rewarded towards pre-set stimuli. The occurance of the stimulus
     will be determined by the `p_stimuli`
 
     Parameters
@@ -170,7 +170,7 @@ class BanditAssociateEnv(gym.Env):
         Environment only understand discrete action set in this space (set by length of p_dist).
     observation_space : :class:`gym.spaces.MultiBinary`
         The multi-binary space set by the stimuli
-         
+
     """
 
     def __init__(self, stimuli, p_stimuli, p_reward, info={}):
@@ -246,7 +246,7 @@ class BanditAssociateEnv(gym.Env):
     def reset(self):
         """Reset the n-bandit env.
 
-        Since there is no memory perserved by the environment. No operation on 
+        Since there is no memory perserved by the environment. No operation on
         the env.
 
         Returns

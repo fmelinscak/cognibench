@@ -7,13 +7,13 @@ from .continuous import ContinuousSpace
 class Interactive(sciunit.Capability):
     """Capability to interact with an environment (i.e. :class:`gym.Env`)
 
-    Models with this capability are required to have the following methods to be 
+    Models with this capability are required to have the following methods to be
     able to respond to environment and update themselves in an interactive manner.
     """
 
     def update(self, *args, **kwargs):
         """
-        Given stimulus, rewards and action, the model should updates its 
+        Given stimulus, rewards and action, the model should updates its
         hidden state. Also named evolution function in some packages.
         """
         raise NotImplementedError("Must implement update.")
@@ -130,8 +130,8 @@ class DiscreteAction(ActionSpace):
         Parameters
         ----------
         value : None, int, :class:`gym.spaces.Discrete`
-            observation_space set to class :class:`gym.spaces.Discrete` when passed None 
-            (default). With a int or an instance of :class:`gym.spaces.Discrete`, observation_space 
+            observation_space set to class :class:`gym.spaces.Discrete` when passed None
+            (default). With a int or an instance of :class:`gym.spaces.Discrete`, observation_space
             will be set to the :class:`gym.spaces.Discrete` accordingly.
         """
         if isinstance(value, spaces.Discrete):
@@ -188,8 +188,8 @@ class MultiBinaryObservation(ObservationSpace):
         Parameters
         ----------
         value : None or int or :class:`gym.spaces.MultiBinary`
-            observation_space set to class :class:`gym.spaces.MultiBinary` when passed None 
-            (default). With a int or an instance of :class:`gym.spaces.MultiBinary`, observation_space 
+            observation_space set to class :class:`gym.spaces.MultiBinary` when passed None
+            (default). With a int or an instance of :class:`gym.spaces.MultiBinary`, observation_space
             will be set to the :class:`gym.spaces.MultiBinary` accordingly.
         """
         if isinstance(value, spaces.MultiBinary):

@@ -154,7 +154,7 @@ class MultiMetaInteractive(type):
     single-subject model to use. In this regard, the returned class is semantically
     similar to a list of single-subject models while also satisfying model class requirements.
 
-    This metaclass is not intended to be used directly. Users should use 
+    This metaclass is not intended to be used directly. Users should use
     multi_from_single_interactive function for automatically generating multi-subject models
     from single-subject ones.
 

@@ -23,3 +23,4 @@ dependencies:
     - git+https://github.com/scidash/sciunit@256b4a7a19149fceb643a6bfd53f4282991d02a8#egg=sciunit
     - git+https://github.com/miyakogi/m2r@04520e58883f0934216ce91cba9663222f8269b1#egg=m2r
     - black
+    - pre-commit
