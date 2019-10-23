@@ -3,10 +3,10 @@ import gym
 from gym import spaces
 from scipy import stats
 from ldmunit.models import CAMO
-from ldmunit.capabilities import Interactive, LogProbModel
+from ldmunit.capabilities import Interactive, PredictsLogpdf
 
 
-class RandomRespondModel(CAMO, Interactive, LogProbModel):
+class RandomRespondModel(CAMO, Interactive, PredictsLogpdf):
     """
     Random respond model that predicts random actions for any
     kind of observation.

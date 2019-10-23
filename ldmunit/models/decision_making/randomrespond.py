@@ -3,10 +3,10 @@ from gym import spaces
 from scipy import stats
 
 from ldmunit.models import DADO
-from ldmunit.capabilities import Interactive, LogProbModel
+from ldmunit.capabilities import Interactive, PredictsLogpdf
 
 
-class RandomRespondModel(DADO, Interactive, LogProbModel):
+class RandomRespondModel(DADO, Interactive, PredictsLogpdf):
     """
     Random respond model that predicts random actions for any
     kind of observation.

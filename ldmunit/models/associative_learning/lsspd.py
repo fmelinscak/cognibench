@@ -3,11 +3,11 @@ import gym
 from gym import spaces
 from scipy import stats
 from ldmunit.models import CAMO
-from ldmunit.capabilities import Interactive, LogProbModel
+from ldmunit.capabilities import Interactive, PredictsLogpdf
 from ldmunit.utils import is_arraylike
 
 
-class LSSPDModel(CAMO, Interactive, LogProbModel):
+class LSSPDModel(CAMO, Interactive, PredictsLogpdf):
     """
     LSSPD model implementation.
     """

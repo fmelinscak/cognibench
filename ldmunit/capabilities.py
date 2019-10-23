@@ -10,18 +10,6 @@ class Interactive(sciunit.Capability):
     Models with this capability are required to have the following methods to be 
     able to respond to environment and update themselves in an interactive manner.
     """
-    def predict(self, *args, **kwargs):
-        """
-        Given stimulus, model should return the prediction.
-        """
-        raise NotImplementedError("Must implement predict.")
-
-    def reset(self, *args, **kwargs):
-        """
-        Reset the hidden state of the model to initial state.
-        """
-        raise NotImplementedError("Must implement reset.")
-
     def update(self, *args, **kwargs):
         """
         Given stimulus, rewards and action, the model should updates its 
@@ -29,27 +17,13 @@ class Interactive(sciunit.Capability):
         """
         raise NotImplementedError("Must implement update.")
 
-    def act(self, *args, **kwargs):
-        """
-        For decision making, return the action taken by the model.
-        Associative learning models should return the predicted value.
-        Also named observation function in some packages.
-        """
-        raise NotImplementedError("Must implement act")
 
-
-class LogProbModel(sciunit.Capability):
+class PredictsLogpdf(sciunit.Capability):
     """
     Capability for models that produce a log probability distribution
     as a result of their predict function.
-
-    Models with this capability are required to have the following methods
     """
-    def predict(self, *args, **kwargs):
-        """
-        Given stimulus, model should return log pdf or log pmf function.
-        """
-        raise NotImplementedError("Must implement predict returning log-pdf or log-pmf.")
+    pass
 
 
 class ActionSpace(sciunit.Capability):

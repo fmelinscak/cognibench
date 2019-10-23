@@ -4,7 +4,7 @@ from gym.utils import seeding
 from collections.abc import Mapping
 from gym import spaces
 from ldmunit.capabilities import DiscreteAction, DiscreteObservation
-from ldmunit.capabilities import MultiBinaryObservation, ContinuousAction
+from ldmunit.capabilities import MultiBinaryObservation, ContinuousAction, ContinuousObservation
 from ldmunit.continuous import ContinuousSpace
 
 
@@ -65,6 +65,20 @@ class LDMModel(sciunit.Model):
     @property
     def hidden_state(self):
         return self._hidden_state
+
+    def predict(self, *args, **kwargs):
+        """
+        Make a prediction given a stimuli.
+        """
+        raise NotImplementedError("Must implement predict.")
+
+    def act(self, *args, **kwargs):
+        """
+        For decision making, return the action taken by the model.
+        Associative learning models should return the predicted value.
+        Also named observation function in some packages.
+        """
+        raise NotImplementedError("Must implement act")
 
     def reset(self):
         """
@@ -140,6 +154,16 @@ class DADO(LDMModel, DiscreteAction, DiscreteObservation):
         self.observation_space = len(np.unique(stimuli))
         print('action_space set to {}'.format(self.action_space))
         print('observation_space set to {}'.format(self.observation_space))
+
+
+class CACO(LDMModel, ContinuousAction, ContinuousObservation):
+    """
+    Base class for models that operate on continuous action and continuous observation spaces.
+    """
+    def __init__(self, *args, **kwargs):
+        self.action_space = ContinuousSpace()
+        self.observation_space = ContinuousSpace()
+        super().__init__(*args, **kwargs)
 
 
 class CAMO(LDMModel, ContinuousAction, MultiBinaryObservation):

@@ -82,3 +82,19 @@ class SmallerBetterScore(scores.FloatScore):
         if value is not None:
             self.score = value
         return super().color(self.norm_score)
+
+
+class NLLScore(SmallerBetterScore):
+    pass
+
+
+class BICScore(SmallerBetterScore):
+    pass
+
+
+class AICScore(SmallerBetterScore):
+    pass
+
+
+class MSEScore(SmallerBetterScore):
+    pass

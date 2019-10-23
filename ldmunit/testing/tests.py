@@ -1,53 +1,10 @@
-from .utils import partialclass
-from sciunit import Test
-from .scores import SmallerBetterScore
-from .capabilities import Interactive, LogProbModel
+import numpy as np
 
-
-def test_multimodel(multimodel, stimuli, rewards, actions):
-    """
-    test_multimodel is a utility function which trains
-    a multi-subject model on a list of stimulus, reward, action
-    triples for each subject. The list of predictions after each
-    predict step is returned.
-    
-    Parameters
-    ----------
-    multimodel : :class:`sciunit.models.Model` and :class:`ldmunit.capabilities.Interactive`
-        Multi-subject model. If you have a single-subject model
-        that works on data for one subject at a time, use
-        :func:`ldmunit.models.utils.multi_from_single_interactive` to get a multi-subject
-        model that works on a single-subject at a time.
-
-    stimuli : list of list
-        List of subject-specific stimuli. Each element of this list
-        must contain all the stimuli for the corresponding subject as a list.
-
-    rewards : list of list
-        List of subject-specific rewards. Each element of this list
-        must contain all the rewards for the corresponding subject as a list.
-
-    actions : list of list
-        List of subject-specific rewards. Each element of this list
-        must contain all the rewards for the corresponding subject as a list.
-
-    Returns
-    -------
-    list of list
-        List of predictions. Each element of this list contains
-        all the predictions for the corresponding subject as a list.
-    """
-    predictions = []
-
-    for subject_idx, (subject_stimuli, subject_rewards, subject_actions) in enumerate(zip(stimuli, rewards, actions)):
-        multimodel.reset(subject_idx)
-        subject_predictions = []
-        for s, r, a in zip(subject_stimuli, subject_rewards, subject_actions):
-            subject_predictions.append(multimodel.predict(subject_idx, s))
-            multimodel.update(subject_idx, s, r, a, False)
-        predictions.append(subject_predictions)
-
-    return predictions
+from ldmunit.testing import InteractiveTest, BatchTest
+from ldmunit.models import LDMModel
+from ldmunit.utils import partialclass
+from ldmunit.scores import SmallerBetterScore
+from ldmunit.capabilities import PredictsLogpdf
 
 
 def neg_loglikelihood(actions, predictions):
@@ -80,60 +37,37 @@ def neg_loglikelihood(actions, predictions):
     return neg_loglike
 
 
-class InteractiveTest(Test):
+class MSETest(BatchTest):
     """
-    Perform interactive tests by feeding the input samples (stimuli) one at a
-    time. This class is not intended to be used directly since it does not
-    specify how the score should be computed. In order to create concrete
-    interactive tests, create a subclass and specify how the score should be
-    computed.
-
-    See Also
-    --------
-    :class:`NLLTest`, :class:`AICTest`, :class:`BICTest` for examples of concrete interactive test classes
+    Perform batch test on models that produce a real-valued numpy array as its
+    predictions. Each prediction is compared to its ground truth using squared error,
+    and the final score is computed as the mean squared error.
     """
-    required_capabilities = (Interactive, )
 
-    def __init__(self, *args, **kwargs):
-        """
-        Other Parameters
-        ----------------
-        **kwargs : any type
-            All the keyword arguments are passed to `__init__` method of :class:`sciunit.tests.Test`.
-            `observation` dictionary must contain 'stimuli', 'rewards' and 'actions' keys.
-            Value for each these keys must be a list of list (or any other iterable) where
-            outer list is over subjects and inner list is over samples.
+    # TODO: find a better way to define the feasible range of the score
+    score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1)
 
-        See Also
-        --------
-        :py:meth:`InteractiveTest.generate_prediction`
+    def compute_score(self, observation, prediction):
         """
-        super().__init__(*args, **kwargs)
-
-    def generate_prediction(self, multimodel):
-        """
-        Generate predictions from a multi-subject model one at a time.
+        Compute the mean squared error score from observations and predictions
 
         Parameters
         ----------
-        multimodel : :class:`sciunit.models.Model` and :class:`ldmunit.capabilities.Interactive`
-            Multi-subject model
+        observation : dict
+            Dictionary storing the actions in 'actions' key.
+
+        prediction : numpy.ndarray
+            2D numpy array of subject-specific predictions. Each row of the matrix
+            stores the predictions for the corresponding subject.
 
         Returns
         -------
-        list of list
-            Predictions
-
-        See Also
-        --------
-        :func:`test_multimodel`
+        :class:`ldmunit.scores.SmallerBetterScore`
+            Mean squared error.
         """
-        stimuli = self.observation['stimuli']
-        rewards = self.observation['rewards']
-        actions = self.observation['actions']
-
-        predictions = test_multimodel(multimodel, stimuli, rewards, actions)
-        return predictions
+        action = observation['actions']
+        mse = np.mean((action - prediction)**2)
+        return self.score_type(mse)
 
 
 class NLLTest(InteractiveTest):
@@ -143,7 +77,7 @@ class NLLTest(InteractiveTest):
     """
 
     score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1000)
-    required_capabilities = InteractiveTest.required_capabilities + (LogProbModel, )
+    required_capabilities = InteractiveTest.required_capabilities + (PredictsLogpdf, )
 
     def compute_score(self, observation, prediction):
         """
@@ -173,7 +107,7 @@ class AICTest(InteractiveTest):
     predictions. Akaike Information Criterion (AIC) function is used as the score.
     """
     score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1000)
-    required_capabilities = InteractiveTest.required_capabilities + (LogProbModel, )
+    required_capabilities = InteractiveTest.required_capabilities + (PredictsLogpdf, )
 
     def generate_prediction(self, multimodel):
         """
@@ -185,7 +119,7 @@ class AICTest(InteractiveTest):
         :func:`InteractiveTest.generate_prediction`
         """
         # save variables necessary to compute score
-        self.n_model_params = [len(m.paras) for m in multimodel.subject_models]
+        self.n_model_params = np.array([len(m.paras) for m in multimodel.subject_models])
 
         return super().generate_prediction(multimodel)
 
@@ -209,7 +143,7 @@ class AICTest(InteractiveTest):
             AIC
         """
         nll = neg_loglikelihood(observation['actions'], prediction)
-        regularizer = 2 * sum(self.n_model_params)
+        regularizer = 2 * np.sum(self.n_model_params)
         return self.score_type(nll + regularizer)
 
 
@@ -219,7 +153,7 @@ class BICTest(InteractiveTest):
     predictions. Bayesian Information Criterion (BIC) function is used as the score.
     """
     score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1000)
-    required_capabilities = InteractiveTest.required_capabilities + (LogProbModel, )
+    required_capabilities = InteractiveTest.required_capabilities + (PredictsLogpdf, )
 
     def generate_prediction(self, multimodel):
         """
@@ -232,8 +166,8 @@ class BICTest(InteractiveTest):
         """
         # save variables necessary to compute score
         stimuli = self.observation['stimuli']
-        self.n_model_params = [len(m.paras) for m in multimodel.subject_models]
-        self.n_samples = [len(s) for s in stimuli]
+        self.n_model_params = np.array([len(m.paras) for m in multimodel.subject_models])
+        self.n_samples = np.array([len(s) for s in stimuli])
 
         return super().generate_prediction(multimodel)
 
@@ -257,5 +191,5 @@ class BICTest(InteractiveTest):
             BIC
         """
         nll = neg_loglikelihood(observation['actions'], prediction)
-        regularizer = sum(p * q for p, q in zip(self.n_model_params, self.n_samples))
+        regularizer = np.dot(self.n_model_params, self.n_samples)
         return self.score_type(nll + regularizer)

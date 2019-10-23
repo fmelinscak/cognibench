@@ -3,11 +3,11 @@ import gym
 from gym import spaces
 from scipy import stats
 from ldmunit.models import CAMO
-from ldmunit.capabilities import Interactive, LogProbModel
+from ldmunit.capabilities import Interactive, PredictsLogpdf
 from ldmunit.utils import is_arraylike
 
 
-class RwNormModel(CAMO, Interactive, LogProbModel):
+class RwNormModel(CAMO, Interactive, PredictsLogpdf):
     """
     Rescorla-Wagner model implementation.
     """

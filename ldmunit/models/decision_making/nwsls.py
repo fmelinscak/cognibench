@@ -3,10 +3,10 @@ from gym import spaces
 from scipy import stats
 
 from ldmunit.models import DADO
-from ldmunit.capabilities import Interactive, LogProbModel
+from ldmunit.capabilities import Interactive, PredictsLogpdf
 
 
-class NWSLSModel(DADO, Interactive, LogProbModel):
+class NWSLSModel(DADO, Interactive, PredictsLogpdf):
     """
     Noisy-win-stay-lose-shift model implementation.
     """

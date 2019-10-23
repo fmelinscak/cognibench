@@ -7,7 +7,7 @@ from os.path import join as pathjoin
 sys.path.append('..')
 from ldmunit.models import decision_making, associative_learning
 from ldmunit.models.utils import multi_from_single_interactive
-from ldmunit.tests import NLLTest, AICTest, BICTest
+from ldmunit.testing.tests import NLLTest, AICTest, BICTest
 from read_example_data import get_simulation_data, get_model_params
 
 DATA_PATH = pathjoin('..', 'data')

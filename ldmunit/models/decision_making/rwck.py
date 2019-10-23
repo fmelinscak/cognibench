@@ -4,10 +4,10 @@ from scipy import stats
 from scipy.special import softmax
 
 from ldmunit.models import DADO
-from ldmunit.capabilities import Interactive, LogProbModel
+from ldmunit.capabilities import Interactive, PredictsLogpdf
 
 
-class RWCKModel(DADO, Interactive, LogProbModel):
+class RWCKModel(DADO, Interactive, PredictsLogpdf):
     """
     Rescorla-Wagner Choice Kernel model implementation.
 
