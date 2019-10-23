@@ -94,6 +94,16 @@ conda env create -f environment.yml
 conda activate ldmunit
 ```
 
+We use `black` for code-formatting and `pre-commit` for ensuring high quality code.
+To enable these tools simply run
+
+```bash
+pre-commit install
+```
+
+The next time you try to commit, all the required tools and hooks will be downloaded
+(and cached) and checks will be performed on your code.
+
 ### Generating Local Documentation
 After enabling the development environment, you can generate a local
 version of the documentation by running
