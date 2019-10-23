@@ -160,4 +160,8 @@ dmypy.json
 ### Python Patch ###
 .venv/
 
+### sphinx ###
+**/sphinx/code
+**/sphinx/_build
+
 # End of https://www.gitignore.io/api/python,matlab,jupyternotebook

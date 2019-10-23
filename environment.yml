@@ -3,17 +3,23 @@ channels:
   - defaults
   - conda-forge
   - hcc
+  - anaconda
+  - r
 dependencies:
   - ipykernel=5.1.0
+  - pandas=0.24.2
   - matplotlib=3.0.3
   - numpy=1.16.2
-  - pandas=0.24.2
   - python=3.6.8
-  - pip
   - gym
   - scipy=1.2.1
   - oct2py=5.0.2
   - rpy2=2.9.4
+  - sphinx
+  - sphinx_rtd_theme
+  - twine
+  - pip
   - pip:
     - git+https://github.com/scidash/sciunit@256b4a7a19149fceb643a6bfd53f4282991d02a8#egg=sciunit
-
+    - git+https://github.com/miyakogi/m2r@04520e58883f0934216ce91cba9663222f8269b1#egg=m2r
+    - yapf
