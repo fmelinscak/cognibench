@@ -27,7 +27,7 @@ def CPC18_BEASTsd_pred(
     DistB = CPC18_getDist(Hb, pHb, Lb, LotShapeB, LotNumB)
 
     # get the probabilities that each option gives greater value than the other
-    probsBetter = get_pBetter(DistA, DistB, corr=1, accuracy=100000)
+    probsBetter = get_pBetter(DistA, DistB, corr=1, accuracy=100)
 
     # run model simulation nSims times
     nSims = 10
