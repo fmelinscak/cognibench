@@ -70,6 +70,80 @@ class MSETest(BatchTest):
         return self.score_type(mse)
 
 
+class MAETest(BatchTest):
+    """
+    Perform batch test on models that produce a real-valued numpy array as its
+    predictions. Each prediction is compared to its ground truth using absolute error,
+    and the final score is computed as the mean absolute error.
+    """
+
+    # TODO: find a better way to define the feasible range of the score
+    score_type = partialclass(SmallerBetterScore, min_score=0, max_score=1)
+
+    def compute_score(self, observation, prediction):
+        """
+        Compute the mean absolute error score from observations and predictions
+
+        Parameters
+        ----------
+        observation : dict
+            Dictionary storing the actions in 'actions' key.
+
+        prediction : numpy.ndarray
+            2D numpy array of subject-specific predictions. Each row of the matrix
+            stores the predictions for the corresponding subject.
+
+        Returns
+        -------
+        :class:`ldmunit.scores.SmallerBetterScore`
+            Mean absolute error.
+        """
+        action = observation["actions"]
+        mae = np.mean(np.abs(action - prediction))
+        return self.score_type(mae)
+
+
+class CrossEntropyTest(BatchTest):
+    """
+    Perform batch test on models that produce a real-valued probability numpy array as its
+    predictions, meaning each element of the array must be in the range [0, 1].
+    The score for one sample is computed as the cross entropy loss H(ground, pred) where ground is the
+    ground truth probability vector and pred is the prediction vector output by the model. The final
+    score is computed as the mean of these individual cross entropy losses.
+    """
+
+    # TODO: find a better way to define the feasible range of the score
+    score_type = partialclass(SmallerBetterScore, min_score=0, max_score=100)
+
+    def __init__(self, *args, eps=1e-9, **kwargs):
+        self.eps = eps
+        super().__init__(*args, **kwargs)
+
+    def compute_score(self, observation, prediction):
+        """
+        Compute the mean cross entropy between ground truth and model predictions.
+
+        Parameters
+        ----------
+        observation : dict
+            Dictionary storing the actions in 'actions' key.
+
+        prediction : numpy.ndarray
+            2D numpy array of subject-specific predictions. Each row of the matrix
+            stores the predictions for the corresponding subject.
+
+        Returns
+        -------
+        :class:`ldmunit.scores.SmallerBetterScore`
+            Mean cross entropy error.
+        """
+        action = observation["actions"]
+        prediction_clipped = np.clip(prediction, self.eps, 1 - self.eps)
+        N = prediction_clipped.shape[0]
+        mean_cross_entropy = -np.sum(action * np.log(prediction_clipped)) / N
+        return self.score_type(mean_cross_entropy)
+
+
 class NLLTest(InteractiveTest):
     """
     Perform interactive test on models that produce a log pdf/pmf as their

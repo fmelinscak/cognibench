@@ -2,7 +2,7 @@ from os import getcwd
 import pandas as pd
 import numpy as np
 import time
-from ldmunit.testing.tests import MSETest
+from ldmunit.testing.tests import MSETest, MAETest, CrossEntropyTest
 from ldmunit.models import CACO
 from ldmunit.capabilities import Interactive
 from sciunit import TestSuite
@@ -36,16 +36,23 @@ if __name__ == "__main__":
     obs_dict = {"stimuli": stimuli, "actions": actions}
 
     # prepare models
+    submitted_model_IDs = list(range(3))
     models = [
         BEASTsdPython(
             import_base_path=f"beastsd_contestant_{i}", name=f"Contestant {i}"
         )
-        for i in range(3)
+        for i in submitted_model_IDs
     ]
 
     # prepare tests
-    test = MSETest(name="MSE Test", observation=obs_dict)
-    suite = TestSuite([test], name="MSE suite")
+    suite = TestSuite(
+        [
+            MSETest(name="MSE Test", observation=obs_dict),
+            MAETest(name="MAE Test", observation=obs_dict),
+            CrossEntropyTest(name="Cross Entropy Test", observation=obs_dict, eps=1e-9),
+        ],
+        name="Batch test suite",
+    )
 
     # judge
     suite.judge(models)
