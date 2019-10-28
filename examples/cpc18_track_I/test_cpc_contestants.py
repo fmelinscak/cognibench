@@ -8,7 +8,7 @@ from ldmunit.capabilities import Interactive
 from sciunit import TestSuite
 from sciunit import settings as sciunit_settings
 
-from model_defs import BEASTsdPython, BEASTsdMATLAB, BEASTsdR
+from model_defs import BEASTsdPython, BEASTsdOctave, BEASTsdR
 
 sciunit_settings["CWD"] = getcwd()
 
@@ -36,13 +36,25 @@ if __name__ == "__main__":
     obs_dict = {"stimuli": stimuli, "actions": actions}
 
     # prepare models
-    submitted_model_IDs = list(range(3))
+    python_model_IDs = [0]
+    octave_model_IDs = [1]
+    r_model_IDs = [2]
     models = [
         BEASTsdPython(
-            import_base_path=f"beastsd_contestant_{i}", name=f"Contestant {i}"
+            import_base_path=f"beastsd_contestant_{i}", name=f"Contestant {i} (python)"
         )
-        for i in submitted_model_IDs
-    ]
+        for i in python_model_IDs
+    ] + [
+        BEASTsdOctave(
+            import_base_path=f"beastsd_contestant_{i}", name=f"Contestant {i} (octave)"
+        )
+        for i in octave_model_IDs
+    ]  # + [
+    #    BEASTsdR(
+    #        ...
+    #    )
+    #    for i in r_model_IDs
+    # ]
 
     # prepare tests
     suite = TestSuite(

@@ -7,6 +7,7 @@ from ldmunit.capabilities import Interactive
 from sciunit import TestSuite
 from sciunit import settings as sciunit_settings
 
+from oct2py import Oct2Py
 import importlib
 
 
@@ -25,14 +26,17 @@ class BEASTsdPython(CACO):
         return self.predict(stimulus)
 
 
-class BEASTsdMATLAB(CACO):
-    name = "BEASTsdMATLAB"
+class BEASTsdOctave(CACO):
+    name = "BEASTsdOctave"
 
     def __init__(self, *args, import_base_path, **kwargs):
-        pass
+        self.octave_session = Oct2Py()
+        self.octave_session.eval("pkg load statistics")
+        self.octave_session.eval(f'addpath("{import_base_path}");')
+        super().__init__(*args, **kwargs)
 
     def predict(self, stimulus):
-        pass
+        return self.octave_session.feval("CPC18_BEASTsd_pred", *stimulus)
 
     def act(self, stimulus):
         return self.predict(stimulus)
@@ -42,7 +46,7 @@ class BEASTsdR(CACO):
     name = "BEASTsdR"
 
     def __init__(self, *args, import_base_path, **kwargs):
-        pass
+        super().__init__(*args, **kwargs)
 
     def predict(self, stimulus):
         pass
