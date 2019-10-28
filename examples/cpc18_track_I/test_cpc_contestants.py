@@ -13,6 +13,32 @@ from model_defs import BEASTsdPython, BEASTsdOctave, BEASTsdR
 sciunit_settings["CWD"] = getcwd()
 
 
+def get_models(python_model_IDs, octave_model_IDs, r_model_IDs):
+    folder_fmt = "beastsd_contestant_{}"
+    model_name_fmt = "Contestant {} ({})"
+    python_models = [
+        BEASTsdPython(
+            import_base_path=folder_fmt.format(i),
+            name=model_name_fmt.format(i, "Python"),
+        )
+        for i in python_model_IDs
+    ]
+    octave_models = [
+        BEASTsdOctave(
+            import_base_path=folder_fmt.format(i),
+            name=model_name_fmt.format(i, "Octave"),
+        )
+        for i in octave_model_IDs
+    ]
+    r_models = [
+        BEASTsdR(
+            import_base_path=folder_fmt.format(i), name=model_name_fmt.format(i, "R")
+        )
+        for i in r_model_IDs
+    ]
+    return python_models + octave_models + r_models
+
+
 if __name__ == "__main__":
     # prepare data
     Data = pd.read_csv("CPC18_EstSet.csv")
@@ -39,22 +65,7 @@ if __name__ == "__main__":
     python_model_IDs = [0]
     octave_model_IDs = [1]
     r_model_IDs = [2]
-    models = [
-        BEASTsdPython(
-            import_base_path=f"beastsd_contestant_{i}", name=f"Contestant {i} (python)"
-        )
-        for i in python_model_IDs
-    ] + [
-        BEASTsdOctave(
-            import_base_path=f"beastsd_contestant_{i}", name=f"Contestant {i} (octave)"
-        )
-        for i in octave_model_IDs
-    ]  # + [
-    #    BEASTsdR(
-    #        ...
-    #    )
-    #    for i in r_model_IDs
-    # ]
+    models = get_models(python_model_IDs, octave_model_IDs, r_model_IDs)
 
     # prepare tests
     suite = TestSuite(
