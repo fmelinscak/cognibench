@@ -1,10 +1,21 @@
-CPC18_BEASTsd_pred = function( Ha, pHa, La, LotShapeA, LotNumA, Hb, pHb, Lb, LotShapeB, LotNumB, Amb, Corr ) {
+CPC18_BEASTsd_pred = function(stimuli) {
   # Prediction of BEAST.sd model for one problem
   #
   #  This function gets as input 12 parameters which define a problem in CPC18
   #  and outputs BEAST.sd model's prediction in that problem for five blocks of
   #  five trials each (the first is without and the others are with feedback
-
+  Ha <- stimuli[[1]]
+  pHa <- stimuli[[2]]
+  La <- stimuli[[3]]
+  LotShapeA <- stimuli[[4]]
+  LotNumA <- stimuli[[5]]
+  Hb <- stimuli[[6]]
+  pHb <- stimuli[[7]]
+  Lb <- stimuli[[8]]
+  LotShapeB <- stimuli[[9]]
+  LotNumB <- stimuli[[10]]
+  Amb <- stimuli[[11]]
+  Corr <- stimuli[[12]]
   Prediction = rep(0,5)
 
   # get both options' detailed distributions

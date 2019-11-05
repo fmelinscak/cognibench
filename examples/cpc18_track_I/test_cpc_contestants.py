@@ -13,30 +13,13 @@ from model_defs import BEASTsdPython, BEASTsdOctave, BEASTsdR
 sciunit_settings["CWD"] = getcwd()
 
 
-def get_models(python_model_IDs, octave_model_IDs, r_model_IDs):
-    folder_fmt = "beastsd_contestant_{}"
-    model_name_fmt = "Contestant {} ({})"
-    python_models = [
-        BEASTsdPython(
-            import_base_path=folder_fmt.format(i),
-            name=model_name_fmt.format(i, "Python"),
-        )
-        for i in python_model_IDs
-    ]
-    octave_models = [
-        BEASTsdOctave(
-            import_base_path=folder_fmt.format(i),
-            name=model_name_fmt.format(i, "Octave"),
-        )
-        for i in octave_model_IDs
-    ]
-    r_models = [
-        BEASTsdR(
-            import_base_path=folder_fmt.format(i), name=model_name_fmt.format(i, "R")
-        )
-        for i in r_model_IDs
-    ]
-    return python_models + octave_models + r_models
+def get_models(model_IDs, folder_name_fmt, model_name_fmt, model_ctor):
+    models = []
+    for model_id in model_IDs:
+        folder_name = folder_name_fmt.format(model_id)
+        model_name = model_name_fmt.format(model_id)
+        models.append(model_ctor(import_base_path=folder_name, name=model_name))
+    return models
 
 
 if __name__ == "__main__":
@@ -65,7 +48,23 @@ if __name__ == "__main__":
     python_model_IDs = [0]
     octave_model_IDs = [1]
     r_model_IDs = [2]
-    models = get_models(python_model_IDs, octave_model_IDs, r_model_IDs)
+    models = (
+        get_models(
+            python_model_IDs,
+            "beastsd_contestant_{}",
+            "Contestant {} (Python)",
+            BEASTsdPython,
+        )
+        + get_models(
+            r_model_IDs, "beastsd_contestant_{}", "Contestant {} (R)", BEASTsdR
+        )
+        + get_models(
+            octave_model_IDs,
+            "beastsd_contestant_{}",
+            "Contestant {} (Octave)",
+            BEASTsdOctave,
+        )
+    )
 
     # prepare tests
     suite = TestSuite(
