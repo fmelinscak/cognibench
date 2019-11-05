@@ -1,7 +1,8 @@
+import numpy as np
 from sciunit import Test
 from sciunit.errors import Error
 from ldmunit.models import LDMModel
-from ldmunit.capabilities import Interactive
+from ldmunit.capabilities import Interactive, BatchTrainable
 
 
 class LDMTest(Test):
@@ -118,5 +119,50 @@ class BatchTest(LDMTest):
 
         predictions = []
         for s in stimuli:
+            predictions.append(model.predict(s))
+        return predictions
+
+
+class BatchTrainAndTest(LDMTest):
+    required_capabilities = (BatchTrainable,)
+
+    def __init__(
+        self,
+        *args,
+        train_percentage=0.75,
+        seed=None,
+        train_indices=None,
+        test_indices=None,
+        **kwargs,
+    ):
+        """
+        If train_indices is given, it is used; else, a random train/test split is used.
+        """
+        assert (
+            train_percentage > 0 and train_percentage < 1
+        ), "train_percentage must be in range (0, 1)"
+        super().__init__(*args, **kwargs)
+        if train_indices is None:
+            assert test_indices is None
+            n_obs = len(self.observation["stimuli"])
+            indices = np.arange(n_obs, dtype=np.int64)
+            np.random.RandomState(seed).shuffle(indices)
+            n_train = round(n_obs * train_percentage)
+            train_indices = indices[:n_train]
+            test_indices = indices[n_train:]
+        else:
+            assert test_indices is not None
+            train_indices = train_indices
+            test_indices = test_indices
+
+        self.train_observation["stimuli"] = self.observation["stimuli"][train_indices]
+        self.train_observation["actions"] = self.observation["actions"][train_indices]
+        self.observation["stimuli"] = self.observation["stimuli"][test_indices]
+        self.observation["actions"] = self.observation["actions"][test_indices]
+
+    def generate_prediction(self, model):
+        model.fit(self.train_observation["stimuli"], self.train_observation["actions"])
+        predictions = []
+        for s in self.observation["stimuli"]:
             predictions.append(model.predict(s))
         return predictions
