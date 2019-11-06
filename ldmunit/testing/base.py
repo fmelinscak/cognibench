@@ -130,12 +130,7 @@ class BatchTest(LDMTest):
         list
             Predictions
         """
-        stimuli = self.observation["stimuli"]
-
-        predictions = []
-        for s in stimuli:
-            predictions.append(model.predict(s))
-        return predictions
+        return model.predict(self.observation["stimuli"])
 
     def compute_score(self, observation, predictions, **kwargs):
         actions = observation["actions"]
@@ -167,26 +162,23 @@ class BatchTrainAndTest(LDMTest):
             indices = np.arange(n_obs, dtype=np.int64)
             np.random.RandomState(seed).shuffle(indices)
             n_train = round(n_obs * train_percentage)
-            train_indices = indices[:n_train]
-            test_indices = indices[n_train:]
+            self.train_indices = indices[:n_train]
+            self.test_indices = indices[n_train:]
         else:
             assert test_indices is not None
-            train_indices = train_indices
-            test_indices = test_indices
-
-        self.train_observation = dict()
-        self.train_observation["stimuli"] = self.observation["stimuli"][train_indices]
-        self.train_observation["actions"] = self.observation["actions"][train_indices]
-        self.observation["stimuli"] = self.observation["stimuli"][test_indices]
-        self.observation["actions"] = self.observation["actions"][test_indices]
+            self.train_indices = train_indices
+            self.test_indices = test_indices
 
     def generate_prediction(self, model):
-        model.fit(self.train_observation["stimuli"], self.train_observation["actions"])
-        predictions = []
-        for s in self.observation["stimuli"]:
-            predictions.append(model.predict(s))
+        x_train = self.observation["stimuli"][self.train_indices]
+        y_train = self.observation["actions"][self.train_indices]
+        model.fit(x_train, y_train)
+
+        x_test = self.observation["stimuli"][self.test_indices]
+        predictions = np.asarray(model.predict(x_test))
+
         return predictions
 
     def compute_score(self, observation, predictions, **kwargs):
-        actions = observation["actions"]
+        actions = observation["actions"][self.test_indices]
         return self.score_type.compute(actions, predictions, **kwargs)

@@ -161,6 +161,8 @@ class MAEScore(LowerBetterScore):
 class PearsonCorrelationScore(HigherBetterScore):
     @classmethod
     def compute(cls, actions, predictions):
+        actions = np.asarray(actions).flatten()
+        predictions = np.asarray(predictions).flatten()
         corr = pearsonr(np.asarray(actions), np.asarray(predictions))[0]
         return cls(corr)
 

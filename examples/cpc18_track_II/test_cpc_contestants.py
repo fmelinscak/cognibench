@@ -57,9 +57,19 @@ def getSplit(dd, seed=1, nSubjTest=30, nGamesPerSubjTest=5):
     return train_idx, test_idx
 
 
+def convert_to_numeric(df):
+    for col in ["Location", "Gender", "LotShapeA", "LotShapeB"]:
+        arr = df[col].values
+        _, inv = np.unique(arr, return_inverse=True)
+        df[col] = inv
+        df[col] = df[col].astype("int")
+    return df
+
+
 if __name__ == "__main__":
     # prepare data
     df = pd.read_csv("individualBlockAvgs.csv")
+    df = convert_to_numeric(df)
     df = df.drop(columns="BEAST_blkPred")
 
     is_b_max = df["diffEV"] >= 0
@@ -82,7 +92,7 @@ if __name__ == "__main__":
     # prepare models
     python_model_IDs = [0]
     # r_model_IDs = [1, 2]
-    r_model_IDs = []
+    r_model_IDs = [1]
     models = get_models(
         python_model_IDs, "contestant_{}", "Contestant {} (Python)", PythonModel
     ) + get_models(r_model_IDs, "contestant_{}", "Contestant {} (R)", RModel)

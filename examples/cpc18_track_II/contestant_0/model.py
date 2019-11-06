@@ -62,8 +62,11 @@ class Model:
         self.overall_mean = np.mean(self.avg_bin_train[:, -1])
 
     def predict(self, stimuli):
-        game_id = int(stimuli[self.game_id_idx])
-        block_id = int(stimuli[self.block_idx])
+        return [self.pred_one(s) for s in stimuli]
+
+    def pred_one(self, stimulus):
+        game_id = int(stimulus[self.game_id_idx])
+        block_id = int(stimulus[self.block_idx])
         cell = self.avg_bin_train[
             (self.avg_bin_train[:, 0] == game_id)
             & (self.avg_bin_train[:, 1] == block_id),
