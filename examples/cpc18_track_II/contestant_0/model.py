@@ -45,16 +45,35 @@ action_columns = ["B"]
 
 
 class Model:
+    def __init__(self):
+        self.game_id_idx = stimuli_columns.index("GameID")
+        self.block_idx = stimuli_columns.index("block")
+
     def fit(self, stimuli, actions):
         cols = stimuli_columns + action_columns
         data = np.c_[stimuli, actions]
         df = pd.DataFrame(data, columns=cols)
-        self.avg_bin_train = df.groupby(["GameID", "block"]).mean()["B"].reset_index()
+        df = df[["SubjID", "GameID", "block", "B"]].astype(
+            {"SubjID": "int32", "GameID": "int32", "block": "int32", "B": "float32"}
+        )
+        self.avg_bin_train = (
+            df.groupby(["GameID", "block"]).mean()["B"].reset_index().values
+        )
+        self.overall_mean = np.mean(self.avg_bin_train[:, -1])
 
     def predict(self, stimuli):
-        df = pd.DataFrame(stimuli, columns=stimuli_columns)
-        df_preds = df.merge(self.avg_bin_train, on=["GameID", "block"])
-        return df_preds["B"].values
+        game_id = int(stimuli[self.game_id_idx])
+        block_id = int(stimuli[self.block_idx])
+        cell = self.avg_bin_train[
+            (self.avg_bin_train[:, 0] == game_id)
+            & (self.avg_bin_train[:, 1] == block_id),
+            -1,
+        ]
+        if cell.size == 0:
+            return self.overall_mean
+        else:
+            assert cell.size == 1
+            return cell[0]
 
     # avg_bin_train = train_data.groupby(['GameID', 'block']).mean()['B'].reset_index()
     # test_with_preds = test_data.merge(avg_bin_train, on=['GameID', 'block'])
