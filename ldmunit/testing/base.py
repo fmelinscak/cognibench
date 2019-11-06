@@ -6,7 +6,18 @@ from ldmunit.capabilities import Interactive, BatchTrainable
 
 
 class LDMTest(Test):
-    def __init__(self, *args, **kwargs):
+    score_type = None
+
+    def __init__(self, *args, score_type=None, **kwargs):
+        if score_type is not None:
+            self.score_type = score_type
+            try:
+                score_capabilities = self.score_type.required_capabilities
+                self.required_capabilities = (
+                    LDMTest.required_capabilities + score_capabilities
+                )
+            except AttributeError:
+                pass
         super().__init__(*args, **kwargs)
 
     def check_capabilities(self, model, **kwargs):
@@ -28,7 +39,6 @@ class InteractiveTest(LDMTest):
     :class:`NLLTest`, :class:`AICTest`, :class:`BICTest` for examples of concrete interactive test classes
     """
 
-    score_type = None
     required_capabilities = (Interactive,)
 
     def __init__(self, *args, **kwargs):
@@ -85,8 +95,6 @@ class InteractiveTest(LDMTest):
 
 
 class BatchTest(LDMTest):
-    score_type = None
-
     def __init__(self, *args, **kwargs):
         """
         Perform batch tests by predicting the outcome for each input sample without
@@ -135,7 +143,6 @@ class BatchTest(LDMTest):
 
 
 class BatchTrainAndTest(LDMTest):
-    score_type = None
     required_capabilities = (BatchTrainable,)
 
     def __init__(
@@ -167,6 +174,7 @@ class BatchTrainAndTest(LDMTest):
             train_indices = train_indices
             test_indices = test_indices
 
+        self.train_observation = dict()
         self.train_observation["stimuli"] = self.observation["stimuli"][train_indices]
         self.train_observation["actions"] = self.observation["actions"][train_indices]
         self.observation["stimuli"] = self.observation["stimuli"][test_indices]

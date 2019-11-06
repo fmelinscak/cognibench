@@ -1,7 +1,9 @@
 from os import getcwd
 import pandas as pd
 import numpy as np
-from ldmunit.testing.tests import BatchMSETest, BatchMAETest, BatchCrossEntropyTest
+from ldmunit.testing.tests import BatchTest
+from ldmunit.utils import partialclass
+import ldmunit.scores as scores
 from sciunit import TestSuite
 from sciunit import settings as sciunit_settings
 
@@ -64,12 +66,19 @@ if __name__ == "__main__":
     )
 
     # prepare tests
+    MSEScore = partialclass(scores.MSEScore, min_score=0, max_score=1)
+    MAEScore = partialclass(scores.MAEScore, min_score=0, max_score=1)
+    CrossEntropyScore = partialclass(
+        scores.CrossEntropyScore, min_score=0, max_score=1000
+    )
     suite = TestSuite(
         [
-            BatchMSETest(name="MSE Test", observation=obs_dict),
-            BatchMAETest(name="MAE Test", observation=obs_dict),
-            BatchCrossEntropyTest(
-                name="Cross Entropy Test", observation=obs_dict, eps=1e-9
+            BatchTest(name="MSE Test", observation=obs_dict, score_type=MSEScore),
+            BatchTest(name="MAE Test", observation=obs_dict, score_type=MAEScore),
+            BatchTest(
+                name="Cross Entropy Test",
+                observation=obs_dict,
+                score_type=CrossEntropyScore,
             ),
         ],
         name="Batch test suite",

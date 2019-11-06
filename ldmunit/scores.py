@@ -1,30 +1,11 @@
 import numpy as np
+from scipy.stats.mstats import pearsonr
 from sciunit import scores
 from sciunit import errors
+from ldmunit.capabilities import PredictsLogpdf
 
 
-class SmallerBetterScore(scores.FloatScore):
-    """
-    SmallerBetterScore is a score type where smaller values are better than
-    larger values, similar to an error function. This property is used by
-    sciunit library when sorting or color coding the scores.
-
-    In addition to the above primary functionality, this class serves a
-    secondary purpose: If python int values that are larger than 64 bit
-    signed integers are used as scores, sciunit coloring code crashes since
-    due to conversion errors. This class allows defining minimum and maximum
-    ranges that are used for clipping the score only during the coloring part
-    so that too large values are never passed to sciunit coloring code.
-
-    Minimum and maximum scores also define the coloring scheme: All the scores
-    less than or equal to the minimum value will be displayed using the maximum
-    green color and all the scores greater than or equal to the maximum value
-    will be displayed using the maximum red color. All the values in between
-    get assigned a color using linear interpolation between red and green.
-    """
-
-    _description = "Score values where smaller is better"
-
+class BoundedScore(scores.FloatScore):
     def __init__(self, score, *args, min_score, max_score, **kwargs):
         """
         Initialize the score. This class requires two extra mandatory
@@ -55,17 +36,8 @@ class SmallerBetterScore(scores.FloatScore):
 
     @property
     def norm_score(self):
-        """
-        Used for sorting. Smaller is better.
-
-        Returns
-        -------
-        float
-            Score value normalized to 0-1 range computed by clipping self.score to the
-            min/max range and then transforming to a value in [0, 1].
-        """
         clipped = min(self.max_score, max(self.min_score, self.score))
-        return (self.max_score - clipped) / (self.max_score - self.min_score)
+        return (clipped - self.min_score) / (self.max_score - self.min_score)
 
     def color(self, value=None):
         """
@@ -84,6 +56,33 @@ class SmallerBetterScore(scores.FloatScore):
         if value is not None:
             self.score = value
         return super().color(self.norm_score)
+
+
+class HigherBetterScore(BoundedScore):
+    _description = "Score values where higher is better"
+
+
+class LowerBetterScore(BoundedScore):
+    """
+    LowerBetterScore is a score type where lower values are better than
+    larger values, similar to an error function. This property is used by
+    sciunit library when sorting or color coding the scores.
+    """
+
+    _description = "Score values where lower is better"
+
+    @property
+    def norm_score(self):
+        """
+        Used for sorting. Lower is better.
+
+        Returns
+        -------
+        float
+            Score value normalized to 0-1 range computed by clipping self.score to the
+            min/max range and then transforming to a value in [0, 1].
+        """
+        return 1 - super().norm_score
 
 
 def _neg_loglikelihood(actions, predictions):
@@ -116,14 +115,18 @@ def _neg_loglikelihood(actions, predictions):
     return neg_loglike
 
 
-class NLLScore(SmallerBetterScore):
+class NLLScore(LowerBetterScore):
+    required_capabilities = (PredictsLogpdf,)
+
     @classmethod
     def compute(cls, actions, predictions):
         nll = _neg_loglikelihood(actions, predictions)
         return cls(nll)
 
 
-class AICScore(SmallerBetterScore):
+class AICScore(LowerBetterScore):
+    required_capabilities = (PredictsLogpdf,)
+
     @classmethod
     def compute(cls, actions, predictions, *args, n_model_params):
         nll = _neg_loglikelihood(actions, predictions)
@@ -131,7 +134,9 @@ class AICScore(SmallerBetterScore):
         return cls(nll + regularizer)
 
 
-class BICScore(SmallerBetterScore):
+class BICScore(LowerBetterScore):
+    required_capabilities = (PredictsLogpdf,)
+
     @classmethod
     def compute(cls, actions, predictions, *args, n_model_params, n_samples):
         nll = _neg_loglikelihood(actions, predictions)
@@ -139,23 +144,31 @@ class BICScore(SmallerBetterScore):
         return cls(nll + regularizer)
 
 
-class MSEScore(SmallerBetterScore):
+class MSEScore(LowerBetterScore):
     @classmethod
     def compute(cls, actions, predictions):
         mse = np.mean((actions - predictions) ** 2)
         return cls(mse)
 
 
-class MAEScore(SmallerBetterScore):
+class MAEScore(LowerBetterScore):
     @classmethod
     def compute(cls, actions, predictions):
         mae = np.mean(np.abs(actions - predictions))
         return cls(mae)
 
 
-class CrossEntropyScore(SmallerBetterScore):
+class PearsonCorrelationScore(HigherBetterScore):
     @classmethod
-    def compute(cls, actions, predictions, *args, eps):
+    def compute(cls, actions, predictions):
+        corr = pearsonr(np.asarray(actions), np.asarray(predictions))[0]
+        return cls(corr)
+
+
+class CrossEntropyScore(LowerBetterScore):
+    @classmethod
+    def compute(cls, actions, predictions, *args, eps=1e-9):
+        actions = np.asarray(actions)
         predictions_clipped = np.clip(predictions, eps, 1 - eps)
         N = predictions_clipped.shape[0]
         mean_crossent = -np.sum(actions * np.log(predictions_clipped)) / N
