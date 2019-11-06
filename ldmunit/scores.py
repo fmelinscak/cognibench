@@ -1,3 +1,4 @@
+import numpy as np
 from sciunit import scores
 from sciunit import errors
 
@@ -85,17 +86,77 @@ class SmallerBetterScore(scores.FloatScore):
         return super().color(self.norm_score)
 
 
+def _neg_loglikelihood(actions, predictions):
+    """
+    Compute negative log-likelihood of a multimodel using a collection of
+    subject-specific true action and model prediction lists. Each prediction
+    list must contain a series of logpdf or logpmf functions.
+
+    Parameters
+    ----------
+    actions : list of list
+        List of subject-specific actions. Each element must be a list
+        containing a series of actions.
+    predictions : list of list
+        List of subject-specific predictions. Each element must be a list
+        containing a series of predictions as logpdf or logpmf.
+
+    Returns
+    -------
+    float
+        Negative log-likelihood of the whole multi-subject model on the
+        given action and prediction data. It is calculated as the sum of
+        individual log probabilities for every action-prediction pairs.
+    """
+    neg_loglike = float(0)
+    n_subjects = len(actions)
+    for subject_idx in range(n_subjects):
+        for act, logprob in zip(actions[subject_idx], predictions[subject_idx]):
+            neg_loglike -= logprob(act)
+    return neg_loglike
+
+
 class NLLScore(SmallerBetterScore):
-    pass
-
-
-class BICScore(SmallerBetterScore):
-    pass
+    @classmethod
+    def compute(cls, actions, predictions):
+        nll = _neg_loglikelihood(actions, predictions)
+        return cls(nll)
 
 
 class AICScore(SmallerBetterScore):
-    pass
+    @classmethod
+    def compute(cls, actions, predictions, *args, n_model_params):
+        nll = _neg_loglikelihood(actions, predictions)
+        regularizer = 2 * np.sum(n_model_params)
+        return cls(nll + regularizer)
+
+
+class BICScore(SmallerBetterScore):
+    @classmethod
+    def compute(cls, actions, predictions, *args, n_model_params, n_samples):
+        nll = _neg_loglikelihood(actions, predictions)
+        regularizer = np.dot(n_model_params, n_samples)
+        return cls(nll + regularizer)
 
 
 class MSEScore(SmallerBetterScore):
-    pass
+    @classmethod
+    def compute(cls, actions, predictions):
+        mse = np.mean((actions - predictions) ** 2)
+        return cls(mse)
+
+
+class MAEScore(SmallerBetterScore):
+    @classmethod
+    def compute(cls, actions, predictions):
+        mae = np.mean(np.abs(actions - predictions))
+        return cls(mae)
+
+
+class CrossEntropyScore(SmallerBetterScore):
+    @classmethod
+    def compute(cls, actions, predictions, *args, eps):
+        predictions_clipped = np.clip(predictions, eps, 1 - eps)
+        N = predictions_clipped.shape[0]
+        mean_crossent = -np.sum(actions * np.log(predictions_clipped)) / N
+        return cls(mean_crossent)

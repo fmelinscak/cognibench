@@ -1,10 +1,7 @@
 from os import getcwd
 import pandas as pd
 import numpy as np
-import time
-from ldmunit.testing.tests import MSETest, MAETest, CrossEntropyTest
-from ldmunit.models import CACO
-from ldmunit.capabilities import Interactive
+from ldmunit.testing.tests import BatchMSETest, BatchMAETest, BatchCrossEntropyTest
 from sciunit import TestSuite
 from sciunit import settings as sciunit_settings
 
@@ -69,9 +66,11 @@ if __name__ == "__main__":
     # prepare tests
     suite = TestSuite(
         [
-            MSETest(name="MSE Test", observation=obs_dict),
-            MAETest(name="MAE Test", observation=obs_dict),
-            CrossEntropyTest(name="Cross Entropy Test", observation=obs_dict, eps=1e-9),
+            BatchMSETest(name="MSE Test", observation=obs_dict),
+            BatchMAETest(name="MAE Test", observation=obs_dict),
+            BatchCrossEntropyTest(
+                name="Cross Entropy Test", observation=obs_dict, eps=1e-9
+            ),
         ],
         name="Batch test suite",
     )

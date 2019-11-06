@@ -28,6 +28,7 @@ class InteractiveTest(LDMTest):
     :class:`NLLTest`, :class:`AICTest`, :class:`BICTest` for examples of concrete interactive test classes
     """
 
+    score_type = None
     required_capabilities = (Interactive,)
 
     def __init__(self, *args, **kwargs):
@@ -78,8 +79,14 @@ class InteractiveTest(LDMTest):
             predictions.append(subject_predictions)
         return predictions
 
+    def compute_score(self, observation, predictions, **kwargs):
+        actions = observation["actions"]
+        return self.score_type.compute(actions, predictions, **kwargs)
+
 
 class BatchTest(LDMTest):
+    score_type = None
+
     def __init__(self, *args, **kwargs):
         """
         Perform batch tests by predicting the outcome for each input sample without
@@ -122,8 +129,13 @@ class BatchTest(LDMTest):
             predictions.append(model.predict(s))
         return predictions
 
+    def compute_score(self, observation, predictions, **kwargs):
+        actions = observation["actions"]
+        return self.score_type.compute(actions, predictions, **kwargs)
+
 
 class BatchTrainAndTest(LDMTest):
+    score_type = None
     required_capabilities = (BatchTrainable,)
 
     def __init__(
@@ -166,3 +178,7 @@ class BatchTrainAndTest(LDMTest):
         for s in self.observation["stimuli"]:
             predictions.append(model.predict(s))
         return predictions
+
+    def compute_score(self, observation, predictions, **kwargs):
+        actions = observation["actions"]
+        return self.score_type.compute(actions, predictions, **kwargs)
