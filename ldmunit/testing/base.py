@@ -1,11 +1,23 @@
+import numpy as np
 from sciunit import Test
 from sciunit.errors import Error
 from ldmunit.models import LDMModel
-from ldmunit.capabilities import Interactive
+from ldmunit.capabilities import Interactive, BatchTrainable
 
 
 class LDMTest(Test):
-    def __init__(self, *args, **kwargs):
+    score_type = None
+
+    def __init__(self, *args, score_type=None, **kwargs):
+        if score_type is not None:
+            self.score_type = score_type
+            try:
+                score_capabilities = self.score_type.required_capabilities
+                self.required_capabilities = (
+                    LDMTest.required_capabilities + score_capabilities
+                )
+            except AttributeError:
+                pass
         super().__init__(*args, **kwargs)
 
     def check_capabilities(self, model, **kwargs):
@@ -77,6 +89,10 @@ class InteractiveTest(LDMTest):
             predictions.append(subject_predictions)
         return predictions
 
+    def compute_score(self, observation, predictions, **kwargs):
+        actions = observation["actions"]
+        return self.score_type.compute(actions, predictions, **kwargs)
+
 
 class BatchTest(LDMTest):
     def __init__(self, *args, **kwargs):
@@ -114,9 +130,55 @@ class BatchTest(LDMTest):
         list
             Predictions
         """
-        stimuli = self.observation["stimuli"]
+        return model.predict(self.observation["stimuli"])
 
-        predictions = []
-        for s in stimuli:
-            predictions.append(model.predict(s))
+    def compute_score(self, observation, predictions, **kwargs):
+        actions = observation["actions"]
+        return self.score_type.compute(actions, predictions, **kwargs)
+
+
+class BatchTrainAndTest(LDMTest):
+    required_capabilities = (BatchTrainable,)
+
+    def __init__(
+        self,
+        *args,
+        train_percentage=0.75,
+        seed=None,
+        train_indices=None,
+        test_indices=None,
+        **kwargs,
+    ):
+        """
+        If train_indices is given, it is used; else, a random train/test split is used.
+        """
+        assert (
+            train_percentage > 0 and train_percentage < 1
+        ), "train_percentage must be in range (0, 1)"
+        super().__init__(*args, **kwargs)
+        if train_indices is None:
+            assert test_indices is None
+            n_obs = len(self.observation["stimuli"])
+            indices = np.arange(n_obs, dtype=np.int64)
+            np.random.RandomState(seed).shuffle(indices)
+            n_train = round(n_obs * train_percentage)
+            self.train_indices = indices[:n_train]
+            self.test_indices = indices[n_train:]
+        else:
+            assert test_indices is not None
+            self.train_indices = train_indices
+            self.test_indices = test_indices
+
+    def generate_prediction(self, model):
+        x_train = self.observation["stimuli"][self.train_indices]
+        y_train = self.observation["actions"][self.train_indices]
+        model.fit(x_train, y_train)
+
+        x_test = self.observation["stimuli"][self.test_indices]
+        predictions = np.asarray(model.predict(x_test))
+
         return predictions
+
+    def compute_score(self, observation, predictions, **kwargs):
+        actions = observation["actions"][self.test_indices]
+        return self.score_type.compute(actions, predictions, **kwargs)

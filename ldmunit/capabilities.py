@@ -28,6 +28,19 @@ class PredictsLogpdf(sciunit.Capability):
     pass
 
 
+class BatchTrainable(sciunit.Capability):
+    """
+    Capability for models that can train on a set (batch) of input samples in one go
+    rather than iteratively updating some hidden state using the samples.
+    """
+
+    def fit(self, *args, **kwargs):
+        """
+        The model should train itself given a list of input samples and the corresponding outputs.
+        """
+        raise NotImplementedError("Must implement fit.")
+
+
 class ActionSpace(sciunit.Capability):
     """
     Capability to understand action in a given space (:class:`gym.spaces.Space`).

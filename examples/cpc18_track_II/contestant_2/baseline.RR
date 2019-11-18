@@ -1,0 +1,33 @@
+# setwd("---")
+# rm(list = ls())
+
+# keep only relevant data
+data = individualBlockAvgs[,c("SubjID","GameID","block","B")]
+data$isBMax = isBMax
+
+######################################
+######### Factorization machine ######
+######################################
+library(FactoRizationMachines)
+# Treating different blocks as different games
+trainD$new.GameID = paste(trainD$GameID,trainD$block, sep = ".")
+trainD$new.GameID = factor(trainD$new.GameID)
+testD$new.GameID = paste(testD$GameID,testD$block, sep = ".")
+testD$new.GameID = factor(testD$new.GameID, levels = levels(trainD$new.GameID))
+# for convinience
+trainD$GameID = trainD$new.GameID
+testD$GameID = testD$new.GameID
+drops <- c("block","new.GameID")
+trainD = trainD[ , !(names(trainD) %in% drops)]
+testD = testD[ , !(names(testD) %in% drops)]
+# prepare FM input
+data.train = model.matrix(B~., data= trainD, contrasts.arg =
+                            lapply(trainD[,sapply(trainD, is.factor) ], contrasts, contrasts=FALSE))[,-1]
+target.train = trainD$B
+data.test = model.matrix(B~., data= testD, contrasts.arg =
+                           lapply(testD[,sapply(testD, is.factor) ], contrasts, contrasts=FALSE))[,-1]
+target.test = testD$B
+model=FM.train(data.train,target.train,c(1,100),iter= 100, regular=c(0.001,0.05),intercept= TRUE)
+predFM = predict(model,data.test)
+testWithPreds = data.frame(testD,predFM)
+my_evaluate(pBpMaxTransform(testWithPreds$B, testWithPreds$isBMax),pBpMaxTransform(testWithPreds$predFM, testWithPreds$isBMax))
