@@ -10,7 +10,9 @@ def CPC18_getDist(H, pH, L, lot_shape, lot_num):
     #   output is a matrix (numpy matrix) with first column a list of outcomes (sorted
     #   ascending) and the second column their respective probabilities.
 
-    if lot_shape == "-":
+    lot_num = int(lot_num)
+    lot_shape = int(lot_shape)
+    if lot_shape == 0:
         if pH == 1:
             dist = np.array([H, pH])
             dist.shape = (1, 2)
@@ -20,14 +22,14 @@ def CPC18_getDist(H, pH, L, lot_shape, lot_num):
     else:  # H is multi outcome
         # compute H distribution
         high_dist = np.zeros(shape=(lot_num, 2))
-        if lot_shape == "Symm":
+        if lot_shape == 3:
             k = lot_num - 1
             for i in range(0, lot_num):
                 high_dist[i, 0] = H - k / 2 + i
                 high_dist[i, 1] = pH * stats.binom.pmf(i, k, 0.5)
 
-        elif (lot_shape == "R-skew") or (lot_shape == "L-skew"):
-            if lot_shape == "R-skew":
+        elif (lot_shape == 2) or (lot_shape == 1):
+            if lot_shape == 2:
                 c = -1 - lot_num
                 dist_sign = 1
             else:

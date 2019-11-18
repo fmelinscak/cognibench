@@ -6,7 +6,7 @@ CPC18_getDist = function(H,pH,L,LotShape,LotNum){
   #   output is a matrix with first column a list of outcomes (sorted
   #   ascending) and the second column their respective probabilities.
 
-  if (LotShape=='-'){
+  if (LotShape == 0){
     if (pH == 1){
       Dist = cbind(H, pH)}
     else{
@@ -15,7 +15,7 @@ CPC18_getDist = function(H,pH,L,LotShape,LotNum){
   }
   else { # H is multioutcome
     #compute H distribution
-    if (LotShape=='Symm') {
+    if (LotShape == 3) {
       highDist = cbind(rep(NA,LotNum),rep(NA,LotNum))
       k = LotNum - 1
       for (i in 0:k) {
@@ -23,9 +23,9 @@ CPC18_getDist = function(H,pH,L,LotShape,LotNum){
         highDist[i+1,2] = pH*dbinom(i,k,0.5)
       }
     }
-    else if ((LotShape=='R-skew') || (LotShape=='L-skew')){
+    else if ((LotShape == 2) || (LotShape == 1)){
       highDist = cbind(rep(NA,LotNum),rep(NA,LotNum))
-      if (LotShape=='R-skew') {
+      if (LotShape == 2) {
         C = -1-LotNum;
         distsign = 1}
       else{

@@ -16,7 +16,10 @@ def CPC18_BEASTsd_pred(stimuli):
     #  Amb (1 or 0) indicates if there exists ambiguity
     #  Corr is thw correlation between A and B (-1 0 or 1).
     # Output: the prediction of the BEAST.sd model: this is a numpy of size (5,1)
+    return [pred_one(s) for s in stimuli]
 
+
+def pred_one(stimulus):
     (
         Ha,
         pHa,
@@ -30,7 +33,7 @@ def CPC18_BEASTsd_pred(stimuli):
         LotNumB,
         Amb,
         Corr,
-    ) = stimuli
+    ) = stimulus
     Prediction = np.repeat([0], 5)
     Prediction.shape = (1, 5)
 

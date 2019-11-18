@@ -6,7 +6,7 @@ function [ Dist ] = CPC18_getDist( H, pH, L, LotShape, LotNum )
 %   output is a matrix with first column a list of outcomes (sorted
 %   ascending) and the second column their respective probabilities.
 
- if strcmp(LotShape, '-')
+ if LotShape == 0
      if  pH == 1
          Dist = [H pH];
      else
@@ -14,16 +14,16 @@ function [ Dist ] = CPC18_getDist( H, pH, L, LotShape, LotNum )
      end
  else % H is multioutcome
      %compute H distribution
-     if strcmp(LotShape,'Symm')
+     if LotShape == 3
          highDist = NaN(LotNum, 2);
          k = LotNum - 1;
          for i = 0:k
              highDist(i+1,1) = H - k/2 + i;
              highDist(i+1,2) = pH * binopdf(i,k,0.5);
          end
-     elseif strcmp(LotShape,'R-skew') || strcmp(LotShape,'L-skew')
+     elseif LotShape == 2 || LotShape == 1
          highDist = NaN(abs(LotNum),2);
-         if strcmp(LotShape,'R-skew') > 0
+         if LotShape == 2 > 0
              C = -1-LotNum;
              distsign = 1;
          else
