@@ -8,7 +8,14 @@ from ldmunit.capabilities import Interactive, BatchTrainable
 class LDMTest(Test):
     score_type = None
 
-    def __init__(self, *args, score_type=None, **kwargs):
+    def __init__(
+        self, *args, score_type=None, persist_results=False, persist_path=None, **kwargs
+    ):
+        if persist_results:
+            assert persist_path is not None
+        self.persist_results = persist_results
+        self.persist_path = persist_path
+
         if score_type is not None:
             self.score_type = score_type
             try:
@@ -24,6 +31,13 @@ class LDMTest(Test):
         if not isinstance(model, LDMModel):
             raise Error(f"Model {model} is not an instance of LDMModel")
         super().check_capabilities(model, **kwargs)
+
+    def bind_score(self, score, model, observation, prediction):
+        if self.persist_results:
+            self._persist(score, model, observation, prediction)
+
+    def _persist(self, score, model, observation, prediction):
+        pass
 
 
 class InteractiveTest(LDMTest):
