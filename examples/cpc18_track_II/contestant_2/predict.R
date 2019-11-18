@@ -1,12 +1,13 @@
-predict <- function(stimuli) {
-    df <- data.frame("SubjID" = stimuli[,1], "GameID" = stimuli[,6], "block" = stimuli[,19], "B" = actions)
+predict_R <- function(stimuli) {
+    df <- data.frame("SubjID" = stimuli[,1], "GameID" = stimuli[,6], "block" = stimuli[,19], "B" = stimuli[,19]*0)
     df$new.GameID = paste(df$GameID,df$block, sep = ".")
-    df$new.GameID = factor(df$new.GameID)
+    df$new.GameID = factor(df$new.GameID, levels=train_levels)
     df$GameID = df$new.GameID
     df = df[ , !(names(df) %in% drops)]
 
-    features = model.matrix(B~., data = df, contrasts.arg = lapply(df[,sapply(df, is.factor) ], contrasts, contrasts=FALSE))[,-1]
-    pred = predict(model, features)
+    x = lapply(df[,sapply(df, is.factor),drop=FALSE], contrasts, contrasts=FALSE)
+    features = model.matrix(B~., data = df, contrasts.arg = x)[,-1]
+    pred = predict(clf, features)
 
     return(pred)
 }

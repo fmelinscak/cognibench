@@ -76,15 +76,13 @@ if __name__ == "__main__":
     is_b_max.name = "isBMax"
     df["B"] = pBpMaxTransform(df["B"], is_b_max)
 
-    first_part = df.loc[df.SubjID < 71100]
-    second_part = df.loc[df.SubjID >= 71100]
-    train_indices, test_indices = getSplit(second_part, seed=1, nSubjTest=10)
-    print(len(train_indices))
-    print(len(test_indices))
+    first_part = df.loc[df.SubjID < 60000]
+    second_part = df.loc[df.SubjID >= 60000]
+    train_indices, test_indices = getSplit(second_part, seed=1)
     # train_indices += first_part.shape[0]
     # test_indices += first_part.shape[0]
     # train_indices = np.concatenate(
-    #    (np.arange(first_part.shape[0], dtype=np.int64), train_indices)
+    #   (np.arange(first_part.shape[0], dtype=np.int64), train_indices)
     # )
 
     stimuli = df.values[:, :-1]
@@ -92,10 +90,8 @@ if __name__ == "__main__":
     obs_dict = {"stimuli": stimuli, "actions": actions}
 
     # prepare models
-    # python_model_IDs = [0]
-    python_model_IDs = []
-    # r_model_IDs = [1, 2]
-    r_model_IDs = [2]
+    python_model_IDs = [0]
+    r_model_IDs = [1, 2]
     models = get_models(
         python_model_IDs, "contestant_{}", "Contestant {} (Python)", PythonModel
     ) + get_models(r_model_IDs, "contestant_{}", "Contestant {} (R)", RModel)
@@ -112,20 +108,32 @@ if __name__ == "__main__":
     suite = TestSuite(
         [
             BatchTrainAndTest(
-                name="MSE Test", observation=obs_dict, score_type=MSEScore
+                name="MSE Test",
+                observation=obs_dict,
+                score_type=MSEScore,
+                train_indices=train_indices,
+                test_indices=test_indices,
             ),
             BatchTrainAndTest(
-                name="MAE Test", observation=obs_dict, score_type=MAEScore
+                name="MAE Test",
+                observation=obs_dict,
+                score_type=MAEScore,
+                train_indices=train_indices,
+                test_indices=test_indices,
             ),
             BatchTrainAndTest(
                 name="Cross Entropy Test",
                 observation=obs_dict,
                 score_type=CrossEntropyScore,
+                train_indices=train_indices,
+                test_indices=test_indices,
             ),
             BatchTrainAndTest(
                 name="Pearson Correlation Test",
                 observation=obs_dict,
                 score_type=PearsonCorrScore,
+                train_indices=train_indices,
+                test_indices=test_indices,
             ),
         ],
         name="Batch train and test suite",

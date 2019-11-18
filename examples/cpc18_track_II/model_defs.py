@@ -32,6 +32,6 @@ class RModel(RWrapperMixin, CACO, BatchTrainable):
             import_base_path=import_base_path,
             reset_fn="init",
             fit_fn="fit",
-            predict_fn="predict",
+            predict_fn="predict_R",
         )
         CACO.__init__(self, *args, **kwargs)

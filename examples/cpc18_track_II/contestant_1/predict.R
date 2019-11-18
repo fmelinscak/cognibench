@@ -1,4 +1,4 @@
-predict <- function(stimuli) {
+predict_R <- function(stimuli) {
     return(apply(stimuli, 1, predict_one))
 }
 
