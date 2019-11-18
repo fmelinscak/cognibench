@@ -21,9 +21,19 @@ def get_models(model_IDs, folder_name_fmt, model_name_fmt, model_ctor):
     return models
 
 
+def convert_to_numeric(df):
+    for col in ["LotShapeA", "LotShapeB"]:
+        arr = df[col].values
+        _, inv = np.unique(arr, return_inverse=True)
+        df[col] = inv
+        df[col] = df[col].astype("int")
+    return df
+
+
 if __name__ == "__main__":
     # prepare data
     Data = pd.read_csv("CPC18_EstSet.csv")
+    Data = convert_to_numeric(Data)
     stimuli = Data[
         [
             "Ha",
