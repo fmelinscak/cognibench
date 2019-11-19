@@ -81,14 +81,29 @@ if __name__ == "__main__":
     CrossEntropyScore = partialclass(
         scores.CrossEntropyScore, min_score=0, max_score=1000
     )
+    persist_path_fmt = "output/{}"
     suite = TestSuite(
         [
-            BatchTest(name="MSE Test", observation=obs_dict, score_type=MSEScore),
-            BatchTest(name="MAE Test", observation=obs_dict, score_type=MAEScore),
+            BatchTest(
+                name="MSE Test",
+                observation=obs_dict,
+                score_type=MSEScore,
+                persist_path=persist_path_fmt.format("mse_test"),
+                logging=2,
+            ),
+            BatchTest(
+                name="MAE Test",
+                observation=obs_dict,
+                score_type=MAEScore,
+                persist_path=persist_path_fmt.format("mae_test"),
+                logging=2,
+            ),
             BatchTest(
                 name="Cross Entropy Test",
                 observation=obs_dict,
                 score_type=CrossEntropyScore,
+                persist_path=persist_path_fmt.format("cross_entropy_test"),
+                logging=2,
             ),
         ],
         name="Batch test suite",

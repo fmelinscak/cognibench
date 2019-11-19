@@ -1,3 +1,6 @@
+import os
+import collections
+import pickle
 import numpy as np
 from sciunit import Test
 from sciunit.errors import Error
@@ -8,7 +11,10 @@ from ldmunit.capabilities import Interactive, BatchTrainable
 class LDMTest(Test):
     score_type = None
 
-    def __init__(self, *args, score_type=None, **kwargs):
+    def __init__(self, *args, score_type=None, persist_path=None, logging=1, **kwargs):
+        self.persist_path = persist_path
+        self.logging = logging
+
         if score_type is not None:
             self.score_type = score_type
             try:
@@ -24,6 +30,45 @@ class LDMTest(Test):
         if not isinstance(model, LDMModel):
             raise Error(f"Model {model} is not an instance of LDMModel")
         super().check_capabilities(model, **kwargs)
+
+    def bind_score(self, score, model, observation, prediction):
+        if self.logging > 0:
+            print()
+        if self.persist_path is None:
+            return
+
+        folderpath = os.path.join(self.persist_path, model.name)
+        os.makedirs(folderpath, exist_ok=True)
+        score_filepath = os.path.join(folderpath, "score")
+        pred_filepath = os.path.join(folderpath, "predictions")
+        model_filepath = os.path.join(folderpath, "model")
+        self.persist_score(score_filepath, score)
+        self.persist_predictions(pred_filepath, prediction)
+        self.persist_model(model_filepath, model)
+        if self.logging > 0:
+            print("Data saving is complete")
+
+    def persist_score(self, path, score):
+        np.save(path, np.asarray(score.score))
+        if self.logging > 1:
+            print(f"Score is saved in {path}")
+
+    def persist_predictions(self, path, predictions):
+        np.save(path, np.asarray(predictions))
+        if self.logging > 1:
+            print(f"Predictions are saved in {path}")
+
+    def persist_model(self, path, model):
+        try:
+            model.save(path)
+            if self.logging > 1:
+                print(f"Model is saved in {path}")
+        except AttributeError:
+            modelname = model.name
+            if self.logging > 1:
+                print(
+                    f"Model {modelname} does not implement save method, saving unsuccessful"
+                )
 
 
 class InteractiveTest(LDMTest):
@@ -182,3 +227,10 @@ class BatchTrainAndTest(LDMTest):
     def compute_score(self, observation, predictions, **kwargs):
         actions = observation["actions"][self.test_indices]
         return self.score_type.compute(actions, predictions, **kwargs)
+
+    def persist_predictions(self, path, predictions):
+        indices_path = f"{path}_indices"
+        np.save(indices_path, self.test_indices)
+        if self.logging > 1:
+            print(f"Indices are saved in {indices_path}")
+        super().persist_predictions(path, predictions)
