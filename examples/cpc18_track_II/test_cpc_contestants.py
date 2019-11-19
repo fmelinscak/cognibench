@@ -105,6 +105,7 @@ if __name__ == "__main__":
     PearsonCorrScore = partialclass(
         scores.PearsonCorrelationScore, min_score=-1, max_score=1
     )
+    persist_path_fmt = "output/{}"
     suite = TestSuite(
         [
             BatchTrainAndTest(
@@ -113,6 +114,8 @@ if __name__ == "__main__":
                 score_type=MSEScore,
                 train_indices=train_indices,
                 test_indices=test_indices,
+                persist_path=persist_path_fmt.format("mse_test"),
+                logging=2,
             ),
             BatchTrainAndTest(
                 name="MAE Test",
@@ -120,6 +123,8 @@ if __name__ == "__main__":
                 score_type=MAEScore,
                 train_indices=train_indices,
                 test_indices=test_indices,
+                persist_path=persist_path_fmt.format("mae_test"),
+                logging=2,
             ),
             BatchTrainAndTest(
                 name="Cross Entropy Test",
@@ -127,6 +132,8 @@ if __name__ == "__main__":
                 score_type=CrossEntropyScore,
                 train_indices=train_indices,
                 test_indices=test_indices,
+                persist_path=persist_path_fmt.format("cross_entropy_test"),
+                logging=2,
             ),
             BatchTrainAndTest(
                 name="Pearson Correlation Test",
@@ -134,6 +141,8 @@ if __name__ == "__main__":
                 score_type=PearsonCorrScore,
                 train_indices=train_indices,
                 test_indices=test_indices,
+                persist_path=persist_path_fmt.format("corr_test"),
+                logging=2,
             ),
         ],
         name="Batch train and test suite",
