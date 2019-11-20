@@ -78,6 +78,8 @@ class LSSPDModel(CAMO, Interactive, PredictsLogpdf):
             assert (
                 len(alpha) == self.n_obs
             ), "alpha must have the same length as the dimension of the observation space"
+        if not is_arraylike(b1):
+            self.paras["b1"] = np.full(self.n_obs, b1)
 
     def reset(self):
         """
@@ -124,8 +126,8 @@ class LSSPDModel(CAMO, Interactive, PredictsLogpdf):
         alpha = self.hidden_state["alpha"]
 
         # Predict response
-        mu_pred = b0 + b1 * np.dot(
-            stimulus, (mix_coef * w_curr + (1 - mix_coef) * alpha)
+        mu_pred = b0 + np.dot(
+            b1, stimulus * (mix_coef * w_curr + (1 - mix_coef) * alpha)
         )
 
         rv = stats.norm(loc=mu_pred, scale=sd_pred)
@@ -209,14 +211,8 @@ class LSSPDModel(CAMO, Interactive, PredictsLogpdf):
 
             w_curr += kappa * delta * alpha * stimulus  # alpha, stimulus size: (n_obs,)
 
-            # if stimulus[i] = 1
-            # alpha[i] = eta * abs(pred_err) + (1 - eta) * alpha[i]
-            # or
-            # alpha[i] -= eta * alpha[i]
-            # alpha[i] += eta * abs(pred_err)
-            alpha -= eta * np.multiply(alpha, stimulus)
-            alpha += eta * abs(delta) * stimulus
-            np.clip(alpha, a_min=0, a_max=1, out=alpha)  # Enforce upper bound on alpha
+            alpha += stimulus * (eta * abs(delta) - eta * alpha)
+            alpha = np.minimum(alpha, 1)
 
             self.hidden_state["w"] = w_curr
             self.hidden_state["alpha"] = alpha
