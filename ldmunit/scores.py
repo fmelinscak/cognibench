@@ -105,13 +105,13 @@ def _neg_loglikelihood(actions, predictions):
     float
         Negative log-likelihood of the whole multi-subject model on the
         given action and prediction data. It is calculated as the sum of
-        individual log probabilities for every action-prediction pairs.
+        individual logpdf/logpmf values for every action-prediction pairs.
     """
     neg_loglike = float(0)
     n_subjects = len(actions)
     for subject_idx in range(n_subjects):
-        for act, logprob in zip(actions[subject_idx], predictions[subject_idx]):
-            neg_loglike -= logprob(act)
+        for act, logpdf in zip(actions[subject_idx], predictions[subject_idx]):
+            neg_loglike -= logpdf(act)
     return neg_loglike
 
 

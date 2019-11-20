@@ -1,11 +1,9 @@
-import sys
 import numpy as np
 import sciunit
 import pandas as pd
 from os import getcwd
 from os.path import join as pathjoin
 
-sys.path.append("..")
 from ldmunit.models import associative_learning
 from ldmunit.models.utils import multi_from_single_interactive
 from ldmunit.testing import InteractiveAICTest, InteractiveBICTest, InteractiveTest
@@ -123,6 +121,19 @@ def main():
     nll_al_suite.judge([multi_rw_norm, multi_krw_norm, multi_lsspd, multi_bb])
     aic_al_suite.judge([multi_rw_norm, multi_krw_norm, multi_lsspd, multi_bb])
     bic_al_suite.judge([multi_rw_norm, multi_krw_norm, multi_lsspd, multi_bb])
+
+
+def main_fake():
+    rr_al = get_simulation_data(pathjoin(DATA_PATH, "multi-rr_al.csv"), 3, True)
+    nll_rr_al_test = InteractiveTest(
+        name="rr_al sim NLL", observation=rr_al, score_type=NLLScore
+    )
+    suite = sciunit.TestSuite([nll_rr_al_test], name="suite")
+    MultiRwNormModel = multi_from_single_interactive(associative_learning.RwNormModel)
+    param_list = get_model_params(pathjoin(DATA_PATH, "multi-rw_norm_prior.csv"))
+    multi_rw_norm = MultiRwNormModel(param_list, n_obs=4, seed=42)
+    multi_rw_norm.name = "rw_norm"
+    suite.judge([multi_rw_norm])
 
 
 if __name__ == "__main__":
