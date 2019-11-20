@@ -67,6 +67,8 @@ class KrwNormModel(CAMO, Interactive, PredictsLogpdf):
             assert (
                 len(w) == self.n_obs
             ), "w must have the same length as the dimension of the observation space"
+        if not is_arraylike(b1):
+            self.paras["b1"] = np.full(self.n_obs, b1)
 
     def reset(self):
         """
@@ -149,10 +151,8 @@ class KrwNormModel(CAMO, Interactive, PredictsLogpdf):
 
         w_curr = self.hidden_state["w"]
 
-        rhat = self._predict_reward(stimulus)
-
         # Predict response
-        mu_pred = b0 + b1 * rhat
+        mu_pred = b0 + np.dot(b1, stimulus * w_curr)
 
         rv = stats.norm(loc=mu_pred, scale=sd_pred)
         rv.random_state = self.seed
@@ -195,9 +195,7 @@ class KrwNormModel(CAMO, Interactive, PredictsLogpdf):
 
         if not done:
             # Kalman prediction step
-            w_pred = (
-                w_curr
-            )  # No mean-shift for the weight distribution evolution (only stochastic evolution)
+            w_pred = w_curr  # No mean-shift for the weight distribution evolution (only stochastic evolution)
             C_pred = C_curr + Q  # Update covariance
 
             # get pred_error
@@ -208,7 +206,7 @@ class KrwNormModel(CAMO, Interactive, PredictsLogpdf):
                 stimulus.dot(C_pred.dot(stimulus)) + sigmaRSq
             )  # (n_obs,)
             w_updt = w_pred + K * delta  # Mean updated with prediction error
-            C_updt = C_pred - K * stimulus * C_pred  # Covariance updated
+            C_updt = C_pred - np.dot(K[:, None], np.dot(stimulus[None, :], C_pred))
 
             self.hidden_state["w"] = w_updt
             self.hidden_state["C"] = C_updt

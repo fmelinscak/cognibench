@@ -143,7 +143,7 @@ class RWCKModel(DADO, Interactive, PredictsLogpdf):
 
             # update choice kernel
             CK = (1 - eta_c) * CK
-            CK[action] += eta_c * reward
+            CK[action] += eta_c
 
             # update Q weights
             delta = reward - Q[action]

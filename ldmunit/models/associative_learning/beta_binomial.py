@@ -5,6 +5,7 @@ from scipy import stats
 from scipy.stats import beta
 from ldmunit.models import CAMO
 from ldmunit.capabilities import Interactive, PredictsLogpdf
+from ldmunit.utils import is_arraylike
 from collections.abc import MutableMapping
 
 
@@ -93,6 +94,8 @@ class BetaBinomialModel(CAMO, Interactive, PredictsLogpdf):
             "slope": slope,
         }
         super().__init__(paras=paras, **kwargs)
+        if not is_arraylike(slope):
+            self.paras["slope"] = np.full(self.n_obs, slope)
 
     def _get_default_a_b(self):
         """
@@ -202,8 +205,8 @@ class BetaBinomialModel(CAMO, Interactive, PredictsLogpdf):
         b = self.hidden_state[stimulus]["b"]
 
         if not done:
-            a += (1 - stimulus) * (1 - reward) + stimulus * reward
-            b += (1 - stimulus) * reward + stimulus * (1 - reward)
+            a += stimulus * reward
+            b += stimulus * (1 - reward)
             self.hidden_state[stimulus]["a"] = a
             self.hidden_state[stimulus]["b"] = b
 
@@ -226,8 +229,8 @@ class BetaBinomialModel(CAMO, Interactive, PredictsLogpdf):
         mu = beta(a, b).mean()
         entropy = beta(a, b).entropy()
 
-        rhat = intercept + slope * np.dot(
-            stimulus, (mix_coef * mu + (1 - mix_coef) * entropy)
+        rhat = intercept + np.dot(
+            slope, (mix_coef * mu + (1 - mix_coef) * entropy) * stimulus
         )
 
         return rhat

@@ -50,6 +50,8 @@ class RwNormModel(CAMO, Interactive, PredictsLogpdf):
             assert (
                 len(w) == self.n_obs
             ), "w must have the same length as the dimension of the observation space"
+        if not is_arraylike(b1):
+            self.paras["b1"] = np.full(self.n_obs, b1)
 
     def reset(self):
         w = self.paras["w"] if "w" in self.paras else 0
@@ -126,10 +128,8 @@ class RwNormModel(CAMO, Interactive, PredictsLogpdf):
 
         w_curr = self.hidden_state["w"]
 
-        rhat = self._predict_reward(stimulus)
-
         # Predict response
-        mu_pred = b0 + b1 * rhat
+        mu_pred = b0 + np.dot(b1, stimulus * w_curr)
 
         rv = stats.norm(loc=mu_pred, scale=sd_pred)
         rv.random_state = self.seed
