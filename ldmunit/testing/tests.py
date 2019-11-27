@@ -3,7 +3,7 @@ import numpy as np
 from ldmunit.testing import InteractiveTest, BatchTest
 from ldmunit.models import LDMModel
 from ldmunit.utils import partialclass
-from ldmunit.capabilities import PredictsLogpdf
+from ldmunit.capabilities import PredictsLogpdf, ReturnsNumParams
 import ldmunit.scores as scores
 
 
@@ -14,9 +14,12 @@ class InteractiveAICTest(InteractiveTest):
     """
 
     score_type = partialclass(scores.AICScore, min_score=0, max_score=1000)
-    required_capabilities = InteractiveTest.required_capabilities + (PredictsLogpdf,)
+    required_capabilities = InteractiveTest.required_capabilities + (
+        PredictsLogpdf,
+        ReturnsNumParams,
+    )
 
-    def generate_prediction(self, multimodel):
+    def predict_single(self, model, observations, **kwargs):
         """
         This method simply calls the parent method for the actual functionality
         after storing some necessary variables to compute the score later.
@@ -26,14 +29,12 @@ class InteractiveAICTest(InteractiveTest):
         :func:`InteractiveTest.generate_prediction`
         """
         # save variables necessary to compute score
-        self.n_model_params = np.array(
-            [len(m.paras) for m in multimodel.subject_models]
-        )
+        self.n_model_params = model.n_params()
 
-        return super().generate_prediction(multimodel)
+        return super().predict_single(model, observations)
 
-    def compute_score(self, *args, **kwargs):
-        return super().compute_score(
+    def compute_score_single(self, *args, **kwargs):
+        return super().compute_score_single(
             *args, n_model_params=self.n_model_params, **kwargs
         )
 
@@ -45,9 +46,12 @@ class InteractiveBICTest(InteractiveTest):
     """
 
     score_type = partialclass(scores.BICScore, min_score=0, max_score=1000)
-    required_capabilities = InteractiveTest.required_capabilities + (PredictsLogpdf,)
+    required_capabilities = InteractiveTest.required_capabilities + (
+        PredictsLogpdf,
+        ReturnsNumParams,
+    )
 
-    def generate_prediction(self, multimodel):
+    def predict_single(self, model, observations, **kwargs):
         """
         This method simply calls the parent method for the actual functionality
         after storing some necessary variables to compute the score later.
@@ -57,16 +61,14 @@ class InteractiveBICTest(InteractiveTest):
         :func:`InteractiveTest.generate_prediction`
         """
         # save variables necessary to compute score
-        stimuli = self.observation["stimuli"]
-        self.n_model_params = np.array(
-            [len(m.paras) for m in multimodel.subject_models]
-        )
-        self.n_samples = np.array([len(s) for s in stimuli])
+        stimuli = observations["stimuli"]
+        self.n_model_params = model.n_params()
+        self.n_samples = len(stimuli)
 
-        return super().generate_prediction(multimodel)
+        return super().predict_single(model, observations)
 
-    def compute_score(self, *args, **kwargs):
-        return super().compute_score(
+    def compute_score_single(self, *args, **kwargs):
+        return super().compute_score_single(
             *args,
             n_model_params=self.n_model_params,
             n_samples=self.n_samples,

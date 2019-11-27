@@ -41,6 +41,21 @@ class BatchTrainable(sciunit.Capability):
         raise NotImplementedError("Must implement fit.")
 
 
+class MultiSubjectModel(sciunit.Capability):
+    """
+    Capability for models that natively supports multi subject data. These types of models
+    must take a subject index as the first argument to their core functions such as fit, predict, reset, etc. The
+    names of these multi-subject functions must be stored in multi_subject_methods variable as given below.
+    """
+
+    multi_subject_methods = []
+
+
+class ReturnsNumParams(sciunit.Capability):
+    def n_params(self):
+        raise NotImplementedError("Must have n_params attribute.")
+
+
 class ActionSpace(sciunit.Capability):
     """
     Capability to understand action in a given space (:class:`gym.spaces.Space`).
