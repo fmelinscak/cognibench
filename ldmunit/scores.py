@@ -65,7 +65,7 @@ class HigherBetterScore(BoundedScore):
 class LowerBetterScore(BoundedScore):
     """
     LowerBetterScore is a score type where lower values are better than
-    larger values, similar to an error function. This property is used by
+    larger values (e.g. mean squared error). This property is used by
     sciunit library when sorting or color coding the scores.
     """
 
@@ -108,14 +108,12 @@ def _neg_loglikelihood(actions, predictions):
         individual logpdf/logpmf values for every action-prediction pairs.
     """
     neg_loglike = float(0)
-    n_subjects = len(actions)
-    for subject_idx in range(n_subjects):
-        for act, logpdf in zip(actions[subject_idx], predictions[subject_idx]):
-            neg_loglike -= logpdf(act)
+    for act, logpdf in zip(actions, predictions):
+        neg_loglike -= logpdf(act)
     return neg_loglike
 
 
-class NLLScore(LowerBetterScore):
+class NLLScore(LowerBetterScore, BoundedScore):
     required_capabilities = (PredictsLogpdf,)
 
     @classmethod
@@ -159,6 +157,9 @@ class MAEScore(LowerBetterScore):
 
 
 class PearsonCorrelationScore(HigherBetterScore):
+    def __init__(self, *args, **kwargs):
+        BoundedScore.__init__(self, *args, min_score=-1, max_score=1, **kwargs)
+
     @classmethod
     def compute(cls, actions, predictions):
         actions = np.asarray(actions).flatten()
@@ -175,3 +176,16 @@ class CrossEntropyScore(LowerBetterScore):
         N = predictions_clipped.shape[0]
         mean_crossent = -np.sum(actions * np.log(predictions_clipped)) / N
         return cls(mean_crossent)
+
+
+class AccuracyScore(HigherBetterScore):
+    def __init__(self, *args, **kwargs):
+        BoundedScore.__init__(self, *args, min_score=0.0, max_score=1.0, **kwargs)
+
+    @classmethod
+    def compute(cls, actions, predictions):
+        actions = np.asarray(actions)
+        predictions = np.asarray(predictions)
+        assert len(actions.shape) == 1 and actions.shape == predictions.shape
+        n_correct = np.sum(actions == predictions)
+        return cls(float(n_correct) / len(actions))
