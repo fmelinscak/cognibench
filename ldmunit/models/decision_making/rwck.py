@@ -3,11 +3,11 @@ from gym import spaces
 from scipy import stats
 from scipy.special import softmax
 
-from ldmunit.models import DADO
+from ldmunit.models import DADO, ParametricModelMixin
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 
 
-class RWCKModel(DADO, Interactive, PredictsLogpdf):
+class RWCKModel(DADO, Interactive, PredictsLogpdf, ParametricModelMixin):
     """
     Rescorla-Wagner Choice Kernel model implementation.
 

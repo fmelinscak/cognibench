@@ -2,11 +2,11 @@ import numpy as np
 from gym import spaces
 from scipy import stats
 
-from ldmunit.models import DADO
+from ldmunit.models import DADO, ParametricModelMixin
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 
 
-class NWSLSModel(DADO, Interactive, PredictsLogpdf):
+class NWSLSModel(DADO, Interactive, PredictsLogpdf, ParametricModelMixin):
     """
     Noisy-win-stay-lose-shift model implementation.
     """
