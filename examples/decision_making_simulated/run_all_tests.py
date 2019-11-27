@@ -25,38 +25,58 @@ def main():
     # -----------------------------------------------
     ck = get_simulation_data(pathjoin(DATA_PATH, "multi-ck.csv"), 3)
     nll_ck_test = InteractiveTest(
-        name="CK sim NLL", observation=ck, score_type=NLLScore
+        multi_subject=True, name="CK sim NLL", observation=ck, score_type=NLLScore
     )
-    aic_ck_test = InteractiveAICTest(name="CK sim AIC", observation=ck)
-    bic_ck_test = InteractiveBICTest(name="CK sim BIC", observation=ck)
+    aic_ck_test = InteractiveAICTest(
+        multi_subject=True, name="CK sim AIC", observation=ck
+    )
+    bic_ck_test = InteractiveBICTest(
+        multi_subject=True, name="CK sim BIC", observation=ck
+    )
 
     rw = get_simulation_data(pathjoin(DATA_PATH, "multi-rw.csv"), 3)
     nll_rw_test = InteractiveTest(
-        name="RW sim NLL", observation=rw, score_type=NLLScore
+        multi_subject=True, name="RW sim NLL", observation=rw, score_type=NLLScore
     )
-    aic_rw_test = InteractiveAICTest(name="RW sim AIC", observation=rw)
-    bic_rw_test = InteractiveBICTest(name="RW sim BIC", observation=rw)
+    aic_rw_test = InteractiveAICTest(
+        multi_subject=True, name="RW sim AIC", observation=rw
+    )
+    bic_rw_test = InteractiveBICTest(
+        multi_subject=True, name="RW sim BIC", observation=rw
+    )
 
     rwck = get_simulation_data(pathjoin(DATA_PATH, "multi-rwck.csv"), 3)
     nll_rwck_test = InteractiveTest(
-        name="RWCK sim NLL", observation=rwck, score_type=NLLScore
+        multi_subject=True, name="RWCK sim NLL", observation=rwck, score_type=NLLScore
     )
-    aic_rwck_test = InteractiveAICTest(name="RWCK sim AIC", observation=rwck)
-    bic_rwck_test = InteractiveBICTest(name="RWCK sim BIC", observation=rwck)
+    aic_rwck_test = InteractiveAICTest(
+        multi_subject=True, name="RWCK sim AIC", observation=rwck
+    )
+    bic_rwck_test = InteractiveBICTest(
+        multi_subject=True, name="RWCK sim BIC", observation=rwck
+    )
 
     rr = get_simulation_data(pathjoin(DATA_PATH, "multi-random-responding.csv"), 3)
     nll_rr_test = InteractiveTest(
-        name="RR sim NLL", observation=rr, score_type=NLLScore
+        multi_subject=True, name="RR sim NLL", observation=rr, score_type=NLLScore
     )
-    aic_rr_test = InteractiveAICTest(name="RR sim AIC", observation=rr)
-    bic_rr_test = InteractiveBICTest(name="RR sim BIC", observation=rr)
+    aic_rr_test = InteractiveAICTest(
+        multi_subject=True, name="RR sim AIC", observation=rr
+    )
+    bic_rr_test = InteractiveBICTest(
+        multi_subject=True, name="RR sim BIC", observation=rr
+    )
 
     nwsls = get_simulation_data(pathjoin(DATA_PATH, "multi-nwsls.csv"), 3)
     nll_nwsls_test = InteractiveTest(
-        name="NWSLS sim NLL", observation=nwsls, score_type=NLLScore
+        multi_subject=True, name="NWSLS sim NLL", observation=nwsls, score_type=NLLScore
     )
-    aic_nwsls_test = InteractiveAICTest(name="NWSLS sim AIC", observation=nwsls)
-    bic_nwsls_test = InteractiveBICTest(name="NWSLS sim BIC", observation=nwsls)
+    aic_nwsls_test = InteractiveAICTest(
+        multi_subject=True, name="NWSLS sim AIC", observation=nwsls
+    )
+    bic_nwsls_test = InteractiveBICTest(
+        multi_subject=True, name="NWSLS sim BIC", observation=nwsls
+    )
 
     nll_suite = sciunit.TestSuite(
         [nll_ck_test, nll_rw_test, nll_rwck_test, nll_nwsls_test], name="NLL suite"
