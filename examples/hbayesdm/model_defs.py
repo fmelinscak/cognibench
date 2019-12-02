@@ -36,7 +36,7 @@ class HbayesdmModel(DADO, PredictsLogpdf, BatchTrainable, ReturnsNumParams):
         pred_softmax = self.y_dist.reshape(-1, self.y_dist.shape[-1])
 
         def convert_to_scipy(row):
-            return rv_discrete(values=([1, 2], row)).logpmf
+            return rv_discrete(values=(np.arange(1, 5), row)).logpmf
 
         distributions = list(map(convert_to_scipy, pred_softmax))
         return distributions
