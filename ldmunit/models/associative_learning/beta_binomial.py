@@ -3,7 +3,7 @@ import gym
 from gym import spaces
 from scipy import stats
 from scipy.stats import beta
-from ldmunit.models import CAMO
+from ldmunit.models import CAMO, ParametricModelMixin
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 from ldmunit.utils import is_arraylike
 from collections.abc import MutableMapping
@@ -34,7 +34,7 @@ class DictWithBinarySequenceKeys(MutableMapping):
         return len(self._storage)
 
 
-class BetaBinomialModel(CAMO, Interactive, PredictsLogpdf):
+class BetaBinomialModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
     """
     Interactive beta-binomial model implementation.
 

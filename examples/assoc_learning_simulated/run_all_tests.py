@@ -6,7 +6,7 @@ from os.path import join as pathjoin
 
 from ldmunit.models import associative_learning
 from ldmunit.models.utils import multi_from_single_interactive
-from ldmunit.testing import InteractiveAICTest, InteractiveBICTest, InteractiveTest
+from ldmunit.testing import InteractiveTest
 from ldmunit.utils import partialclass
 import ldmunit.scores as scores
 from read_example_data import get_simulation_data, get_model_params
@@ -16,6 +16,16 @@ DATA_PATH = "data"
 sciunit.settings["CWD"] = getcwd()
 
 NLLScore = partialclass(scores.NLLScore, min_score=0, max_score=1000)
+AICScore = partialclass(scores.AICScore, min_score=0, max_score=1000)
+BICScore = partialclass(scores.BICScore, min_score=0, max_score=1000)
+
+
+def aic_kwargs_fn(model, obs, pred):
+    return {"n_model_params": model.n_params()}
+
+
+def bic_kwargs_fn(model, obs, pred):
+    return {"n_model_params": model.n_params(), "n_samples": len(obs["stimuli"])}
 
 
 def main():
@@ -23,42 +33,107 @@ def main():
     # -----------------------------------------------
     rr_al = get_simulation_data(pathjoin(DATA_PATH, "multi-rr_al.csv"), 3, True)
     nll_rr_al_test = InteractiveTest(
-        name="rr_al sim NLL", observation=rr_al, score_type=NLLScore
+        multi_subject=True, name="rr_al sim NLL", observation=rr_al, score_type=NLLScore
     )
-    aic_rr_al_test = InteractiveAICTest(name="rr_al sim AIC", observation=rr_al)
-    bic_rr_al_test = InteractiveBICTest(name="rr_al sim BIC", observation=rr_al)
+    aic_rr_al_test = InteractiveTest(
+        multi_subject=True,
+        name="rr_al sim AIC",
+        observation=rr_al,
+        score_type=AICScore,
+        fn_kwargs_for_score=aic_kwargs_fn,
+    )
+    bic_rr_al_test = InteractiveTest(
+        multi_subject=True,
+        name="rr_al sim BIC",
+        observation=rr_al,
+        score_type=BICScore,
+        fn_kwargs_for_score=bic_kwargs_fn,
+    )
 
     rw_norm = get_simulation_data(pathjoin(DATA_PATH, "multi-rw_norm.csv"), 3, True)
     nll_rw_norm_test = InteractiveTest(
-        name="rw_norm sim NLL", observation=rw_norm, score_type=NLLScore
+        multi_subject=True,
+        name="rw_norm sim NLL",
+        observation=rw_norm,
+        score_type=NLLScore,
     )
-    aic_rw_norm_test = InteractiveAICTest(name="rw_norm sim AIC", observation=rw_norm)
-    bic_rw_norm_test = InteractiveBICTest(name="rw_norm sim BIC", observation=rw_norm)
+    aic_rw_norm_test = InteractiveTest(
+        multi_subject=True,
+        name="rw_norm sim AIC",
+        observation=rw_norm,
+        score_type=AICScore,
+        fn_kwargs_for_score=aic_kwargs_fn,
+    )
+    bic_rw_norm_test = InteractiveTest(
+        multi_subject=True,
+        name="rw_norm sim BIC",
+        observation=rw_norm,
+        score_type=BICScore,
+        fn_kwargs_for_score=bic_kwargs_fn,
+    )
 
     krw_norm = get_simulation_data(pathjoin(DATA_PATH, "multi-krw_norm.csv"), 3, True)
     nll_krw_norm_test = InteractiveTest(
-        name="krw_norm sim NLL", observation=krw_norm, score_type=NLLScore
+        multi_subject=True,
+        name="krw_norm sim NLL",
+        observation=krw_norm,
+        score_type=NLLScore,
     )
-    aic_krw_norm_test = InteractiveAICTest(
-        name="krw_norm sim AIC", observation=krw_norm
+    aic_krw_norm_test = InteractiveTest(
+        multi_subject=True,
+        name="krw_norm sim AIC",
+        observation=krw_norm,
+        score_type=AICScore,
+        fn_kwargs_for_score=aic_kwargs_fn,
     )
-    bic_krw_norm_test = InteractiveBICTest(
-        name="krw_norm sim BIC", observation=krw_norm
+    bic_krw_norm_test = InteractiveTest(
+        multi_subject=True,
+        name="krw_norm sim BIC",
+        observation=krw_norm,
+        score_type=BICScore,
+        fn_kwargs_for_score=bic_kwargs_fn,
     )
 
     lsspd = get_simulation_data(pathjoin(DATA_PATH, "multi-lsspd.csv"), 3, True)
     nll_lsspd_test = InteractiveTest(
-        name="lsspd sim NLL", observation=lsspd, score_type=NLLScore
+        multi_subject=True, name="lsspd sim NLL", observation=lsspd, score_type=NLLScore
     )
-    aic_lsspd_test = InteractiveAICTest(name="lsspd sim AIC", observation=lsspd)
-    bic_lsspd_test = InteractiveBICTest(name="lsspd sim BIC", observation=lsspd)
+    aic_lsspd_test = InteractiveTest(
+        multi_subject=True,
+        name="lsspd sim AIC",
+        observation=lsspd,
+        score_type=AICScore,
+        fn_kwargs_for_score=aic_kwargs_fn,
+    )
+    bic_lsspd_test = InteractiveTest(
+        multi_subject=True,
+        name="lsspd sim BIC",
+        observation=lsspd,
+        score_type=BICScore,
+        fn_kwargs_for_score=bic_kwargs_fn,
+    )
 
     bb = get_simulation_data(pathjoin(DATA_PATH, "multi-beta_binomial.csv"), 3, True)
     nll_bb_test = InteractiveTest(
-        name="Beta Binomial sim NLL", observation=bb, score_type=NLLScore
+        multi_subject=True,
+        name="Beta Binomial sim NLL",
+        observation=bb,
+        score_type=NLLScore,
     )
-    aic_bb_test = InteractiveAICTest(name="Beta Binomial sim AIC", observation=bb)
-    bic_bb_test = InteractiveBICTest(name="Beta Binomial sim BIC", observation=bb)
+    aic_bb_test = InteractiveTest(
+        multi_subject=True,
+        name="Beta Binomial sim AIC",
+        observation=bb,
+        score_type=AICScore,
+        fn_kwargs_for_score=aic_kwargs_fn,
+    )
+    bic_bb_test = InteractiveTest(
+        multi_subject=True,
+        name="Beta Binomial sim BIC",
+        observation=bb,
+        score_type=BICScore,
+        fn_kwargs_for_score=bic_kwargs_fn,
+    )
 
     nll_al_suite = sciunit.TestSuite(
         [
@@ -126,7 +201,7 @@ def main():
 def main_fake():
     rr_al = get_simulation_data(pathjoin(DATA_PATH, "multi-rr_al.csv"), 3, True)
     nll_rr_al_test = InteractiveTest(
-        name="rr_al sim NLL", observation=rr_al, score_type=NLLScore
+        multi_subject=True, name="rr_al sim NLL", observation=rr_al, score_type=NLLScore
     )
     suite = sciunit.TestSuite([nll_rr_al_test], name="suite")
     MultiRwNormModel = multi_from_single_interactive(associative_learning.RwNormModel)

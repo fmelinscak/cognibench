@@ -8,6 +8,7 @@ from ldmunit.capabilities import (
     MultiBinaryObservation,
     ContinuousAction,
     ContinuousObservation,
+    ReturnsNumParams,
 )
 from ldmunit.continuous import ContinuousSpace
 
@@ -212,3 +213,8 @@ class CAMO(LDMModel, ContinuousAction, MultiBinaryObservation):
             raise AssertionError("stimuli and actions must be of the same length.")
         self.action_space = ContinuousSpace()
         self.observation_space = len(stimuli[0])
+
+
+class ParametricModelMixin(ReturnsNumParams):
+    def n_params(self):
+        return len(self.paras)

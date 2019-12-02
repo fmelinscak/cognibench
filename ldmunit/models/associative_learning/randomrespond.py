@@ -2,11 +2,11 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
-from ldmunit.models import CAMO
+from ldmunit.models import CAMO, ParametricModelMixin
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 
 
-class RandomRespondModel(CAMO, Interactive, PredictsLogpdf):
+class RandomRespondModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
     """
     Random respond model that predicts random actions for any
     kind of observation.

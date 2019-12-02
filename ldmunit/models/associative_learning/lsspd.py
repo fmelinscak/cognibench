@@ -2,12 +2,12 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
-from ldmunit.models import CAMO
+from ldmunit.models import CAMO, ParametricModelMixin
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 from ldmunit.utils import is_arraylike
 
 
-class LSSPDModel(CAMO, Interactive, PredictsLogpdf):
+class LSSPDModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
     """
     LSSPD model implementation.
     """

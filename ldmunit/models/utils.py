@@ -1,7 +1,9 @@
 import gym
+import types
+from functools import partial
 import sciunit
 import numpy as np
-from ldmunit.capabilities import Interactive
+from ldmunit.capabilities import Interactive, MultiSubjectModel
 
 
 def simulate_single_env_single_model(env, multimodel, subject_idx, n_trials, seed=0):
@@ -142,7 +144,7 @@ def simulate_multi_env_multi_model(env_iterable, multimodel, n_trials, seed=0):
     return stimuli, rewards, actions
 
 
-class MultiMetaInteractive(type):
+class MultiMeta(type):
     """
     MultiMetaInteractive is a metaclass for creating multi-subject models from
     interactive single-subject ones. The input single-subject model should
@@ -165,7 +167,7 @@ class MultiMetaInteractive(type):
 
     def __new__(cls, name, bases, dct):
         single_cls = bases[0]
-        base_classes = single_cls.__bases__
+        base_classes = single_cls.__bases__ + (MultiSubjectModel,)
         out_cls = super().__new__(cls, name, base_classes, dct)
 
         # TODO: is there a clean way to make this metaclass more generic?
@@ -176,32 +178,19 @@ class MultiMetaInteractive(type):
             for param_dict in param_list:
                 self.subject_models.append(single_cls(*args, **param_dict, **kwargs))
 
+            def new_fn(idx, *args, fn_name, **kwargs):
+                return getattr(self.subject_models[idx], fn_name)(*args, **kwargs)
+
+            for fn_name in dct["_method_names"]:
+                setattr(out_cls, fn_name, partial(new_fn, fn_name=fn_name))
+
         out_cls.__init__ = multi_init
-
-        def multi_predict(self, idx, *args, **kwargs):
-            return self.subject_models[idx].predict(*args, **kwargs)
-
-        out_cls.predict = multi_predict
-
-        def multi_update(self, idx, *args, **kwargs):
-            return self.subject_models[idx].update(*args, **kwargs)
-
-        out_cls.update = multi_update
-
-        def multi_act(self, idx, *args, **kwargs):
-            return self.subject_models[idx].act(*args, **kwargs)
-
-        out_cls.act = multi_act
-
-        def multi_reset(self, idx, *args, **kwargs):
-            return self.subject_models[idx].reset(*args, **kwargs)
-
-        out_cls.reset = multi_reset
+        out_cls.multi_subject_methods = dct["_method_names"]
 
         return out_cls
 
 
-def multi_from_single_interactive(single_cls):
+def multi_from_single_cls(single_cls, method_names):
     """
     Create an interactive multi-subject model from an interactive
     single-subject model.
@@ -218,8 +207,42 @@ def multi_from_single_interactive(single_cls):
         Each required method now takes a subject index as their first argument.
     """
     multi_cls_name = "Multi" + single_cls.__name__
-    return MultiMetaInteractive(
+    return MultiMeta(
         multi_cls_name,
         (single_cls,),
-        {"name": single_cls.name, "__doc__": single_cls.__doc__},
+        {
+            "name": single_cls.name,
+            "__doc__": single_cls.__doc__,
+            "_method_names": method_names,
+        },
+    )
+
+
+def single_from_multi_obj(model, subj_idx):
+    assert isinstance(model, MultiSubjectModel)
+
+    def make_new_fn(old_fn):
+        def new_fn(self, *args, **kwargs):
+            return old_fn(subj_idx, *args, **kwargs)
+
+        return new_fn
+
+    for fn_name in model.multi_subject_methods:
+        old_fn = getattr(model, fn_name)
+        new_fn = make_new_fn(old_fn)
+        setattr(model, f"{fn_name}_multi", old_fn)
+        setattr(model, fn_name, new_fn.__get__(model))
+    return model
+
+
+def reverse_single_from_multi_obj(model):
+    for fn_name in model.multi_subject_methods:
+        old_fn = getattr(model, f"{fn_name}_multi")
+        setattr(model, fn_name, old_fn)
+    return model
+
+
+def multi_from_single_interactive(single_cls):
+    return multi_from_single_cls(
+        single_cls, ("act", "predict", "reset", "update", "n_params")
     )

@@ -2,11 +2,11 @@ import numpy as np
 from gym import spaces
 from scipy import stats
 
-from ldmunit.models import DADO
+from ldmunit.models import DADO, ParametricModelMixin
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 
 
-class RandomRespondModel(DADO, Interactive, PredictsLogpdf):
+class RandomRespondModel(DADO, Interactive, PredictsLogpdf, ParametricModelMixin):
     """
     Random respond model that predicts random actions for any
     kind of observation.
