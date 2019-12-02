@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-black ldmunit tests docs setup.py
+black ldmunit tests docs examples setup.py
