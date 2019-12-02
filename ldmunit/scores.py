@@ -2,7 +2,7 @@ import numpy as np
 from scipy.stats.mstats import pearsonr
 from sciunit import scores
 from sciunit import errors
-from ldmunit.capabilities import PredictsLogpdf
+from ldmunit.capabilities import PredictsLogpdf, ReturnsNumParams
 
 
 class BoundedScore(scores.FloatScore):
@@ -123,7 +123,7 @@ class NLLScore(LowerBetterScore, BoundedScore):
 
 
 class AICScore(LowerBetterScore):
-    required_capabilities = (PredictsLogpdf,)
+    required_capabilities = (PredictsLogpdf, ReturnsNumParams)
 
     @classmethod
     def compute(cls, actions, predictions, *args, n_model_params):
@@ -133,7 +133,7 @@ class AICScore(LowerBetterScore):
 
 
 class BICScore(LowerBetterScore):
-    required_capabilities = (PredictsLogpdf,)
+    required_capabilities = (PredictsLogpdf, ReturnsNumParams)
 
     @classmethod
     def compute(cls, actions, predictions, *args, n_model_params, n_samples):

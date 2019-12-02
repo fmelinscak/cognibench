@@ -20,12 +20,14 @@ class LDMTest(Test):
         score_aggr_fn=np.mean,
         persist_path=None,
         logging=1,
+        fn_kwargs_for_score=None,
         **kwargs,
     ):
         self.multi_subject = multi_subject
         self.score_aggr_fn = score_aggr_fn
         self.persist_path = persist_path
         self.logging = logging
+        self.fn_kwargs_for_score = fn_kwargs_for_score
 
         if score_type is not None:
             self.score_type = score_type
@@ -57,17 +59,33 @@ class LDMTest(Test):
             ), "Multi subject tests can only accept multi subject models"
             n_subj = len(observations)
             predictions = []
+            score_kwargs = []
             for subj_idx in range(n_subj):
                 single_subj_adapter = single_from_multi_obj(model, subj_idx)
                 pred_single = self.predict_single(
                     single_subj_adapter, observations[subj_idx]
                 )
                 predictions.append(pred_single)
+                score_kwargs.append(
+                    self.get_kwargs_for_compute_score(
+                        model, observations[subj_idx], pred_single
+                    )
+                )
                 model = reverse_single_from_multi_obj(single_subj_adapter)
         else:
             predictions = self.predict_single(model, observations)
+            score_kwargs = self.get_kwargs_for_compute_score(
+                model, observations, predictions
+            )
 
+        self.score_kwargs = score_kwargs
         return predictions
+
+    def get_kwargs_for_compute_score(self, model, observations, predictions):
+        if self.fn_kwargs_for_score is not None:
+            return self.fn_kwargs_for_score(model, observations, predictions)
+        else:
+            return dict()
 
     def compute_score(self, _, predictions, **kwargs):
         observations = self._get_observations()
@@ -77,12 +95,17 @@ class LDMTest(Test):
             for subj_idx in range(n_subj):
                 scores.append(
                     self.compute_score_single(
-                        observations[subj_idx], predictions[subj_idx], **kwargs
+                        observations[subj_idx],
+                        predictions[subj_idx],
+                        **self.score_kwargs[subj_idx],
+                        **kwargs,
                     ).score
                 )
             score = self.score_aggr_fn(scores)
         else:
-            score = self.compute_score_single(observations, predictions, **kwargs).score
+            score = self.compute_score_single(
+                observations, predictions, **self.score_kwargs, **kwargs
+            ).score
         return self.score_type(score)
 
     def predict_single(self, model, observations, **kwargs):
