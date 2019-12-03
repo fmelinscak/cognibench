@@ -8,7 +8,7 @@ from ldmunit.capabilities import PredictsLogpdf, ReturnsNumParams
 class BoundedScore(scores.FloatScore):
     def __init__(self, score, *args, min_score, max_score, **kwargs):
         """
-        Initialize the score. This class requires two extra mandatory
+        Initialize the score. This class requires two mandatory
         keyword-only arguments.
 
         Parameters
@@ -34,10 +34,9 @@ class BoundedScore(scores.FloatScore):
         self.min_score = min_score
         self.max_score = max_score
 
-    @property
-    def norm_score(self):
-        clipped = min(self.max_score, max(self.min_score, self.score))
-        return (clipped - self.min_score) / (self.max_score - self.min_score)
+
+class HigherBetterScore(BoundedScore):
+    _description = "Score values where higher is better"
 
     def color(self, value=None):
         """
@@ -53,13 +52,9 @@ class BoundedScore(scores.FloatScore):
         --------
         :py:mod:`sciunit.scores`
         """
-        if value is not None:
-            self.score = value
-        return super().color(self.norm_score)
-
-
-class HigherBetterScore(BoundedScore):
-    _description = "Score values where higher is better"
+        clipped = min(self.max_score, max(self.min_score, self.norm_score))
+        normalized = (clipped - self.min_score) / (self.max_score - self.min_score)
+        return super().color(normalized)
 
 
 class LowerBetterScore(BoundedScore):
@@ -70,6 +65,26 @@ class LowerBetterScore(BoundedScore):
     """
 
     _description = "Score values where lower is better"
+
+    def color(self, value=None):
+        """
+        Ensure that a normalized value is passed to parent class' color method which
+        does the real work.
+
+        Parameters
+        ----------
+        value : float
+            Score value to color. If None, function uses `self.score`
+
+        See Also
+        --------
+        :py:mod:`sciunit.scores`
+        """
+        neg_min = -self.min_score
+        neg_max = -self.max_score
+        clipped = max(neg_max, min(neg_min, self.norm_score))
+        normalized = (clipped - neg_min) / (neg_max - neg_min)
+        return super().color(normalized)
 
     @property
     def norm_score(self):
@@ -82,7 +97,7 @@ class LowerBetterScore(BoundedScore):
             Score value normalized to 0-1 range computed by clipping self.score to the
             min/max range and then transforming to a value in [0, 1].
         """
-        return 1 - super().norm_score
+        return -super().norm_score
 
 
 def _neg_loglikelihood(actions, predictions):
@@ -113,7 +128,7 @@ def _neg_loglikelihood(actions, predictions):
     return neg_loglike
 
 
-class NLLScore(LowerBetterScore, BoundedScore):
+class NLLScore(LowerBetterScore):
     required_capabilities = (PredictsLogpdf,)
 
     @classmethod
@@ -158,7 +173,7 @@ class MAEScore(LowerBetterScore):
 
 class PearsonCorrelationScore(HigherBetterScore):
     def __init__(self, *args, **kwargs):
-        BoundedScore.__init__(self, *args, min_score=-1, max_score=1, **kwargs)
+        super().__init__(self, *args, min_score=-1, max_score=1, **kwargs)
 
     @classmethod
     def compute(cls, actions, predictions):
@@ -180,7 +195,7 @@ class CrossEntropyScore(LowerBetterScore):
 
 class AccuracyScore(HigherBetterScore):
     def __init__(self, *args, **kwargs):
-        BoundedScore.__init__(self, *args, min_score=0.0, max_score=1.0, **kwargs)
+        super().__init__(self, *args, min_score=0.0, max_score=1.0, **kwargs)
 
     @classmethod
     def compute(cls, actions, predictions):
