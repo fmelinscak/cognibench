@@ -6,6 +6,46 @@ import numpy as np
 from ldmunit.capabilities import Interactive, MultiSubjectModel
 
 
+def multi_from_single_cls(method_names, single_cls):
+    """
+    Create a multi-subject model from a single-subject model.
+
+    Parameters
+    ----------
+    method_names : list of str
+        List of methods that will transform to multi-subject variants.
+
+    single_cls : :class:`ldmunit.model.LDMModel`
+        A single-subject model class.
+
+    Returns
+    -------
+    out_cls : :class:`ldmunit.model.LDMModel`
+        A multi-subject model class. Each passed method now takes a subject index as their first argument.
+    """
+    multi_cls_name = "Multi" + single_cls.__name__
+    return MultiMeta(
+        multi_cls_name,
+        (single_cls,),
+        {
+            "name": single_cls.name,
+            "__doc__": single_cls.__doc__,
+            "_method_names": method_names,
+        },
+    )
+
+
+multi_from_single_interactive = partial(
+    multi_from_single_cls, ("act", "predict", "reset", "update")
+)
+multi_from_single_interactive_parametric = partial(
+    multi_from_single_cls, ("act", "predict", "reset", "update", "n_params")
+)
+
+
+# PRIVATE DETAIL FUNCTIONS; use at your own risk
+
+
 def simulate_single_env_single_model(env, multimodel, subject_idx, n_trials, seed=0):
     """
     Simulate the evolution of an environment and a multi-subject model for a
@@ -147,31 +187,26 @@ def simulate_multi_env_multi_model(env_iterable, multimodel, n_trials, seed=0):
 class MultiMeta(type):
     """
     MultiMetaInteractive is a metaclass for creating multi-subject models from
-    interactive single-subject ones. The input single-subject model should
-    implement all the requirements of an interactive model (see :class:`ldmunit.capabilities.Interactive`).
+    single-subject ones.
 
-    The classes created by this metaclass implement all four methods of an
-    interactive method. In addition, each method takes an additional subject
-    index as their first argument. This index is used to select the individual
+    Each input method to this metaclass takes an additional subject
+    index as their first argument afterwards. This index is used to select the individual
     single-subject model to use. In this regard, the returned class is semantically
     similar to a list of single-subject models while also satisfying model class requirements.
 
     This metaclass is not intended to be used directly. Users should use
-    multi_from_single_interactive function for automatically generating multi-subject models
+    multi_from_single_cls or its derivatives for automatically generating multi-subject models
     from single-subject ones.
 
     See Also
     --------
-    multi_from_single_interactive
+    multi_from_single_cls, multi_from_single_interactive
     """
 
     def __new__(cls, name, bases, dct):
         single_cls = bases[0]
         base_classes = single_cls.__bases__ + (MultiSubjectModel,)
         out_cls = super().__new__(cls, name, base_classes, dct)
-
-        # TODO: is there a clean way to make this metaclass more generic?
-        # Maybe we can define all the necessary multi_.+ methods automatically.
 
         def multi_init(self, param_list, *args, **kwargs):
             self.subject_models = []
@@ -190,35 +225,13 @@ class MultiMeta(type):
         return out_cls
 
 
-def multi_from_single_cls(single_cls, method_names):
-    """
-    Create an interactive multi-subject model from an interactive
-    single-subject model.
-
-    Parameters
-    ----------
-    single_cls : :class:`ldmunit.capabilities.Interactive`
-        A single-subject model class implementing capabilities.Interactive interface.
-
-    Returns
-    -------
-    MultiSubjectModel
-        A multi-subject model class implementing :class:`ldmunit.capabilities.Interactive` interface.
-        Each required method now takes a subject index as their first argument.
-    """
-    multi_cls_name = "Multi" + single_cls.__name__
-    return MultiMeta(
-        multi_cls_name,
-        (single_cls,),
-        {
-            "name": single_cls.name,
-            "__doc__": single_cls.__doc__,
-            "_method_names": method_names,
-        },
-    )
-
-
 def single_from_multi_obj(model, subj_idx):
+    """
+    Temporarily convert a multi-subject model created by multi_from_single_cls or its derivatives to a single-subject
+    for the given subject index. The model returned by this function behaves as a single-subject model where the subject
+    is given by `subj_idx`. The multi-subject variants of the replaced methods are stored with multi suffix to be restored
+    later.
+    """
     assert isinstance(model, MultiSubjectModel)
 
     def make_new_fn(old_fn):
@@ -236,13 +249,12 @@ def single_from_multi_obj(model, subj_idx):
 
 
 def reverse_single_from_multi_obj(model):
+    """
+    Reverse a single from multi object conversion performed by `single_from_multi_obj`.
+    """
     for fn_name in model.multi_subject_methods:
-        old_fn = getattr(model, f"{fn_name}_multi")
+        multi_name = f"{fn_name}_multi"
+        old_fn = getattr(model, multi_name)
         setattr(model, fn_name, old_fn)
+        delattr(model, multi_name)
     return model
-
-
-def multi_from_single_interactive(single_cls):
-    return multi_from_single_cls(
-        single_cls, ("act", "predict", "reset", "update", "n_params")
-    )

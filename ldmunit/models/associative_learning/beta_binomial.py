@@ -72,8 +72,9 @@ class BetaBinomialModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin)
         intercept : float
             Intercept used when computing the reward.
 
-        slope : float
-            Slope used when computing the reward.
+        slope : array-like or float
+            Slope used when computing the reward. If a single scalar is given, each element of the slope vector
+            is equal to that value.
 
         Other Parameters
         ----------------

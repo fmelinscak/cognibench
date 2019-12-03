@@ -18,7 +18,7 @@ class KrwNormModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
         """
         Parameters
         ----------
-        w : float or array-like
+        w : array-like or float
             Initial value of weight vector w. If float, then all elements of the
             weight vector is set to this value. If array-like, must have the same
             length as the dimension of the observation space.
@@ -30,8 +30,9 @@ class KrwNormModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
         b0 : float
             Intercept used when computing the mean of normal distribution from reward.
 
-        b1 : float
+        b1 : array-like or float
             Slope used when computing the mean of the normal distribution from reward.
+            If a scalar is given, each element of the slope vector is equal to that value.
 
         sigmaWInit : float
             Diagonal elements of the covariance matrix C is set to sigmaWInit.

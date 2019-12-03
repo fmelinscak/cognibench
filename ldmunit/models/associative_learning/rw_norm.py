@@ -30,8 +30,9 @@ class RwNormModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
         b0 : float
             Intercept used when computing the mean of normal distribution from reward.
 
-        b1 : float
+        b1 : array-like or float
             Slope used when computing the mean of the normal distribution from reward.
+            If a scalar is given, all elements of the slope vector is equal to that value.
 
         eta : float
             Learning rate for w updates. Must be nonnegative.
