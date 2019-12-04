@@ -30,146 +30,29 @@ def bic_kwargs_fn(model, obs, pred):
     return {"n_model_params": model.n_params(), "n_samples": len(obs["stimuli"])}
 
 
-def main():
-    # Tests
-    # -----------------------------------------------
-    rr_al = get_simulation_data(pathjoin(DATA_PATH, "multi-rr_al.csv"), 3, True)
-    nll_rr_al_test = InteractiveTest(
-        multi_subject=True, name="rr_al sim NLL", observation=rr_al, score_type=NLLScore
-    )
-    aic_rr_al_test = InteractiveTest(
-        multi_subject=True,
-        name="rr_al sim AIC",
-        observation=rr_al,
-        score_type=AICScore,
-        fn_kwargs_for_score=aic_kwargs_fn,
-    )
-    bic_rr_al_test = InteractiveTest(
-        multi_subject=True,
-        name="rr_al sim BIC",
-        observation=rr_al,
-        score_type=BICScore,
-        fn_kwargs_for_score=bic_kwargs_fn,
-    )
+def get_tests(score_name, score_type, score_kwargs_fn):
+    names_paths = [
+        ("rr_al", pathjoin(DATA_PATH, "multi-rr_al.csv")),
+        ("rw_norm", pathjoin(DATA_PATH, "multi-rw_norm.csv")),
+        ("krw_norm", pathjoin(DATA_PATH, "multi-krw_norm.csv")),
+        ("lsspd", pathjoin(DATA_PATH, "multi-lsspd.csv")),
+        ("beta_binomial", pathjoin(DATA_PATH, "multi-beta_binomial.csv")),
+    ]
+    tests = []
+    for test_name, path in names_paths:
+        obs = get_simulation_data(path, 3, True)
+        curr_test = InteractiveTest(
+            multi_subject=True,
+            name=f"{test_name} sim {score_name}",
+            observation=obs,
+            score_type=score_type,
+            fn_kwargs_for_score=score_kwargs_fn,
+        )
+        tests.append(curr_test)
+    return tests
 
-    rw_norm = get_simulation_data(pathjoin(DATA_PATH, "multi-rw_norm.csv"), 3, True)
-    nll_rw_norm_test = InteractiveTest(
-        multi_subject=True,
-        name="rw_norm sim NLL",
-        observation=rw_norm,
-        score_type=NLLScore,
-    )
-    aic_rw_norm_test = InteractiveTest(
-        multi_subject=True,
-        name="rw_norm sim AIC",
-        observation=rw_norm,
-        score_type=AICScore,
-        fn_kwargs_for_score=aic_kwargs_fn,
-    )
-    bic_rw_norm_test = InteractiveTest(
-        multi_subject=True,
-        name="rw_norm sim BIC",
-        observation=rw_norm,
-        score_type=BICScore,
-        fn_kwargs_for_score=bic_kwargs_fn,
-    )
 
-    krw_norm = get_simulation_data(pathjoin(DATA_PATH, "multi-krw_norm.csv"), 3, True)
-    nll_krw_norm_test = InteractiveTest(
-        multi_subject=True,
-        name="krw_norm sim NLL",
-        observation=krw_norm,
-        score_type=NLLScore,
-    )
-    aic_krw_norm_test = InteractiveTest(
-        multi_subject=True,
-        name="krw_norm sim AIC",
-        observation=krw_norm,
-        score_type=AICScore,
-        fn_kwargs_for_score=aic_kwargs_fn,
-    )
-    bic_krw_norm_test = InteractiveTest(
-        multi_subject=True,
-        name="krw_norm sim BIC",
-        observation=krw_norm,
-        score_type=BICScore,
-        fn_kwargs_for_score=bic_kwargs_fn,
-    )
-
-    lsspd = get_simulation_data(pathjoin(DATA_PATH, "multi-lsspd.csv"), 3, True)
-    nll_lsspd_test = InteractiveTest(
-        multi_subject=True, name="lsspd sim NLL", observation=lsspd, score_type=NLLScore
-    )
-    aic_lsspd_test = InteractiveTest(
-        multi_subject=True,
-        name="lsspd sim AIC",
-        observation=lsspd,
-        score_type=AICScore,
-        fn_kwargs_for_score=aic_kwargs_fn,
-    )
-    bic_lsspd_test = InteractiveTest(
-        multi_subject=True,
-        name="lsspd sim BIC",
-        observation=lsspd,
-        score_type=BICScore,
-        fn_kwargs_for_score=bic_kwargs_fn,
-    )
-
-    bb = get_simulation_data(pathjoin(DATA_PATH, "multi-beta_binomial.csv"), 3, True)
-    nll_bb_test = InteractiveTest(
-        multi_subject=True,
-        name="Beta Binomial sim NLL",
-        observation=bb,
-        score_type=NLLScore,
-    )
-    aic_bb_test = InteractiveTest(
-        multi_subject=True,
-        name="Beta Binomial sim AIC",
-        observation=bb,
-        score_type=AICScore,
-        fn_kwargs_for_score=aic_kwargs_fn,
-    )
-    bic_bb_test = InteractiveTest(
-        multi_subject=True,
-        name="Beta Binomial sim BIC",
-        observation=bb,
-        score_type=BICScore,
-        fn_kwargs_for_score=bic_kwargs_fn,
-    )
-
-    nll_al_suite = sciunit.TestSuite(
-        [
-            nll_rr_al_test,
-            nll_rw_norm_test,
-            nll_krw_norm_test,
-            nll_lsspd_test,
-            nll_bb_test,
-        ],
-        name="NLL suite for associative learning",
-    )
-    aic_al_suite = sciunit.TestSuite(
-        [
-            aic_rr_al_test,
-            aic_rw_norm_test,
-            aic_krw_norm_test,
-            aic_lsspd_test,
-            aic_bb_test,
-        ],
-        name="AIC suite for associative learning",
-    )
-    bic_al_suite = sciunit.TestSuite(
-        [
-            bic_rr_al_test,
-            bic_rw_norm_test,
-            bic_krw_norm_test,
-            bic_lsspd_test,
-            bic_bb_test,
-        ],
-        name="BIC suite for associative learning",
-    )
-
-    # Associative learning models
-    # -----------------------------------------------
+def get_models():
     MultiRwNormModel = multi_subject(associative_learning.RwNormModel)
     MultiKrwNormModel = multi_subject(associative_learning.KrwNormModel)
     MultiBetaBinomialModel = multi_subject(associative_learning.BetaBinomialModel)
@@ -191,24 +74,28 @@ def main():
     multi_bb = MultiBetaBinomialModel(param_list, n_obs=4)
     multi_bb.name = "bb"
 
+    return [multi_rw_norm, multi_krw_norm, multi_lsspd, multi_bb]
+
+
+def main():
+    nll_al_suite = sciunit.TestSuite(
+        get_tests("NLL", NLLScore, None), name="NLL suite for associative learning"
+    )
+    aic_al_suite = sciunit.TestSuite(
+        get_tests("AIC", AICScore, aic_kwargs_fn),
+        name="AIC suite for associative learning",
+    )
+    bic_al_suite = sciunit.TestSuite(
+        get_tests("BIC", BICScore, bic_kwargs_fn),
+        name="BIC suite for associative learning",
+    )
+
+    models = get_models()
     # Run test suites
     # -----------------------------------------------
-    nll_al_suite.judge([multi_rw_norm, multi_krw_norm, multi_lsspd, multi_bb])
-    aic_al_suite.judge([multi_rw_norm, multi_krw_norm, multi_lsspd, multi_bb])
-    bic_al_suite.judge([multi_rw_norm, multi_krw_norm, multi_lsspd, multi_bb])
-
-
-def main_fake():
-    rr_al = get_simulation_data(pathjoin(DATA_PATH, "multi-rr_al.csv"), 3, True)
-    nll_rr_al_test = InteractiveTest(
-        multi_subject=True, name="rr_al sim NLL", observation=rr_al, score_type=NLLScore
-    )
-    suite = sciunit.TestSuite([nll_rr_al_test], name="suite")
-    MultiRwNormModel = multi_subject(associative_learning.RwNormModel)
-    param_list = get_model_params(pathjoin(DATA_PATH, "multi-rw_norm_prior.csv"))
-    multi_rw_norm = MultiRwNormModel(param_list, n_obs=4, seed=42)
-    multi_rw_norm.name = "rw_norm"
-    suite.judge([multi_rw_norm])
+    nll_al_suite.judge(models)
+    aic_al_suite.judge(models)
+    bic_al_suite.judge(models)
 
 
 if __name__ == "__main__":

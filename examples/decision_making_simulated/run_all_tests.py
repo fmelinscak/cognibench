@@ -1,11 +1,9 @@
-import sys
 import numpy as np
 import sciunit
 import pandas as pd
 from os import getcwd
 from os.path import join as pathjoin
 
-sys.path.append("..")
 from ldmunit.models import decision_making
 from ldmunit.models.utils import (
     multi_from_single_interactive_parametric as multi_subject,
@@ -32,116 +30,29 @@ def bic_kwargs_fn(model, obs, pred):
     return {"n_model_params": model.n_params(), "n_samples": len(obs["stimuli"])}
 
 
-def main():
-    # Tests
-    # -----------------------------------------------
-    ck = get_simulation_data(pathjoin(DATA_PATH, "multi-ck.csv"), 3)
-    nll_ck_test = InteractiveTest(
-        multi_subject=True, name="CK sim NLL", observation=ck, score_type=NLLScore
-    )
-    aic_ck_test = InteractiveTest(
-        multi_subject=True,
-        name="CK sim AIC",
-        observation=ck,
-        score_type=AICScore,
-        fn_kwargs_for_score=aic_kwargs_fn,
-    )
-    bic_ck_test = InteractiveTest(
-        multi_subject=True,
-        name="CK sim BIC",
-        observation=ck,
-        score_type=BICScore,
-        fn_kwargs_for_score=bic_kwargs_fn,
-    )
+def get_tests(score_name, score_type, score_kwargs_fn):
+    names_paths = [
+        ("ck", pathjoin(DATA_PATH, "multi-ck.csv")),
+        ("rw", pathjoin(DATA_PATH, "multi-rw.csv")),
+        ("rwck", pathjoin(DATA_PATH, "multi-rwck.csv")),
+        ("rr", pathjoin(DATA_PATH, "multi-random-responding.csv")),
+        ("nwsls", pathjoin(DATA_PATH, "multi-nwsls.csv")),
+    ]
+    tests = []
+    for test_name, path in names_paths:
+        obs = get_simulation_data(path, 3, True)
+        curr_test = InteractiveTest(
+            multi_subject=True,
+            name=f"{test_name} sim {score_name}",
+            observation=obs,
+            score_type=score_type,
+            fn_kwargs_for_score=score_kwargs_fn,
+        )
+        tests.append(curr_test)
+    return tests
 
-    rw = get_simulation_data(pathjoin(DATA_PATH, "multi-rw.csv"), 3)
-    nll_rw_test = InteractiveTest(
-        multi_subject=True, name="RW sim NLL", observation=rw, score_type=NLLScore
-    )
-    aic_rw_test = InteractiveTest(
-        multi_subject=True,
-        name="RW sim AIC",
-        observation=rw,
-        score_type=AICScore,
-        fn_kwargs_for_score=aic_kwargs_fn,
-    )
-    bic_rw_test = InteractiveTest(
-        multi_subject=True,
-        name="RW sim BIC",
-        observation=rw,
-        score_type=BICScore,
-        fn_kwargs_for_score=bic_kwargs_fn,
-    )
 
-    rwck = get_simulation_data(pathjoin(DATA_PATH, "multi-rwck.csv"), 3)
-    nll_rwck_test = InteractiveTest(
-        multi_subject=True, name="RWCK sim NLL", observation=rwck, score_type=NLLScore
-    )
-    aic_rwck_test = InteractiveTest(
-        multi_subject=True,
-        name="RWCK sim AIC",
-        observation=rwck,
-        score_type=AICScore,
-        fn_kwargs_for_score=aic_kwargs_fn,
-    )
-    bic_rwck_test = InteractiveTest(
-        multi_subject=True,
-        name="RWCK sim BIC",
-        observation=rwck,
-        score_type=BICScore,
-        fn_kwargs_for_score=bic_kwargs_fn,
-    )
-
-    rr = get_simulation_data(pathjoin(DATA_PATH, "multi-random-responding.csv"), 3)
-    nll_rr_test = InteractiveTest(
-        multi_subject=True, name="RR sim NLL", observation=rr, score_type=NLLScore
-    )
-    aic_rr_test = InteractiveTest(
-        multi_subject=True,
-        name="RR sim AIC",
-        observation=rr,
-        score_type=AICScore,
-        fn_kwargs_for_score=aic_kwargs_fn,
-    )
-    bic_rr_test = InteractiveTest(
-        multi_subject=True,
-        name="RR sim BIC",
-        observation=rr,
-        score_type=BICScore,
-        fn_kwargs_for_score=bic_kwargs_fn,
-    )
-
-    nwsls = get_simulation_data(pathjoin(DATA_PATH, "multi-nwsls.csv"), 3)
-    nll_nwsls_test = InteractiveTest(
-        multi_subject=True, name="NWSLS sim NLL", observation=nwsls, score_type=NLLScore
-    )
-    aic_nwsls_test = InteractiveTest(
-        multi_subject=True,
-        name="NWSLS sim AIC",
-        observation=nwsls,
-        score_type=AICScore,
-        fn_kwargs_for_score=aic_kwargs_fn,
-    )
-    bic_nwsls_test = InteractiveTest(
-        multi_subject=True,
-        name="NWSLS sim BIC",
-        observation=nwsls,
-        score_type=BICScore,
-        fn_kwargs_for_score=bic_kwargs_fn,
-    )
-
-    nll_suite = sciunit.TestSuite(
-        [nll_ck_test, nll_rw_test, nll_rwck_test, nll_nwsls_test], name="NLL suite"
-    )
-    aic_suite = sciunit.TestSuite(
-        [aic_ck_test, aic_rw_test, aic_rwck_test, aic_nwsls_test], name="AIC suite"
-    )
-    bic_suite = sciunit.TestSuite(
-        [bic_ck_test, bic_rw_test, bic_rwck_test, bic_nwsls_test], name="BIC suite"
-    )
-
-    # Decision making models
-    # -----------------------------------------------
+def get_models():
     MultiRWModel = multi_subject(decision_making.RWModel)
     MultiCKModel = multi_subject(decision_making.CKModel)
     MultiRWCKModel = multi_subject(decision_making.RWCKModel)
@@ -164,11 +75,26 @@ def main():
     multi_nwsls = MultiNWSLSModel(param_list, n_action=n_action, n_obs=n_obs)
     multi_nwsls.name = "nwsls"
 
+    return [multi_ck, multi_rw, multi_rwck, multi_nwsls]
+
+
+def main():
+    nll_al_suite = sciunit.TestSuite(
+        get_tests("NLL", NLLScore, None), name="NLL suite for decision making"
+    )
+    aic_al_suite = sciunit.TestSuite(
+        get_tests("AIC", AICScore, aic_kwargs_fn), name="AIC suite for decision making"
+    )
+    bic_al_suite = sciunit.TestSuite(
+        get_tests("BIC", BICScore, bic_kwargs_fn), name="BIC suite for decision making"
+    )
+
+    models = get_models()
     # Run test suites
     # -----------------------------------------------
-    nll_suite.judge([multi_ck, multi_rw, multi_rwck, multi_nwsls])
-    aic_suite.judge([multi_ck, multi_rw, multi_rwck, multi_nwsls])
-    bic_suite.judge([multi_ck, multi_rw, multi_rwck, multi_nwsls])
+    nll_al_suite.judge(models)
+    aic_al_suite.judge(models)
+    bic_al_suite.judge(models)
 
 
 if __name__ == "__main__":
