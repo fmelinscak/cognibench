@@ -1,17 +1,28 @@
-import os
-import collections
-import pickle
+from os import makedirs
+from os.path import join as pathjoin
 import numpy as np
-from sciunit import Test
+from sciunit import Test as SciunitTest, Score as SciunitScore
 from sciunit.errors import Error
 from ldmunit.models import LDMModel
-from ldmunit.capabilities import Interactive, BatchTrainable, MultiSubjectModel
+from ldmunit.capabilities import MultiSubjectModel
 from ldmunit.models.utils import single_from_multi_obj, reverse_single_from_multi_obj
+from overrides import overrides
 
 
-class LDMTest(Test):
+class LDMTest(SciunitTest):
+    """
+    Base test class for all LDMUnit tests.
+
+    This class can not be used directly. The deriving
+    classes should implement `predict_single` and `compute_score_single` methods to define the
+    testing procedure.
+
+    This class only accepts derivatives of :class:`ldmunit.models.LDMModel` class.
+    """
+
     score_type = None
 
+    @overrides
     def __init__(
         self,
         *args,
@@ -23,6 +34,57 @@ class LDMTest(Test):
         fn_kwargs_for_score=None,
         **kwargs,
     ):
+        """
+        Parameters
+        ----------
+        score_type : :class:`sciunit.Score`
+            A sciunit Score class. See `ldmunit.scores` for several possibilities. The score type can define its own
+            `required_capabilities` class field. In that case, these capabilities will be appended to the required
+            capabilities of the test class.
+
+        observation : dict or sequence of dict
+            In a single-subject test, this dictionary must contain the data for testing. The exact keys of the dictionary
+            is determined by the concrete test classes.
+
+            In a multi-subject test, this is a sequence where each element is a dictionary storing the data for the
+            corresponding subject. Similarly, exact keys are left to the concrete test classes.
+
+        multi_subject : bool
+            Whether the data and the models are multi-subject.
+
+            If True, the data is expected to be
+            sequence where each element is the dictionary of the corresponding subject. Similarly, the model
+            should be a multi-subject model.
+
+            If False, data is expected to be a dictionary as usual, and the model should be a standard single-subject
+            model.
+
+        score_aggr_fn : callable
+            If a multi-subject test is performed, this callable defines how to combine the score value of different
+            subjects to compute the final score of the test. Signature is as below:
+
+            score_aggr_fn(Sequence[float]) -> float
+
+        persist_path : str
+            Path to the folder where test logs such as predictions, scores and models will be saved. Directory
+            is automatically created if it does not exist.
+
+        logging : int
+            Logging level. Expected to be an integer:
+
+            0 -> no logging
+            1 -> basic logging
+            2 -> verbose logging
+            3 -> ultra verbose logging
+
+        fn_kwargs_for_score : callable
+            Callable to generate required keyword arguments for the score computation, if necessary. Some score objects
+            require more than just the predictions and the observations to be computed, such as AIC or BIC. In that case
+            this function can be used to generate a dictionary to provide these argument to such score computing functions.
+            The signature is as below:
+
+            fn_kwargs_for_score(single_subj_model, single_subj_observations, single_subj_predictions)
+        """
         self.multi_subject = multi_subject
         self.score_aggr_fn = score_aggr_fn
         self.persist_path = persist_path
@@ -30,6 +92,7 @@ class LDMTest(Test):
         self.fn_kwargs_for_score = fn_kwargs_for_score
 
         if score_type is not None:
+            assert issubclass(score_type, SciunitScore)
             self.score_type = score_type
             try:
                 score_capabilities = self.score_type.required_capabilities
@@ -40,19 +103,29 @@ class LDMTest(Test):
                 pass
         super().__init__(*args, **kwargs)
 
+    @overrides
     def check_capabilities(self, model, **kwargs):
+        """
+        Check if the passed model is derived from :class:`ldmunit.models.LDMModel` and then delegate the rest of the
+        checking to sciunit framework.
+        """
         if not isinstance(model, LDMModel):
             raise Error(f"Model {model} is not an instance of LDMModel")
         super().check_capabilities(model, **kwargs)
 
-    def _get_observations(self):
+    def __get_observations(self):
         if self.multi_subject:
             return self.observation["list"]
         else:
             return self.observation
 
+    @overrides
     def generate_prediction(self, model):
-        observations = self._get_observations()
+        """
+        Given a multi or single subject model, run the tests to generate predictions and return them. If the test is
+        a multi-subject test, the model must be derived from `ldmunit.capabilities.MultiSubjectModel`.
+        """
+        observations = self.__get_observations()
         if self.multi_subject:
             assert isinstance(
                 model, MultiSubjectModel
@@ -87,8 +160,12 @@ class LDMTest(Test):
         else:
             return dict()
 
+    @overrides
     def compute_score(self, _, predictions, **kwargs):
-        observations = self._get_observations()
+        """
+        Compute the score from the given predictions and the stored observations.
+        """
+        observations = self.__get_observations()
         if self.multi_subject:
             n_subj = len(observations)
             scores = []
@@ -101,51 +178,122 @@ class LDMTest(Test):
                         **kwargs,
                     ).score
                 )
-            score = self.score_aggr_fn(scores)
+            score = self.score_type(self.score_aggr_fn(scores))
         else:
             score = self.compute_score_single(
                 observations, predictions, **self.score_kwargs, **kwargs
-            ).score
-        return self.score_type(score)
+            )
+        return score
 
     def predict_single(self, model, observations, **kwargs):
+        """
+        Generate predictions for one group of testing. In the single subject case, this is the main prediction
+        generation method, given the model and observations. In the multi subject case, each call to this method
+        contains one of the single-subject models and the corresponding observations for that subject. In either case,
+        users don't need to handle multi-subject prediction handling themselves, and can just implement the single-subject
+        case.
+
+        Parameters
+        ----------
+        model : :class:`ldmunit.models.LDMModel`
+            A single-subject model. Method calls don't need to pass any subject index.
+
+        observations : dict
+            Observations dictionary containing the keys specific to the concrete test class.
+
+        Returns
+        -------
+        predictions : array-like
+            Predictions for each of the stimuli in `observations` dictionary, in the same order.
+        """
         raise NotImplementedError(
             "predict_single must be implemented by concrete Test classes"
         )
 
     def compute_score_single(self, observations, predictions, **kwargs):
+        """
+        Compute the score for one group of testing. Similar to `predict_single`, in the single subject case, this is the
+        main score computing method, given observations, predictions and possible extra keyword arguments generated by `fn_kwargs_for_score`.
+        In the multi-subject case, all the inputs are given for each subject with separate calls to this function. In either case,
+        users don't need to handle multi-subject case themselves, and can just implement the single-subject case.
+
+        Parameters
+        ----------
+        observations : dict
+            Observations dictionary containing the keys specific to the concrete test class.
+
+        predictions : array-like
+            Predictions for each of the stimuli in `observations` dictionary, in the same order.
+
+        Other Parameters
+        ----------------
+        kwargs : dict
+            Optional keyword arguments required for the particular score being computed.
+
+        Returns
+        -------
+        score : `sciunit.Score`
+            The score object.
+        """
         raise NotImplementedError(
             "compute_score_single must be implemented by concrete Test classes"
         )
 
+    @overrides
     def bind_score(self, score, model, observation, prediction):
+        self.persist(score, model, prediction)
+
+    def persist(self, score, model, prediction):
+        """
+        Persist the results of the test if a path is given.
+
+        Parameters
+        ----------
+        score : :class:`sciunit.Score`
+            Final score object
+
+        model : :class:`ldmunit.models.LDMModel`
+            Tested model. In order to save the model, the model should implement `save(output_path)` method.
+
+        prediction : dict or sequence of dict
+            Predictions generated during the test
+        """
         if self.logging > 0:
             print()
         if self.persist_path is None:
             return
 
-        folderpath = os.path.join(self.persist_path, model.name)
-        os.makedirs(folderpath, exist_ok=True)
-        score_filepath = os.path.join(folderpath, "score")
-        pred_filepath = os.path.join(folderpath, "predictions")
-        model_filepath = os.path.join(folderpath, "model")
-        self._persist_score(score_filepath, score)
-        self._persist_predictions(pred_filepath, prediction)
-        self._persist_model(model_filepath, model)
+        folderpath = pathjoin(self.persist_path, model.name)
+        makedirs(folderpath, exist_ok=True)
+        score_filepath = pathjoin(folderpath, "score")
+        pred_filepath = pathjoin(folderpath, "predictions")
+        model_filepath = pathjoin(folderpath, "model")
+        self.persist_score(score_filepath, score)
+        self.persist_predictions(pred_filepath, prediction)
+        self.persist_model(model_filepath, model)
         if self.logging > 0:
-            print("Data saving is complete")
+            print("Test results have been persisted")
 
-    def _persist_score(self, path, score):
+    def persist_score(self, path, score):
+        """
+        Persist the score value in the given path.
+        """
         np.save(path, np.asarray(score.score))
         if self.logging > 1:
             print(f"Score is saved in {path}")
 
-    def _persist_predictions(self, path, predictions):
+    def persist_predictions(self, path, predictions):
+        """
+        Persist the predictions in the given path.
+        """
         np.save(path, np.asarray(predictions))
         if self.logging > 1:
             print(f"Predictions are saved in {path}")
 
-    def _persist_model(self, path, model):
+    def persist_model(self, path, model):
+        """
+        Persist the model in the given path. `model` must implement `save(path)` method.
+        """
         try:
             model.save(path)
             if self.logging > 1:
@@ -154,163 +302,5 @@ class LDMTest(Test):
             modelname = model.name
             if self.logging > 1:
                 print(
-                    f"Model {modelname} does not implement save method, saving unsuccessful"
+                    f"Model {modelname} does not implement save method. Model saving is unsuccessful"
                 )
-
-
-class InteractiveTest(LDMTest):
-    """
-    TODO: update the comment, it is deprecated.
-    Perform interactive tests by feeding the input samples (stimuli) one at a
-    time. This class is not intended to be used directly since it does not
-    specify how the score should be computed. In order to create concrete
-    interactive tests, create a subclass and specify how the score should be
-    computed.
-
-    See Also
-    --------
-    :class:`NLLTest`, :class:`AICTest`, :class:`BICTest` for examples of concrete interactive test classes
-    """
-
-    required_capabilities = (Interactive,)
-
-    def __init__(self, *args, **kwargs):
-        """
-        Other Parameters
-        ----------------
-        **kwargs : any type
-            All the keyword arguments are passed to `__init__` method of :class:`sciunit.tests.Test`.
-            `observation` dictionary must contain 'stimuli', 'rewards' and 'actions' keys.
-            Value for each these keys must be a list of list (or any other iterable) where
-            outer list is over subjects and inner list is over samples.
-
-        See Also
-        --------
-        :py:meth:`InteractiveTest.generate_prediction`
-        """
-        super().__init__(*args, **kwargs)
-
-    def predict_single(self, model, observations, **kwargs):
-        """
-        Generate predictions from a multi-subject model one at a time.
-
-        Parameters
-        ----------
-        multimodel : :class:`ldmunit.models.LDMModel` and :class:`ldmunit.capabilities.Interactive`
-            Multi-subject model
-
-        Returns
-        -------
-        list of list
-            Predictions
-        """
-        stimuli = observations["stimuli"]
-        rewards = observations["rewards"]
-        actions = observations["actions"]
-
-        predictions = []
-        model.reset()
-        for s, r, a in zip(stimuli, rewards, actions):
-            predictions.append(model.predict(s))
-            model.update(s, r, a, False)
-        return predictions
-
-    def compute_score_single(self, observations, predictions, **kwargs):
-        return self.score_type.compute(observations["actions"], predictions, **kwargs)
-
-
-class BatchTest(LDMTest):
-    def __init__(self, *args, **kwargs):
-        """
-        TODO: update the comment, it is deprecated.
-        Perform batch tests by predicting the outcome for each input sample without
-        doing any model update. This class is not intended to be used directly since
-        it does not specify how the score should be computed. In order to create
-        concrete batch tests, create a subclass and specify how the score
-        should be computed.
-
-        Other Parameters
-        ----------------
-        **kwargs : any type
-            All the keyword arguments are passed to `__init__` method of :class:`sciunit.tests.Test`.
-            `observation` dictionary must contain 'stimuli', and 'actions' keys.
-            Value for each these keys must be a list of 'stimuli' resp. 'action'.
-
-        See Also
-        --------
-        :py:meth:`BatchTest.generate_prediction`
-        """
-        super().__init__(*args, **kwargs)
-
-    def predict_single(self, model, observations, **kwargs):
-        """
-        Generate predictions from a given model
-
-        Parameters
-        ----------
-        model : :class:`ldmunit.models.LDMModel`
-            Model to test
-
-        Returns
-        -------
-        list
-            Predictions
-        """
-        return model.predict(observations["stimuli"])
-
-    def compute_score_single(self, observations, predictions, **kwargs):
-        return self.score_type.compute(observations["actions"], predictions, **kwargs)
-
-
-class BatchTrainAndTest(LDMTest):
-    required_capabilities = (BatchTrainable,)
-
-    def __init__(
-        self,
-        *args,
-        train_percentage=0.75,
-        seed=None,
-        train_indices=None,
-        test_indices=None,
-        **kwargs,
-    ):
-        """
-        If train_indices is given, it is used; else, a random train/test split is used.
-        """
-        assert (
-            train_percentage > 0 and train_percentage < 1
-        ), "train_percentage must be in range (0, 1)"
-        super().__init__(*args, **kwargs)
-        if train_indices is None:
-            assert test_indices is None
-            n_obs = len(self.observation["stimuli"])
-            indices = np.arange(n_obs, dtype=np.int64)
-            np.random.RandomState(seed).shuffle(indices)
-            n_train = round(n_obs * train_percentage)
-            self.train_indices = indices[:n_train]
-            self.test_indices = indices[n_train:]
-        else:
-            assert test_indices is not None
-            self.train_indices = train_indices
-            self.test_indices = test_indices
-
-    def predict_single(self, model, observations, **kwargs):
-        x_train = observations["stimuli"][self.train_indices]
-        y_train = observations["actions"][self.train_indices]
-        model.fit(x_train, y_train)
-
-        x_test = observations["stimuli"][self.test_indices]
-        predictions = np.asarray(model.predict(x_test))
-
-        return predictions
-
-    def compute_score_single(self, observations, predictions, **kwargs):
-        actions = observations["actions"][self.test_indices]
-        return self.score_type.compute(actions, predictions, **kwargs)
-
-    def persist_predictions(self, path, predictions):
-        indices_path = f"{path}_indices"
-        np.save(indices_path, self.test_indices)
-        if self.logging > 1:
-            print(f"Indices are saved in {indices_path}")
-        super().persist_predictions(path, predictions)
