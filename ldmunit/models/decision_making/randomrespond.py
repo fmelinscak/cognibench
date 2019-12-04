@@ -4,6 +4,7 @@ from scipy import stats
 
 from ldmunit.models import DADO, ParametricModelMixin
 from ldmunit.capabilities import Interactive, PredictsLogpdf
+from overrides import overrides
 
 
 class RandomRespondModel(DADO, Interactive, PredictsLogpdf, ParametricModelMixin):
@@ -14,6 +15,7 @@ class RandomRespondModel(DADO, Interactive, PredictsLogpdf, ParametricModelMixin
 
     name = "RandomRespondModel"
 
+    @overrides
     def __init__(self, *args, bias, action_bias, **kwargs):
         """
         Parameters

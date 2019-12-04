@@ -5,6 +5,7 @@ from scipy import stats
 from ldmunit.models import CAMO, ParametricModelMixin
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 from ldmunit.utils import is_arraylike
+from overrides import overrides
 
 
 class KrwNormModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
@@ -14,6 +15,7 @@ class KrwNormModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
 
     name = "KrwNorm"
 
+    @overrides
     def __init__(self, *args, w, sigma, b0, b1, sigmaWInit, tauSq, sigmaRSq, **kwargs):
         """
         Parameters

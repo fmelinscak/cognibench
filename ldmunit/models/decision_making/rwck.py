@@ -5,6 +5,7 @@ from scipy.special import softmax
 
 from ldmunit.models import DADO, ParametricModelMixin
 from ldmunit.capabilities import Interactive, PredictsLogpdf
+from overrides import overrides
 
 
 class RWCKModel(DADO, Interactive, PredictsLogpdf, ParametricModelMixin):
@@ -20,6 +21,7 @@ class RWCKModel(DADO, Interactive, PredictsLogpdf, ParametricModelMixin):
 
     name = "RWCKModel"
 
+    @overrides
     def __init__(self, *args, w, beta, beta_c, eta, eta_c, **kwargs):
         """
         Parameters
@@ -163,12 +165,13 @@ class RWModel(RWCKModel):
 
     name = "RWModel"
 
-    def __init__(self, **kwargs):
+    @overrides
+    def __init__(self, *args, **kwargs):
         """
         Rescorla-Wagner is implemented as a special case of RWCK by setting
         `beta_c` parameter to 0.
         """
-        super().__init__(**kwargs)
+        super().__init__(*args, **kwargs)
         self.paras["beta_c"] = 0
 
 
@@ -180,10 +183,11 @@ class CKModel(RWCKModel):
 
     name = "CKModel"
 
-    def __init__(self, **kwargs):
+    @overrides
+    def __init__(self, *args, **kwargs):
         """
         Choice Kernel is implemented as a special case of RWCK by setting
         `beta` parameter to 0.
         """
-        super().__init__(**kwargs)
+        super().__init__(*args, **kwargs)
         self.paras["beta"] = 0

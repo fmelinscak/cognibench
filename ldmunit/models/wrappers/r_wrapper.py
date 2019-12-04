@@ -54,7 +54,7 @@ class RWrapperMixin:
             Analogous to reset_fn documentation.
         """
         self.globalenv = REnv()
-        __activate_conversions()
+        _activate_conversions()
 
         # source all R files in the given directory, and create an R module from the merged sourcecode
         r_files = (f for f in listdir(import_base_path) if f.lower().endswith(".r"))
@@ -65,24 +65,24 @@ class RWrapperMixin:
                 r_codestring += "\n"
         self.R_module = STAP(r_codestring, "r_module")
 
-        __define_if_given(self, reset_fn, "reset")
-        __define_if_given(self, predict_fn, "predict")
-        __define_if_given(self, fit_fn, "fit")
-        __define_if_given(self, update_fn, "update")
-        __define_if_given(self, act_fn, "act")
+        _define_if_given(self, reset_fn, "reset")
+        _define_if_given(self, predict_fn, "predict")
+        _define_if_given(self, fit_fn, "fit")
+        _define_if_given(self, update_fn, "update")
+        _define_if_given(self, act_fn, "act")
 
 
-def __activate_conversions():
+def _activate_conversions():
     numpy2ri.activate()
     pandas2ri.activate()
 
 
-def __deactivate_conversions():
+def _deactivate_conversions():
     numpy2ri.deactivate()
     pandas2ri.deactivate()
 
 
-def __move_data(dict_from, dict_to):
+def _move_data(dict_from, dict_to):
     """
     Move all the data from dict_from to dict_to.
     """
@@ -92,7 +92,7 @@ def __move_data(dict_from, dict_to):
     dict_from.clear()
 
 
-def __define_if_given(obj, fn, fn_name_to_set):
+def _define_if_given(obj, fn, fn_name_to_set):
     """
     Define `obj.fn_name_to_set` if `fn` is not None. Further, `fn` is called after setting `globalenv` to `obj.globalenv`.
     """
@@ -107,9 +107,9 @@ def __define_if_given(obj, fn, fn_name_to_set):
 
     def call_with_separate_global_env(*args, **kwargs):
         global globalenv
-        __move_data(obj.globalenv, globalenv)
+        _move_data(obj.globalenv, globalenv)
         res = fn_to_call(*args, **kwargs)
-        __move_data(globalenv, obj.globalenv)
+        _move_data(globalenv, obj.globalenv)
         return res
 
     setattr(obj, fn_name_to_set, call_with_separate_global_env)

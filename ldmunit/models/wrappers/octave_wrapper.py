@@ -50,14 +50,14 @@ class OctaveWrapperMixin:
         self.octave_session = Oct2Py()
         self.octave_session.eval(f'addpath("{import_base_path}");')
 
-        __define_if_given(self, reset_fn, "reset")
-        __define_if_given(self, predict_fn, "predict")
-        __define_if_given(self, fit_fn, "fit")
-        __define_if_given(self, update_fn, "update")
-        __define_if_given(self, act_fn, "act")
+        _define_if_given(self, reset_fn, "reset")
+        _define_if_given(self, predict_fn, "predict")
+        _define_if_given(self, fit_fn, "fit")
+        _define_if_given(self, update_fn, "update")
+        _define_if_given(self, act_fn, "act")
 
 
-def __define_if_given(obj, fn, fn_name_to_set):
+def _define_if_given(obj, fn, fn_name_to_set):
     """
     Define `obj.fn_name_to_set` if fn is not None.
     """

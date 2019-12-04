@@ -5,6 +5,7 @@ from scipy import stats
 from ldmunit.models import CAMO, ParametricModelMixin
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 from ldmunit.utils import is_arraylike
+from overrides import overrides
 
 
 class LSSPDModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
@@ -15,6 +16,7 @@ class LSSPDModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
     # RWPH
     name = "LSSPD"
 
+    @overrides
     def __init__(self, *args, w, alpha, b0, b1, sigma, mix_coef, eta, kappa, **kwargs):
         """
         Parameters

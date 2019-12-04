@@ -11,6 +11,7 @@ from ldmunit.capabilities import (
     ReturnsNumParams,
 )
 from ldmunit.continuous import ContinuousSpace
+from overrides import overrides
 
 
 class LDMModel(sciunit.Model):
@@ -18,6 +19,7 @@ class LDMModel(sciunit.Model):
     Helper base class for LDMUnit models.
     """
 
+    @overrides
     def __init__(self, paras=None, hidden_state=None, seed=None, **kwargs):
         """
         Parameters

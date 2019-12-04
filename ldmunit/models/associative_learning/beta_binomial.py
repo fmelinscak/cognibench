@@ -7,6 +7,7 @@ from ldmunit.models import CAMO, ParametricModelMixin
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 from ldmunit.utils import is_arraylike
 from collections.abc import MutableMapping
+from overrides import overrides
 
 
 class DictWithBinarySequenceKeys(MutableMapping):
@@ -52,6 +53,7 @@ class BetaBinomialModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin)
 
     name = "BetaBinomial"
 
+    @overrides
     def __init__(self, *args, a=1, b=1, sigma, mix_coef, intercept, slope, **kwargs):
         """
         Parameters
