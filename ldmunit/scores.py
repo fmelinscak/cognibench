@@ -3,10 +3,12 @@ from scipy.stats.mstats import pearsonr
 from sciunit import scores
 from sciunit import errors
 from ldmunit.capabilities import PredictsLogpdf, ReturnsNumParams
+from overrides import overrides
 
 
 class BoundedScore(scores.FloatScore):
-    def __init__(self, score, *args, min_score, max_score, **kwargs):
+    @overrides
+    def __init__(self, *args, min_score, max_score, **kwargs):
         """
         Initialize the score. This class requires two mandatory
         keyword-only arguments.
@@ -30,7 +32,7 @@ class BoundedScore(scores.FloatScore):
             crashes sciunit. However, this value does not affect the
             original score value or their ordering in any way.
         """
-        super().__init__(score, **kwargs)
+        super().__init__(*args, **kwargs)
         self.min_score = min_score
         self.max_score = max_score
 
@@ -38,6 +40,7 @@ class BoundedScore(scores.FloatScore):
 class HigherBetterScore(BoundedScore):
     _description = "Score values where higher is better"
 
+    @overrides
     def color(self, value=None):
         """
         Ensure that a normalized value is passed to parent class' color method which
@@ -66,6 +69,7 @@ class LowerBetterScore(BoundedScore):
 
     _description = "Score values where lower is better"
 
+    @overrides
     def color(self, value=None):
         """
         Ensure that a normalized value is passed to parent class' color method which
@@ -87,6 +91,7 @@ class LowerBetterScore(BoundedScore):
         return super().color(normalized)
 
     @property
+    @overrides
     def norm_score(self):
         """
         Used for sorting. Lower is better.
@@ -223,8 +228,9 @@ class PearsonCorrelationScore(HigherBetterScore):
     Pearson correlation coefficient score object.
     """
 
+    @overrides
     def __init__(self, *args, **kwargs):
-        super().__init__(self, *args, min_score=-1, max_score=1, **kwargs)
+        super().__init__(*args, min_score=-1, max_score=1, **kwargs)
 
     @classmethod
     def compute(cls, actions, predictions):
@@ -233,7 +239,7 @@ class PearsonCorrelationScore(HigherBetterScore):
         """
         actions = np.asarray(actions).flatten()
         predictions = np.asarray(predictions).flatten()
-        corr = pearsonr(np.asarray(actions), np.asarray(predictions))[0]
+        corr = pearsonr(actions, predictions)[0]
         return cls(corr)
 
 
@@ -256,8 +262,9 @@ class AccuracyScore(HigherBetterScore):
     Accuracy score object.
     """
 
+    @overrides
     def __init__(self, *args, **kwargs):
-        super().__init__(self, *args, min_score=0.0, max_score=1.0, **kwargs)
+        super().__init__(*args, min_score=0.0, max_score=1.0, **kwargs)
 
     @classmethod
     def compute(cls, actions, predictions):

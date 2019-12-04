@@ -5,7 +5,9 @@ from os import getcwd
 from os.path import join as pathjoin
 
 from ldmunit.models import associative_learning
-from ldmunit.models.utils import multi_from_single_interactive
+from ldmunit.models.utils import (
+    multi_from_single_interactive_parametric as multi_subject,
+)
 from ldmunit.testing import InteractiveTest
 from ldmunit.utils import partialclass
 import ldmunit.scores as scores
@@ -168,12 +170,10 @@ def main():
 
     # Associative learning models
     # -----------------------------------------------
-    MultiRwNormModel = multi_from_single_interactive(associative_learning.RwNormModel)
-    MultiKrwNormModel = multi_from_single_interactive(associative_learning.KrwNormModel)
-    MultiBetaBinomialModel = multi_from_single_interactive(
-        associative_learning.BetaBinomialModel
-    )
-    MultiLSSPDModel = multi_from_single_interactive(associative_learning.LSSPDModel)
+    MultiRwNormModel = multi_subject(associative_learning.RwNormModel)
+    MultiKrwNormModel = multi_subject(associative_learning.KrwNormModel)
+    MultiBetaBinomialModel = multi_subject(associative_learning.BetaBinomialModel)
+    MultiLSSPDModel = multi_subject(associative_learning.LSSPDModel)
 
     param_list = get_model_params(pathjoin(DATA_PATH, "multi-rw_norm_prior.csv"))
     multi_rw_norm = MultiRwNormModel(param_list, n_obs=4)
@@ -204,7 +204,7 @@ def main_fake():
         multi_subject=True, name="rr_al sim NLL", observation=rr_al, score_type=NLLScore
     )
     suite = sciunit.TestSuite([nll_rr_al_test], name="suite")
-    MultiRwNormModel = multi_from_single_interactive(associative_learning.RwNormModel)
+    MultiRwNormModel = multi_subject(associative_learning.RwNormModel)
     param_list = get_model_params(pathjoin(DATA_PATH, "multi-rw_norm_prior.csv"))
     multi_rw_norm = MultiRwNormModel(param_list, n_obs=4, seed=42)
     multi_rw_norm.name = "rw_norm"

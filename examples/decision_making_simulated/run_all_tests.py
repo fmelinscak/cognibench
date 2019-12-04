@@ -7,7 +7,9 @@ from os.path import join as pathjoin
 
 sys.path.append("..")
 from ldmunit.models import decision_making
-from ldmunit.models.utils import multi_from_single_interactive
+from ldmunit.models.utils import (
+    multi_from_single_interactive_parametric as multi_subject,
+)
 from ldmunit.testing import InteractiveTest
 from ldmunit.utils import partialclass
 import ldmunit.scores as scores
@@ -140,10 +142,10 @@ def main():
 
     # Decision making models
     # -----------------------------------------------
-    MultiRWModel = multi_from_single_interactive(decision_making.RWModel)
-    MultiCKModel = multi_from_single_interactive(decision_making.CKModel)
-    MultiRWCKModel = multi_from_single_interactive(decision_making.RWCKModel)
-    MultiNWSLSModel = multi_from_single_interactive(decision_making.NWSLSModel)
+    MultiRWModel = multi_subject(decision_making.RWModel)
+    MultiCKModel = multi_subject(decision_making.CKModel)
+    MultiRWCKModel = multi_subject(decision_making.RWCKModel)
+    MultiNWSLSModel = multi_subject(decision_making.NWSLSModel)
     n_action, n_obs = 3, 3
 
     param_list = get_model_params(pathjoin(DATA_PATH, "multi-ck_prior.csv"))
