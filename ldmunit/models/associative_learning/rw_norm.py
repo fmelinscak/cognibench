@@ -5,6 +5,7 @@ from scipy import stats
 from ldmunit.models import CAMO, ParametricModelMixin
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 from ldmunit.utils import is_arraylike
+from overrides import overrides
 
 
 class RwNormModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
@@ -14,6 +15,7 @@ class RwNormModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
 
     name = "RwNorm"
 
+    @overrides
     def __init__(self, *args, w, b0, b1, sigma, eta, **kwargs):
         """
         Parameters
@@ -30,8 +32,9 @@ class RwNormModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
         b0 : float
             Intercept used when computing the mean of normal distribution from reward.
 
-        b1 : float
+        b1 : array-like or float
             Slope used when computing the mean of the normal distribution from reward.
+            If a scalar is given, all elements of the slope vector is equal to that value.
 
         eta : float
             Learning rate for w updates. Must be nonnegative.

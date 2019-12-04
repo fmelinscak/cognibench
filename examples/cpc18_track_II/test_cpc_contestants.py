@@ -102,9 +102,7 @@ if __name__ == "__main__":
     CrossEntropyScore = partialclass(
         scores.CrossEntropyScore, min_score=0, max_score=1000
     )
-    PearsonCorrScore = partialclass(
-        scores.PearsonCorrelationScore, min_score=-1, max_score=1
-    )
+    PearsonCorrScore = scores.PearsonCorrelationScore
     persist_path_fmt = "output/{}"
     suite = TestSuite(
         [

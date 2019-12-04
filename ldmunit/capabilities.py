@@ -5,7 +5,7 @@ from .continuous import ContinuousSpace
 
 
 class Interactive(sciunit.Capability):
-    """Capability to interact with an environment (i.e. :class:`gym.Env`)
+    """Capability to interact with an environment
 
     Models with this capability are required to have the following methods to be
     able to respond to environment and update themselves in an interactive manner.
@@ -13,7 +13,7 @@ class Interactive(sciunit.Capability):
 
     def update(self, *args, **kwargs):
         """
-        Given stimulus, rewards and action, the model should updates its
+        Given stimulus, rewards and action, the model should update its
         hidden state. Also named evolution function in some packages.
         """
         raise NotImplementedError("Must implement update.")
@@ -21,8 +21,7 @@ class Interactive(sciunit.Capability):
 
 class PredictsLogpdf(sciunit.Capability):
     """
-    Capability for models that produce a log probability distribution
-    as a result of their predict function.
+    Capability for models that produce a logpdf as the return value of their predict method.
     """
 
     pass
@@ -31,7 +30,7 @@ class PredictsLogpdf(sciunit.Capability):
 class BatchTrainable(sciunit.Capability):
     """
     Capability for models that can train on a set (batch) of input samples in one go
-    rather than iteratively updating some hidden state using the samples.
+    rather than iteratively updating some hidden state.
     """
 
     def fit(self, *args, **kwargs):
@@ -43,7 +42,7 @@ class BatchTrainable(sciunit.Capability):
 
 class MultiSubjectModel(sciunit.Capability):
     """
-    Capability for models that natively supports multi subject data. These types of models
+    Capability for models that natively support multi subject data. These types of models
     must take a subject index as the first argument to their core functions such as fit, predict, reset, etc. The
     names of these multi-subject functions must be stored in multi_subject_methods variable as given below.
     """
@@ -52,7 +51,14 @@ class MultiSubjectModel(sciunit.Capability):
 
 
 class ReturnsNumParams(sciunit.Capability):
+    """
+    Capability for models that can return the number of parameters they utilize.
+    """
+
     def n_params(self):
+        """
+        The model should return the number of parameters it has.
+        """
         raise NotImplementedError("Must have n_params attribute.")
 
 

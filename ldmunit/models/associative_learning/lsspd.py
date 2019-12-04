@@ -5,16 +5,18 @@ from scipy import stats
 from ldmunit.models import CAMO, ParametricModelMixin
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 from ldmunit.utils import is_arraylike
+from overrides import overrides
 
 
 class LSSPDModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
     """
-    LSSPD model implementation.
+    LSSPD (Rescorla Wagner Pearce Hall, RWPH) model implementation.
     """
 
-    # TODO: what is the name of this model?
+    # RWPH
     name = "LSSPD"
 
+    @overrides
     def __init__(self, *args, w, alpha, b0, b1, sigma, mix_coef, eta, kappa, **kwargs):
         """
         Parameters
@@ -32,8 +34,9 @@ class LSSPDModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
         b0 : float
             Intercept used when computing the mean of normal distribution from reward.
 
-        b1 : float
+        b1 : array-like or float
             Slope used when computing the mean of the normal distribution from reward.
+            If a scalar is given, all elements of the slope vector is equal to that value.
 
         sigma : float
             Standard deviation of the normal distribution used to generate observations.

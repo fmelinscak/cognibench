@@ -4,6 +4,7 @@ from scipy import stats
 
 from ldmunit.models import DADO, ParametricModelMixin
 from ldmunit.capabilities import Interactive, PredictsLogpdf
+from overrides import overrides
 
 
 class NWSLSModel(DADO, Interactive, PredictsLogpdf, ParametricModelMixin):
@@ -13,6 +14,7 @@ class NWSLSModel(DADO, Interactive, PredictsLogpdf, ParametricModelMixin):
 
     name = "NWSLSModel"
 
+    @overrides
     def __init__(self, *args, epsilon, **kwargs):
         """
         Parameters

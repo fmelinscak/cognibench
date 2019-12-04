@@ -4,6 +4,7 @@ from gym import spaces
 from scipy import stats
 from ldmunit.models import CAMO, ParametricModelMixin
 from ldmunit.capabilities import Interactive, PredictsLogpdf
+from overrides import overrides
 
 
 class RandomRespondModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
@@ -14,6 +15,7 @@ class RandomRespondModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin
 
     name = "RandomRespond"
 
+    @overrides
     def __init__(self, *args, mu, sigma, **kwargs):
         """
         Parameters

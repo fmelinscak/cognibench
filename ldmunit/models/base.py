@@ -11,6 +11,7 @@ from ldmunit.capabilities import (
     ReturnsNumParams,
 )
 from ldmunit.continuous import ContinuousSpace
+from overrides import overrides
 
 
 class LDMModel(sciunit.Model):
@@ -18,6 +19,7 @@ class LDMModel(sciunit.Model):
     Helper base class for LDMUnit models.
     """
 
+    @overrides
     def __init__(self, paras=None, hidden_state=None, seed=None, **kwargs):
         """
         Parameters
@@ -216,5 +218,13 @@ class CAMO(LDMModel, ContinuousAction, MultiBinaryObservation):
 
 
 class ParametricModelMixin(ReturnsNumParams):
+    """
+    A simple mixin class that allows easy ReturnsNumParams interface implementation
+    for parametric models. It is assumed that the deriving class has a sequence or dictionary
+    field `self.paras` which stores all the parameters of the model separately. For more
+    sophisticated models, implementing the ReturnsNumParams interface yourself may be easier and
+    more accurate.
+    """
+
     def n_params(self):
         return len(self.paras)
