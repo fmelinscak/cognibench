@@ -36,10 +36,10 @@ def multi_from_single_cls(method_names, single_cls):
 
 
 multi_from_single_interactive = partial(
-    multi_from_single_cls, ("act", "predict", "reset", "update")
+    multi_from_single_cls, ("act", "fit", "predict", "reset", "update")
 )
 multi_from_single_interactive_parametric = partial(
-    multi_from_single_cls, ("act", "predict", "reset", "update", "n_params")
+    multi_from_single_cls, ("act", "fit", "predict", "reset", "update", "n_params")
 )
 
 
@@ -219,7 +219,35 @@ class MultiMeta(type):
             for fn_name in dct["_method_names"]:
                 setattr(out_cls, fn_name, partial(new_fn, fn_name=fn_name))
 
+        def fit_jointly(self, *args, **kwargs):
+            """
+            Default implementation simply fits each subject model separately. In case you need more complex behaviour,
+            such as hierarchical joint fitting of the subject models, you can
+
+            1. define your separate multi-subject model, or
+            2. subclass the output of this metaclass and override `fit_jointly` to perform the
+            desired fitting procedure.
+
+            Parameters
+            ----------
+            args : iterable
+                Each positional argument to this function must be an iterable that contains the subject-specific
+                fitting arguments.
+            kwargs : dict
+                Each keyword argument to this function must be an iterable that contains the subject-specific fitting
+                keyword arguments.
+            """
+            for i, model in enumerate(self.subject_models):
+                curr_args = []
+                curr_kwargs = dict()
+                for arg in args:
+                    curr_args.append(arg[i])
+                for k, v in kwargs.items():
+                    curr_kwargs[k] = v[i]
+                model.fit(*curr_args, **curr_kwargs)
+
         out_cls.__init__ = multi_init
+        out_cls.fit_jointly = fit_jointly
         out_cls.multi_subject_methods = dct["_method_names"]
 
         return out_cls

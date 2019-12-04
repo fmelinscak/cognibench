@@ -40,3 +40,26 @@ def is_arraylike(x):
     `<https://docs.scipy.org/doc/numpy/reference/generated/numpy.isscalar.html>`_.
     """
     return np.ndim(x) != 0
+
+
+def negloglike(actions, predictions):
+    """
+    Compute negative log-likelihood of a series of actions and logpdf/logpmf predictions.
+
+    Parameters
+    ----------
+    actions : array-like
+        Sequence of actions.
+    predictions : array-like
+        Sequence of logpdf/logpmf predictions. For an action `a` and prediction `P`, logpdf/logpmf
+        value at a must be equal to `P(a)`.
+
+    Returns
+    -------
+    float
+        Negative log-likelihood.
+    """
+    out = float(0)
+    for act, logpdf in zip(actions, predictions):
+        out -= logpdf(act)
+    return out

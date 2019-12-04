@@ -74,9 +74,19 @@ class LDMModel(sciunit.Model):
     def hidden_state(self):
         return self._hidden_state
 
+    def fit(self, *args, **kwargs):
+        """
+        Fit the model to a batch of stimuli. If this is a multi-subject model, then the stimuli should be a list
+        where each element contains the stimuli of the corresponding subject.
+
+        By default, this method does not perform model fitting. This method should be overridden only if you need
+        model fitting functionality.
+        """
+        pass
+
     def predict(self, *args, **kwargs):
         """
-        Make a prediction given a stimuli.
+        Make a prediction given a stimulus.
         """
         raise NotImplementedError("Must implement predict.")
 
@@ -215,16 +225,3 @@ class CAMO(LDMModel, ContinuousAction, MultiBinaryObservation):
             raise AssertionError("stimuli and actions must be of the same length.")
         self.action_space = ContinuousSpace()
         self.observation_space = len(stimuli[0])
-
-
-class ParametricModelMixin(ReturnsNumParams):
-    """
-    A simple mixin class that allows easy ReturnsNumParams interface implementation
-    for parametric models. It is assumed that the deriving class has a sequence or dictionary
-    field `self.paras` which stores all the parameters of the model separately. For more
-    sophisticated models, implementing the ReturnsNumParams interface yourself may be easier and
-    more accurate.
-    """
-
-    def n_params(self):
-        return len(self.paras)

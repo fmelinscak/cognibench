@@ -27,4 +27,5 @@ def _set_logger(log_obj):
     logging.basicConfig(
         format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
         datefmt="%m-%d-%y %H:%M",
+        level=INFO,
     )

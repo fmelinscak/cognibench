@@ -2,13 +2,23 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
-from ldmunit.models import CAMO, ParametricModelMixin
+from ldmunit.models import CAMO
+from ldmunit.models.mixins import (
+    ReinforcementLearningFittingMixin,
+    ParametricModelMixin,
+)
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 from ldmunit.utils import is_arraylike
 from overrides import overrides
 
 
-class LSSPDModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
+class LSSPDModel(
+    ParametricModelMixin,
+    ReinforcementLearningFittingMixin,
+    CAMO,
+    Interactive,
+    PredictsLogpdf,
+):
     """
     LSSPD (Rescorla Wagner Pearce Hall, RWPH) model implementation.
     """
@@ -179,7 +189,7 @@ class LSSPDModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
         rhat = np.dot(stimulus, w_curr.T)
         return rhat
 
-    def update(self, stimulus, reward, action, done):
+    def update(self, stimulus, reward, action, done=False):
         """
         Update the hidden state of the model based on input stimulus, action performed
         by the model and reward.

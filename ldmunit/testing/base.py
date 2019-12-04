@@ -7,6 +7,8 @@ from ldmunit.models import LDMModel
 from ldmunit.capabilities import MultiSubjectModel
 from ldmunit.models.utils import single_from_multi_obj, reverse_single_from_multi_obj
 from overrides import overrides
+from ldmunit.logging import logger
+from collections import defaultdict
 
 
 class LDMTest(SciunitTest):
@@ -30,8 +32,8 @@ class LDMTest(SciunitTest):
         multi_subject=False,
         score_aggr_fn=np.mean,
         persist_path=None,
-        logging=1,
         fn_kwargs_for_score=None,
+        optimize_models=True,
         **kwargs,
     ):
         """
@@ -69,14 +71,6 @@ class LDMTest(SciunitTest):
             Path to the folder where test logs such as predictions, scores and models will be saved. Directory
             is automatically created if it does not exist.
 
-        logging : int
-            Logging level. Expected to be an integer:
-
-            0 -> no logging
-            1 -> basic logging
-            2 -> verbose logging
-            3 -> ultra verbose logging
-
         fn_kwargs_for_score : callable
             Callable to generate required keyword arguments for the score computation, if necessary. Some score objects
             require more than just the predictions and the observations to be computed, such as AIC or BIC. In that case
@@ -84,12 +78,16 @@ class LDMTest(SciunitTest):
             The signature is as below:
 
             fn_kwargs_for_score(single_subj_model, single_subj_observations, single_subj_predictions)
+
+        optimize_models : bool
+            If True, passed models' `fit` method will be called on the given observation data before generating the
+            predictions. If False, no model fitting is performed.
         """
         self.multi_subject = multi_subject
         self.score_aggr_fn = score_aggr_fn
         self.persist_path = persist_path
-        self.logging = logging
         self.fn_kwargs_for_score = fn_kwargs_for_score
+        self.optimize_models = optimize_models
 
         if score_type is not None:
             assert issubclass(score_type, SciunitScore)
@@ -120,11 +118,31 @@ class LDMTest(SciunitTest):
             return self.observation
 
     @overrides
+    def judge(self, model, *args, **kwargs):
+        if self.optimize_models:
+            self.optimize(model)
+        return super().judge(model, *args, **kwargs)
+
+    @overrides
+    def optimize(self, model):
+        logger().info(f"{self.name} : Optimizing {model.name} model...")
+        obs = self.__get_observations()
+        if self.multi_subject:
+            dict_of_lists = defaultdict(list)
+            for subj_obs in obs:
+                for k, v in subj_obs.items():
+                    dict_of_lists[k].append(v)
+            model.fit_jointly(**dict_of_lists)
+        else:
+            model.fit(**obs)
+
+    @overrides
     def generate_prediction(self, model):
         """
         Given a multi or single subject model, run the tests to generate predictions and return them. If the test is
         a multi-subject test, the model must be derived from `ldmunit.capabilities.MultiSubjectModel`.
         """
+        logger().debug(f"{self.name} : Generating predictions from {model.name}...")
         observations = self.__get_observations()
         if self.multi_subject:
             assert isinstance(
@@ -258,8 +276,6 @@ class LDMTest(SciunitTest):
         prediction : dict or sequence of dict
             Predictions generated during the test
         """
-        if self.logging > 0:
-            print()
         if self.persist_path is None:
             return
 
@@ -271,24 +287,22 @@ class LDMTest(SciunitTest):
         self.persist_score(score_filepath, score)
         self.persist_predictions(pred_filepath, prediction)
         self.persist_model(model_filepath, model)
-        if self.logging > 0:
-            print("Test results have been persisted")
+
+        logger().info("Test results have been persisted")
 
     def persist_score(self, path, score):
         """
         Persist the score value in the given path.
         """
         np.save(path, np.asarray(score.score))
-        if self.logging > 1:
-            print(f"Score is saved in {path}")
+        logger().debug(f"Score is saved in {path}")
 
     def persist_predictions(self, path, predictions):
         """
         Persist the predictions in the given path.
         """
         np.save(path, np.asarray(predictions))
-        if self.logging > 1:
-            print(f"Predictions are saved in {path}")
+        logger().debug(f"Predictions are saved in {path}")
 
     def persist_model(self, path, model):
         """
@@ -296,11 +310,8 @@ class LDMTest(SciunitTest):
         """
         try:
             model.save(path)
-            if self.logging > 1:
-                print(f"Model is saved in {path}")
+            logger().debug(f"Model is saved in {path}")
         except AttributeError:
-            modelname = model.name
-            if self.logging > 1:
-                print(
-                    f"Model {modelname} does not implement save method. Model saving is unsuccessful"
-                )
+            logger().debug(
+                f"Model {model.name} does not implement save method. Model saving is unsuccessful"
+            )

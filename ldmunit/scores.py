@@ -4,6 +4,7 @@ from sciunit import scores
 from sciunit import errors
 from ldmunit.capabilities import PredictsLogpdf, ReturnsNumParams
 from overrides import overrides
+from ldmunit.utils import negloglike
 
 
 class BoundedScore(scores.FloatScore):
@@ -105,29 +106,6 @@ class LowerBetterScore(BoundedScore):
         return -super().norm_score
 
 
-def _neg_loglikelihood(actions, predictions):
-    """
-    Compute negative log-likelihood of a series of actions and logpdf/logpmf predictions.
-
-    Parameters
-    ----------
-    actions : array-like
-        Sequence of actions.
-    predictions : array-like
-        Sequence of logpdf/logpmf predictions. For an action `a` and prediction `P`, logpdf/logpmf
-        value at a must be equal to `P(a)`.
-
-    Returns
-    -------
-    float
-        Negative log-likelihood.
-    """
-    neg_loglike = float(0)
-    for act, logpdf in zip(actions, predictions):
-        neg_loglike -= logpdf(act)
-    return neg_loglike
-
-
 class NLLScore(LowerBetterScore):
     """
     Negative log-likelihood score object.
@@ -143,7 +121,7 @@ class NLLScore(LowerBetterScore):
         Return NLL score as a Score object from a sequence of actions
         and logpdf/logpmf predictions.
         """
-        nll = _neg_loglikelihood(actions, predictions)
+        nll = negloglike(actions, predictions)
         return cls(nll)
 
 
@@ -164,7 +142,7 @@ class AICScore(LowerBetterScore):
         Return AIC score as a Score object from a sequence of actions
         and logpdf/logpmf predictions.
         """
-        nll = _neg_loglikelihood(actions, predictions)
+        nll = negloglike(actions, predictions)
         regularizer = 2 * np.sum(n_model_params)
         return cls(nll + regularizer)
 
@@ -186,7 +164,7 @@ class BICScore(LowerBetterScore):
         Return BIC score as a Score object from a sequence of actions
         and logpdf/logpmf predictions.
         """
-        nll = _neg_loglikelihood(actions, predictions)
+        nll = negloglike(actions, predictions)
         regularizer = np.dot(n_model_params, n_samples)
         return cls(nll + regularizer)
 

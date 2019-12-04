@@ -2,12 +2,22 @@ import numpy as np
 from gym import spaces
 from scipy import stats
 
-from ldmunit.models import DADO, ParametricModelMixin
+from ldmunit.models import DADO
+from ldmunit.models.mixins import (
+    ParametricModelMixin,
+    ReinforcementLearningFittingMixin,
+)
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 from overrides import overrides
 
 
-class NWSLSModel(DADO, Interactive, PredictsLogpdf, ParametricModelMixin):
+class NWSLSModel(
+    ParametricModelMixin,
+    ReinforcementLearningFittingMixin,
+    DADO,
+    Interactive,
+    PredictsLogpdf,
+):
     """
     Noisy-win-stay-lose-shift model implementation.
     """
@@ -98,7 +108,7 @@ class NWSLSModel(DADO, Interactive, PredictsLogpdf, ParametricModelMixin):
         """
         return self._get_rv(stimulus).rvs()
 
-    def update(self, stimulus, reward, action, done):
+    def update(self, stimulus, reward, action, done=False):
         """
         Update the hidden state of the model based on input stimulus, action performed
         by the model and reward.

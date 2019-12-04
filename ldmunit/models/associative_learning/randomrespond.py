@@ -2,12 +2,22 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
-from ldmunit.models import CAMO, ParametricModelMixin
+from ldmunit.models import CAMO
+from ldmunit.models.mixins import (
+    ReinforcementLearningFittingMixin,
+    ParametricModelMixin,
+)
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 from overrides import overrides
 
 
-class RandomRespondModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
+class RandomRespondModel(
+    ParametricModelMixin,
+    ReinforcementLearningFittingMixin,
+    CAMO,
+    Interactive,
+    PredictsLogpdf,
+):
     """
     Random respond model that predicts random actions for any
     kind of observation.
@@ -104,7 +114,7 @@ class RandomRespondModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin
         """
         return self.observation(stimulus).rvs()
 
-    def update(self, stimulus, reward, action, done):
+    def update(self, stimulus, reward, action, done=False):
         """
         Update the hidden state of the model based on input stimulus, action performed
         by the model and reward.

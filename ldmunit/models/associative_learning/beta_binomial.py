@@ -3,7 +3,11 @@ import gym
 from gym import spaces
 from scipy import stats
 from scipy.stats import beta
-from ldmunit.models import CAMO, ParametricModelMixin
+from ldmunit.models import CAMO
+from ldmunit.models.mixins import (
+    ReinforcementLearningFittingMixin,
+    ParametricModelMixin,
+)
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 from ldmunit.utils import is_arraylike
 from collections.abc import MutableMapping
@@ -35,7 +39,13 @@ class DictWithBinarySequenceKeys(MutableMapping):
         return len(self._storage)
 
 
-class BetaBinomialModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
+class BetaBinomialModel(
+    ParametricModelMixin,
+    ReinforcementLearningFittingMixin,
+    CAMO,
+    Interactive,
+    PredictsLogpdf,
+):
     """
     Interactive beta-binomial model implementation.
 
@@ -183,7 +193,7 @@ class BetaBinomialModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin)
             self.hidden_state[stimulus] = self._get_default_a_b()
         return self.observation(stimulus).rvs()
 
-    def update(self, stimulus, reward, action, done):
+    def update(self, stimulus, reward, action, done=False):
         """
         Update the hidden state of the model based on input stimulus, action performed
         by the model and reward.

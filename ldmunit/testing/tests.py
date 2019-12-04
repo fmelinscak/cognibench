@@ -1,6 +1,6 @@
 import numpy as np
 from .base import LDMTest
-from ldmunit.capabilities import Interactive, BatchTrainable
+from ldmunit.capabilities import Interactive
 from overrides import overrides
 
 
@@ -69,8 +69,6 @@ class BatchTest(LDMTest):
 
 
 class BatchTrainAndTest(LDMTest):
-    required_capabilities = (BatchTrainable,)
-
     @overrides
     def __init__(
         self,
