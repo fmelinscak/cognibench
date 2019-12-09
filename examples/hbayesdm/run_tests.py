@@ -5,7 +5,7 @@ from os import getcwd
 from os.path import join as pathjoin
 from pathlib import Path
 
-from ldmunit.testing import BatchTrainAndTest
+from ldmunit.testing import BatchTest
 from ldmunit.utils import partialclass
 import ldmunit.scores as scores
 from model_defs import HbayesdmModel
@@ -42,30 +42,27 @@ def main():
     test_indices = train_indices
     suite = sciunit.TestSuite(
         [
-            BatchTrainAndTest(
+            BatchTest(
                 name="NLL Test",
                 observation=obs,
-                train_indices=train_indices,
-                test_indices=test_indices,
+                optimize_models=True,
                 score_type=NLLScore,
                 persist_path=Path("logs") / "nll",
                 logging=2,
             ),
-            BatchTrainAndTest(
+            BatchTest(
                 name="AIC Test",
                 observation=obs,
-                train_indices=train_indices,
-                test_indices=test_indices,
+                optimize_models=True,
                 score_type=AICScore,
                 fn_kwargs_for_score=aic_kwargs_fn,
                 persist_path=Path("logs") / "aic",
                 logging=2,
             ),
-            BatchTrainAndTest(
+            BatchTest(
                 name="BIC Test",
                 observation=obs,
-                train_indices=train_indices,
-                test_indices=test_indices,
+                optimize_models=True,
                 score_type=BICScore,
                 fn_kwargs_for_score=bic_kwargs_fn,
                 persist_path=Path("logs") / "bic",
@@ -77,9 +74,9 @@ def main():
 
     model_names_fns = [
         ("2par lapse", Hmodels.bandit4arm_2par_lapse),
-        ("4par", Hmodels.bandit4arm_4par),
-        ("4par lapse", Hmodels.bandit4arm_lapse),
-        ("Lapse decay", Hmodels.bandit4arm_lapse_decay),
+        # ("4par", Hmodels.bandit4arm_4par),
+        # ("4par lapse", Hmodels.bandit4arm_lapse),
+        # ("Lapse decay", Hmodels.bandit4arm_lapse_decay),
     ]
     models = [
         HbayesdmModel(
@@ -88,8 +85,8 @@ def main():
             n_obs=4,
             n_action=4,
             col_names=cols,
-            niter=500,
-            nwarmup=250,
+            niter=50,
+            nwarmup=25,
             nchain=4,
             ncore=4,
             seed=42,

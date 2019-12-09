@@ -2,7 +2,7 @@ from os import getcwd
 import pandas as pd
 import numpy as np
 import time
-from ldmunit.testing import BatchTrainAndTest
+from ldmunit.testing import BatchTestWithSplit
 import ldmunit.scores as scores
 from ldmunit.utils import partialclass
 from ldmunit.models import CACO
@@ -79,15 +79,17 @@ if __name__ == "__main__":
     first_part = df.loc[df.SubjID < 60000]
     second_part = df.loc[df.SubjID >= 60000]
     train_indices, test_indices = getSplit(second_part, seed=1)
-    # train_indices += first_part.shape[0]
-    # test_indices += first_part.shape[0]
-    # train_indices = np.concatenate(
-    #   (np.arange(first_part.shape[0], dtype=np.int64), train_indices)
-    # )
+    obs_train = df.iloc[train_indices]
+    obs_test = df.iloc[test_indices]
 
-    stimuli = df.values[:, :-1]
-    actions = df.values[:, -1].astype(np.float64)
-    obs_dict = {"stimuli": stimuli, "actions": actions}
+    train_stimuli = obs_train.values[:, :-1]
+    train_actions = obs_train.values[:, -1].astype(np.float64)
+    test_stimuli = obs_test.values[:, :-1]
+    test_actions = obs_test.values[:, -1].astype(np.float64)
+    obs_dict = {
+        "train": {"stimuli": train_stimuli, "actions": train_actions},
+        "test": {"stimuli": test_stimuli, "actions": test_actions},
+    }
 
     # prepare models
     python_model_IDs = [0]
@@ -106,39 +108,31 @@ if __name__ == "__main__":
     persist_path_fmt = "output/{}"
     suite = TestSuite(
         [
-            BatchTrainAndTest(
+            BatchTestWithSplit(
                 name="MSE Test",
                 observation=obs_dict,
                 score_type=MSEScore,
-                train_indices=train_indices,
-                test_indices=test_indices,
                 persist_path=persist_path_fmt.format("mse_test"),
                 logging=2,
             ),
-            BatchTrainAndTest(
+            BatchTestWithSplit(
                 name="MAE Test",
                 observation=obs_dict,
                 score_type=MAEScore,
-                train_indices=train_indices,
-                test_indices=test_indices,
                 persist_path=persist_path_fmt.format("mae_test"),
                 logging=2,
             ),
-            BatchTrainAndTest(
+            BatchTestWithSplit(
                 name="Cross Entropy Test",
                 observation=obs_dict,
                 score_type=CrossEntropyScore,
-                train_indices=train_indices,
-                test_indices=test_indices,
                 persist_path=persist_path_fmt.format("cross_entropy_test"),
                 logging=2,
             ),
-            BatchTrainAndTest(
+            BatchTestWithSplit(
                 name="Pearson Correlation Test",
                 observation=obs_dict,
                 score_type=PearsonCorrScore,
-                train_indices=train_indices,
-                test_indices=test_indices,
                 persist_path=persist_path_fmt.format("corr_test"),
                 logging=2,
             ),

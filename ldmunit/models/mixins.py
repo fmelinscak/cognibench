@@ -19,15 +19,18 @@ class ParametricModelMixin(ReturnsNumParams):
 
 
 class ReinforcementLearningFittingMixin:
-    def fit(self, stimuli, rewards, actions, method="Nelder-Mead", **kwargs):
-        """
-        Mixin class to automatically add negative log likelihood model fitting functionality to interactive models.
+    """
+    Mixin class to automatically add negative log likelihood model fitting functionality to interactive models.
 
-        See Also
-        --------
-        :func:`scipy.optimize.minimize`
-        """
+    See Also
+    --------
+    :func:`scipy.optimize.minimize`
+    """
+
+    def fit(self, stimuli, rewards, actions, method="Nelder-Mead", **kwargs):
         # TODO: this relies on PredictsLogPdf and Interactive capabilities. How to specify that?
+        # TODO: how to specify other scores instead of negloglike?
+        # TODO: Maybe mixin should be capable of using various scores to optimize?
         def f(x, lens):
             _flatten_array_into_dict(self.paras, x, lens)
             predictions = []

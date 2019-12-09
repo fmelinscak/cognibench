@@ -11,6 +11,9 @@ from ldmunit.logging import logger
 from collections import defaultdict
 
 
+__MULTI_LIST_KEY = "__list"
+
+
 class LDMTest(SciunitTest):
     """
     Base test class for all LDMUnit tests.
@@ -27,6 +30,7 @@ class LDMTest(SciunitTest):
     @overrides
     def __init__(
         self,
+        observation,
         *args,
         score_type=None,
         multi_subject=False,
@@ -44,7 +48,7 @@ class LDMTest(SciunitTest):
             `required_capabilities` class field. In that case, these capabilities will be appended to the required
             capabilities of the test class.
 
-        observation : dict or sequence of dict
+        observation : dict or list of dict
             In a single-subject test, this dictionary must contain the data for testing. The exact keys of the dictionary
             is determined by the concrete test classes.
 
@@ -89,6 +93,10 @@ class LDMTest(SciunitTest):
         self.fn_kwargs_for_score = fn_kwargs_for_score
         self.optimize_models = optimize_models
 
+        if multi_subject:
+            assert isinstance(observation, list)
+            observation = {__MULTI_LIST_KEY: observation}
+
         if score_type is not None:
             assert issubclass(score_type, SciunitScore)
             self.score_type = score_type
@@ -99,7 +107,7 @@ class LDMTest(SciunitTest):
                 )
             except AttributeError:
                 pass
-        super().__init__(*args, **kwargs)
+        super().__init__(observation, *args, **kwargs)
 
     @overrides
     def check_capabilities(self, model, **kwargs):
@@ -111,22 +119,48 @@ class LDMTest(SciunitTest):
             raise Error(f"Model {model} is not an instance of LDMModel")
         super().check_capabilities(model, **kwargs)
 
-    def __get_observations(self):
+    def get_fitting_observations_single(self, dictionary):
+        return dictionary
+
+    def get_testing_observations_single(self, dictionary):
+        return dictionary
+
+    def get_fitting_observations(self):
         if self.multi_subject:
-            return self.observation["list"]
+            out = [
+                self.get_fitting_observations_single(x)
+                for x in self.observation[__MULTI_LIST_KEY]
+            ]
+            return out
         else:
-            return self.observation
+            return self.get_fitting_observations_single(self.observation)
+
+    def get_testing_observations(self):
+        if self.multi_subject:
+            out = [
+                self.get_testing_observations_single(x)
+                for x in self.observation[__MULTI_LIST_KEY]
+            ]
+            return out
+        else:
+            return self.get_testing_observations_single(self.observation)
 
     @overrides
     def judge(self, model, *args, **kwargs):
         if self.optimize_models:
-            self.optimize(model)
+            try:
+                self.optimize(model)
+            except:
+                logger().error(
+                    f"{self.name} : Optimization procedure for model {model.name} has failed!"
+                )
+
         return super().judge(model, *args, **kwargs)
 
     @overrides
     def optimize(self, model):
+        obs = self.get_fitting_observations()
         logger().info(f"{self.name} : Optimizing {model.name} model...")
-        obs = self.__get_observations()
         if self.multi_subject:
             dict_of_lists = defaultdict(list)
             for subj_obs in obs:
@@ -143,19 +177,27 @@ class LDMTest(SciunitTest):
         a multi-subject test, the model must be derived from `ldmunit.capabilities.MultiSubjectModel`.
         """
         logger().debug(f"{self.name} : Generating predictions from {model.name}...")
-        observations = self.__get_observations()
+        observations = self.get_testing_observations()
         if self.multi_subject:
             assert isinstance(
                 model, MultiSubjectModel
             ), "Multi subject tests can only accept multi subject models"
+
             n_subj = len(observations)
             predictions = []
             score_kwargs = []
             for subj_idx in range(n_subj):
                 single_subj_adapter = single_from_multi_obj(model, subj_idx)
-                pred_single = self.predict_single(
-                    single_subj_adapter, observations[subj_idx]
-                )
+                try:
+                    pred_single = self.predict_single(
+                        single_subj_adapter, observations[subj_idx]
+                    )
+                except:
+                    logger().error(
+                        f"{self.name} : {model.name} predict_single call has failed!"
+                    )
+                    pred_single = []
+
                 predictions.append(pred_single)
                 score_kwargs.append(
                     self.get_kwargs_for_compute_score(
@@ -164,7 +206,14 @@ class LDMTest(SciunitTest):
                 )
                 model = reverse_single_from_multi_obj(single_subj_adapter)
         else:
-            predictions = self.predict_single(model, observations)
+            try:
+                predictions = self.predict_single(model, observations)
+            except:
+                logger().error(
+                    f"{self.name} : {model.name} predict_single call has failed!"
+                )
+                predictions = []
+
             score_kwargs = self.get_kwargs_for_compute_score(
                 model, observations, predictions
             )
@@ -183,24 +232,31 @@ class LDMTest(SciunitTest):
         """
         Compute the score from the given predictions and the stored observations.
         """
-        observations = self.__get_observations()
+        observations = self.get_testing_observations()
         if self.multi_subject:
             n_subj = len(observations)
             scores = []
             for subj_idx in range(n_subj):
-                scores.append(
-                    self.compute_score_single(
+                try:
+                    single_score = self.compute_score_single(
                         observations[subj_idx],
                         predictions[subj_idx],
                         **self.score_kwargs[subj_idx],
                         **kwargs,
                     ).score
-                )
+                except:
+                    logger().error(f"{self.name} : compute_score_single has failed!")
+                    single_score = np.NaN
+                scores.append(single_score)
             score = self.score_type(self.score_aggr_fn(scores))
         else:
-            score = self.compute_score_single(
-                observations, predictions, **self.score_kwargs, **kwargs
-            )
+            try:
+                score = self.compute_score_single(
+                    observations, predictions, **self.score_kwargs, **kwargs
+                )
+            except:
+                logger().error(f"{self.name} : compute_score_single has failed!")
+                score = self.score_type(np.NaN)
         return score
 
     def predict_single(self, model, observations, **kwargs):
@@ -284,9 +340,20 @@ class LDMTest(SciunitTest):
         score_filepath = pathjoin(folderpath, "score")
         pred_filepath = pathjoin(folderpath, "predictions")
         model_filepath = pathjoin(folderpath, "model")
-        self.persist_score(score_filepath, score)
-        self.persist_predictions(pred_filepath, prediction)
-        self.persist_model(model_filepath, model)
+        try:
+            self.persist_score(score_filepath, score)
+        except:
+            logger().error(f"{self.name} : persist_score has failed!")
+
+        try:
+            self.persist_predictions(pred_filepath, prediction)
+        except:
+            logger().error(f"{self.name} : persist_predictions has failed!")
+
+        try:
+            self.persist_model(model_filepath, model)
+        except:
+            logger().error(f"{self.name} : persist_model has failed!")
 
         logger().info("Test results have been persisted")
 
