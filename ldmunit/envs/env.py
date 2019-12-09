@@ -29,13 +29,13 @@ SOFTWARE.
 """
 
 import numpy as np
-import gym
 from gym import spaces
 from gym.utils import seeding
-from .continuous import ContinuousSpace
+from ldmunit.continuous import ContinuousSpace
+from .base import LDMEnv
 
 
-class BanditEnv(gym.Env):
+class BanditEnv(LDMEnv):
     """Bandit environment base to allow agents to interact with the class n-armed bandit
     in different variations
 
@@ -135,7 +135,7 @@ class BanditEnv(gym.Env):
         pass
 
 
-class BanditAssociateEnv(gym.Env):
+class BanditAssociateEnv(LDMEnv):
     """Environment base to allow agents to learn from stimulus occuring at different
     probabilities.
 
