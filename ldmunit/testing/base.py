@@ -11,7 +11,7 @@ from ldmunit.logging import logger
 from collections import defaultdict
 
 
-__MULTI_LIST_KEY = "__list"
+_MULTI_LIST_KEY = "__list"
 
 
 class LDMTest(SciunitTest):
@@ -95,7 +95,7 @@ class LDMTest(SciunitTest):
 
         if multi_subject:
             assert isinstance(observation, list)
-            observation = {__MULTI_LIST_KEY: observation}
+            observation = {_MULTI_LIST_KEY: observation}
 
         if score_type is not None:
             assert issubclass(score_type, SciunitScore)
@@ -129,7 +129,7 @@ class LDMTest(SciunitTest):
         if self.multi_subject:
             out = [
                 self.get_fitting_observations_single(x)
-                for x in self.observation[__MULTI_LIST_KEY]
+                for x in self.observation[_MULTI_LIST_KEY]
             ]
             return out
         else:
@@ -139,7 +139,7 @@ class LDMTest(SciunitTest):
         if self.multi_subject:
             out = [
                 self.get_testing_observations_single(x)
-                for x in self.observation[__MULTI_LIST_KEY]
+                for x in self.observation[_MULTI_LIST_KEY]
             ]
             return out
         else:
@@ -150,7 +150,7 @@ class LDMTest(SciunitTest):
         if self.optimize_models:
             try:
                 self.optimize(model)
-            except:
+            except Exception:
                 logger().error(
                     f"{self.name} : Optimization procedure for model {model.name} has failed!"
                 )
@@ -192,7 +192,7 @@ class LDMTest(SciunitTest):
                     pred_single = self.predict_single(
                         single_subj_adapter, observations[subj_idx]
                     )
-                except:
+                except Exception:
                     logger().error(
                         f"{self.name} : {model.name} predict_single call has failed!"
                     )
@@ -208,7 +208,7 @@ class LDMTest(SciunitTest):
         else:
             try:
                 predictions = self.predict_single(model, observations)
-            except:
+            except Exception:
                 logger().error(
                     f"{self.name} : {model.name} predict_single call has failed!"
                 )
@@ -244,7 +244,7 @@ class LDMTest(SciunitTest):
                         **self.score_kwargs[subj_idx],
                         **kwargs,
                     ).score
-                except:
+                except Exception:
                     logger().error(f"{self.name} : compute_score_single has failed!")
                     single_score = np.NaN
                 scores.append(single_score)
@@ -254,7 +254,7 @@ class LDMTest(SciunitTest):
                 score = self.compute_score_single(
                     observations, predictions, **self.score_kwargs, **kwargs
                 )
-            except:
+            except Exception:
                 logger().error(f"{self.name} : compute_score_single has failed!")
                 score = self.score_type(np.NaN)
         return score
@@ -342,17 +342,17 @@ class LDMTest(SciunitTest):
         model_filepath = pathjoin(folderpath, "model")
         try:
             self.persist_score(score_filepath, score)
-        except:
+        except Exception:
             logger().error(f"{self.name} : persist_score has failed!")
 
         try:
             self.persist_predictions(pred_filepath, prediction)
-        except:
+        except Exception:
             logger().error(f"{self.name} : persist_predictions has failed!")
 
         try:
             self.persist_model(model_filepath, model)
-        except:
+        except Exception:
             logger().error(f"{self.name} : persist_model has failed!")
 
         logger().info("Test results have been persisted")
