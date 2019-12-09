@@ -2,10 +2,10 @@ import pandas as pd
 import numpy as np
 from scipy.stats import rv_discrete
 from ldmunit.models import DADO
-from ldmunit.capabilities import BatchTrainable, PredictsLogpdf, ReturnsNumParams
+from ldmunit.capabilities import PredictsLogpdf, ReturnsNumParams
 
 
-class HbayesdmModel(DADO, PredictsLogpdf, BatchTrainable, ReturnsNumParams):
+class HbayesdmModel(DADO, PredictsLogpdf, ReturnsNumParams):
     name = "hBayesDM Model"
 
     def __init__(self, *args, hbayesdm_model_func, col_names, **kwargs):

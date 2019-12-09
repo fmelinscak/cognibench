@@ -2,12 +2,22 @@ import numpy as np
 from gym import spaces
 from scipy import stats
 
-from ldmunit.models import DADO, ParametricModelMixin
+from ldmunit.models import DADO
+from ldmunit.models.mixins import (
+    ParametricModelMixin,
+    ReinforcementLearningFittingMixin,
+)
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 from overrides import overrides
 
 
-class RandomRespondModel(DADO, Interactive, PredictsLogpdf, ParametricModelMixin):
+class RandomRespondModel(
+    ParametricModelMixin,
+    ReinforcementLearningFittingMixin,
+    DADO,
+    Interactive,
+    PredictsLogpdf,
+):
     """
     Random respond model that predicts random actions for any
     kind of observation.
@@ -100,7 +110,7 @@ class RandomRespondModel(DADO, Interactive, PredictsLogpdf, ParametricModelMixin
         """
         return self._get_rv(stimulus).rvs()
 
-    def update(self, stimulus, reward, action, done):
+    def update(self, stimulus, reward, action, done=False):
         """
         Doesn't do anything. Stimulus and action must be from their respective
         spaces.

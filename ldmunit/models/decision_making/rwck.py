@@ -3,12 +3,22 @@ from gym import spaces
 from scipy import stats
 from scipy.special import softmax
 
-from ldmunit.models import DADO, ParametricModelMixin
+from ldmunit.models import DADO
+from ldmunit.models.mixins import (
+    ParametricModelMixin,
+    ReinforcementLearningFittingMixin,
+)
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 from overrides import overrides
 
 
-class RWCKModel(DADO, Interactive, PredictsLogpdf, ParametricModelMixin):
+class RWCKModel(
+    ReinforcementLearningFittingMixin,
+    ParametricModelMixin,
+    Interactive,
+    PredictsLogpdf,
+    DADO,
+):
     """
     Rescorla-Wagner Choice Kernel model implementation.
 
@@ -113,7 +123,7 @@ class RWCKModel(DADO, Interactive, PredictsLogpdf, ParametricModelMixin):
         """
         return self._get_rv(stimulus).rvs()
 
-    def update(self, stimulus, reward, action, done):
+    def update(self, stimulus, reward, action, done=False):
         """
         Update the hidden state of the model based on input stimulus, action performed
         by the model and reward.

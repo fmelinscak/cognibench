@@ -2,13 +2,23 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
-from ldmunit.models import CAMO, ParametricModelMixin
+from ldmunit.models import CAMO
+from ldmunit.models.mixins import (
+    ParametricModelMixin,
+    ReinforcementLearningFittingMixin,
+)
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 from ldmunit.utils import is_arraylike
 from overrides import overrides
 
 
-class RwNormModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
+class RwNormModel(
+    ParametricModelMixin,
+    ReinforcementLearningFittingMixin,
+    CAMO,
+    Interactive,
+    PredictsLogpdf,
+):
     """
     Rescorla-Wagner model implementation.
     """
@@ -139,7 +149,7 @@ class RwNormModel(CAMO, Interactive, PredictsLogpdf, ParametricModelMixin):
 
         return rv
 
-    def update(self, stimulus, reward, action, done):
+    def update(self, stimulus, reward, action, done=False):
         """
         Update the hidden state of the model based on input stimulus, action performed
         by the model and reward.

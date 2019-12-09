@@ -30,10 +30,10 @@ def get_simulation_data(filepath, n_sub, np_array=False):
     """
     Read example simulation data files.
     """
-    res = {"list": []}
+    res = []
     for i in range(n_sub):
         df_dict = get_observation_from_idx(filepath, i, np_array=np_array)
-        res["list"].append(df_dict)
+        res.append(df_dict)
 
     return res
 

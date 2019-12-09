@@ -1,2 +1,2 @@
 from .base import LDMTest
-from .tests import InteractiveTest, BatchTest, BatchTrainAndTest
+from .tests import InteractiveTest, BatchTest, BatchTestWithSplit

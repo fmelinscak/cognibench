@@ -27,19 +27,6 @@ class PredictsLogpdf(sciunit.Capability):
     pass
 
 
-class BatchTrainable(sciunit.Capability):
-    """
-    Capability for models that can train on a set (batch) of input samples in one go
-    rather than iteratively updating some hidden state.
-    """
-
-    def fit(self, *args, **kwargs):
-        """
-        The model should train itself given a list of input samples and the corresponding outputs.
-        """
-        raise NotImplementedError("Must implement fit.")
-
-
 class MultiSubjectModel(sciunit.Capability):
     """
     Capability for models that natively support multi subject data. These types of models
@@ -48,6 +35,13 @@ class MultiSubjectModel(sciunit.Capability):
     """
 
     multi_subject_methods = []
+
+    def fit_jointly(self, *args, **kwargs):
+        """
+        Take the data of all the subjects at once and fit the multi-subject model, either by fitting each model
+        separately, or fitting all the models at once.
+        """
+        raise NotImplementedError("Multi-subject model must implement fit_multisubject")
 
 
 class ReturnsNumParams(sciunit.Capability):
