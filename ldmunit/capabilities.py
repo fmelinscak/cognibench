@@ -2,6 +2,7 @@ import sciunit
 import numpy as np
 from gym import spaces
 from .continuous import ContinuousSpace
+from overrides import overrides
 
 
 class Interactive(sciunit.Capability):
@@ -10,6 +11,9 @@ class Interactive(sciunit.Capability):
     Models with this capability are required to have the following methods to be
     able to respond to environment and update themselves in an interactive manner.
     """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def update(self, *args, **kwargs):
         """
@@ -24,6 +28,9 @@ class PredictsLogpdf(sciunit.Capability):
     Capability for models that produce a logpdf as the return value of their predict method.
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     pass
 
 
@@ -33,6 +40,9 @@ class MultiSubjectModel(sciunit.Capability):
     must take a subject index as the first argument to their core functions such as fit, predict, reset, etc. The
     names of these multi-subject functions must be stored in multi_subject_methods variable as given below.
     """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     multi_subject_methods = []
 
@@ -49,6 +59,9 @@ class ReturnsNumParams(sciunit.Capability):
     Capability for models that can return the number of parameters they utilize.
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def n_params(self):
         """
         The model should return the number of parameters it has.
@@ -61,7 +74,9 @@ class ActionSpace(sciunit.Capability):
     Capability to understand action in a given space (:class:`gym.spaces.Space`).
     """
 
-    @property
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def action_space(self):
         """
         Returns
@@ -71,13 +86,18 @@ class ActionSpace(sciunit.Capability):
         """
         raise NotImplementedError("Must have action_space attribute.")
 
+    def set_action_space(self, x):
+        raise NotImplementedError("Must have action_space attribute.")
+
 
 class ObservationSpace(sciunit.Capability):
     """
     Capability to understand action in a given space (:class:`gym.spaces.Space`).
     """
 
-    @property
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
     def observation_space(self):
         """
         Returns
@@ -87,13 +107,19 @@ class ObservationSpace(sciunit.Capability):
         """
         raise NotImplementedError("Must have observation_space attribute.")
 
+    def set_observation_space(self, x):
+        raise NotImplementedError("Must have observation_space attribute.")
+
 
 class DiscreteObservation(ObservationSpace):
     """
     Capability to understand observation/stimulus/cues in a given discrete space (:class:`gym.spaces.Discrete`).
     """
 
-    @property
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @overrides
     def observation_space(self):
         """
         Returns
@@ -103,8 +129,8 @@ class DiscreteObservation(ObservationSpace):
         """
         return self._observation_space
 
-    @observation_space.setter
-    def observation_space(self, value):
+    @overrides
+    def set_observation_space(self, value):
         """
         Set the :class:`gym.spaces.Discrete` set.
 
@@ -116,11 +142,11 @@ class DiscreteObservation(ObservationSpace):
         if isinstance(value, spaces.Discrete):
             self._observation_space = value
         elif np.issubdtype(type(value), np.integer):
+            assert value > 0, "observation_space must be positive"
             self._observation_space = spaces.Discrete(value)
         else:
             raise TypeError("observation_space must be integer or gym.spaces.Discrete")
 
-    @property
     def n_obs(self):
         """
         Returns
@@ -128,7 +154,7 @@ class DiscreteObservation(ObservationSpace):
         int
             Dimension of the observation space.
         """
-        return self.observation_space.n
+        return self.observation_space().n
 
     def _check_observation(self, values):
         """
@@ -142,7 +168,10 @@ class DiscreteAction(ActionSpace):
     Capability to understand action in a given discrete space (:class:`gym.spaces.Discrete`).
     """
 
-    @property
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @overrides
     def action_space(self):
         """
         Returns
@@ -152,8 +181,8 @@ class DiscreteAction(ActionSpace):
         """
         return self._action_space
 
-    @action_space.setter
-    def action_space(self, value):
+    @overrides
+    def set_action_space(self, value):
         """
         Parameters
         ----------
@@ -165,11 +194,11 @@ class DiscreteAction(ActionSpace):
         if isinstance(value, spaces.Discrete):
             self._action_space = value
         elif np.issubdtype(type(value), np.integer):
+            assert value > 0, "action_space must be positive"
             self._action_space = spaces.Discrete(value)
         else:
             raise TypeError("action_space must be integer or gym.spaces.Discrete")
 
-    @property
     def n_action(self):
         """
         Returns
@@ -177,7 +206,7 @@ class DiscreteAction(ActionSpace):
         int
             Dimension of the action space.
         """
-        return self.action_space.n
+        return self.action_space().n
 
     def _check_action(self, values):
         """
@@ -191,7 +220,10 @@ class MultiBinaryObservation(ObservationSpace):
     Capability to understand actions in a given multi-binary space (:class:`gym.spaces.MultiBinary`).
     """
 
-    @property
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @overrides
     def observation_space(self):
         """
         Returns
@@ -210,8 +242,8 @@ class MultiBinaryObservation(ObservationSpace):
         """
         return self._observation_space
 
-    @observation_space.setter
-    def observation_space(self, value):
+    @overrides
+    def set_observation_space(self, value):
         """
         Parameters
         ----------
@@ -223,11 +255,11 @@ class MultiBinaryObservation(ObservationSpace):
         if isinstance(value, spaces.MultiBinary):
             self._observation_space = value
         elif isinstance(value, int):
+            assert value > 0, "observation_space must be positive"
             self._observation_space = spaces.MultiBinary(value)
         else:
             raise TypeError("action_space must be integer or gym.spaces.MultiBinary")
 
-    @property
     def n_obs(self):
         """
         Returns
@@ -235,7 +267,7 @@ class MultiBinaryObservation(ObservationSpace):
         int
             Dimension of the observation space.
         """
-        return self.observation_space.n
+        return self.observation_space().n
 
     def _check_observation(self, values):
         """
@@ -249,12 +281,15 @@ class ContinuousAction(ActionSpace):
     Capability to understand continuous actions (i.e. :math:`\mathbb{R}` in continuous).
     """
 
-    @property
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @overrides
     def action_space(self):
         return self._action_space
 
-    @action_space.setter
-    def action_space(self, value):
+    @overrides
+    def set_action_space(self, value):
         if isinstance(value, ContinuousSpace):
             self._action_space = value
         elif isinstance(value, tuple):
@@ -276,12 +311,15 @@ class ContinuousObservation(ObservationSpace):
     Capability to understand continuous observations (i.e. :math:`\mathbb{R}` in continuous).
     """
 
-    @property
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @overrides
     def observation_space(self):
         return self._observation_space
 
-    @observation_space.setter
-    def observation_space(self, value):
+    @overrides
+    def set_observation_space(self, value):
         if isinstance(value, ContinuousSpace):
             self._observation_space = value
         elif isinstance(value, tuple):

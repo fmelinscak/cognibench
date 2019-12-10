@@ -28,14 +28,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import numpy as np
-from gym import spaces
 from gym.utils import seeding
-from ldmunit.continuous import ContinuousSpace
+from ldmunit.capabilities import (
+    ContinuousAction,
+    DiscreteAction,
+    DiscreteObservation,
+    MultiBinaryObservation,
+)
 from .base import LDMEnv
 
 
-class BanditEnv(LDMEnv):
+class BanditEnv(DiscreteAction, DiscreteObservation, LDMEnv):
     """Bandit environment base to allow agents to interact with the class n-armed bandit
     in different variations
 
@@ -68,15 +71,16 @@ class BanditEnv(LDMEnv):
     """
 
     def __init__(self, p_dist, info={}):
+        super().__init__()
         if min(p_dist) < 0 or max(p_dist) > 1:
             raise ValueError("All probabilities must be between 0 and 1")
 
+        self.n_bandits = len(p_dist)
         self.p_dist = p_dist
         self.info = info
-        self.n_bandits = len(p_dist)
-        self.action_space = spaces.Discrete(self.n_bandits)
-        self.observation_space = spaces.Discrete(1)
         self.seed()
+        self.set_action_space(self.n_bandits)
+        self.set_observation_space(1)
 
     def seed(self, seed=None):
         """Set the random_state for the environment if given.
@@ -108,7 +112,7 @@ class BanditEnv(LDMEnv):
         info : str
             Information about the environment.
         """
-        assert self.action_space.contains(
+        assert self.action_space().contains(
             action
         ), "Action does not fit in the environment's action_space"
         reward = 0
@@ -126,7 +130,7 @@ class BanditEnv(LDMEnv):
 
         Since there is no memory preserved by the environment no operation on the env.
         """
-        return self.observation_space.sample()
+        return self.observation_space().sample()
 
     def render(self, mode="human", close=False):
         """
@@ -135,7 +139,7 @@ class BanditEnv(LDMEnv):
         pass
 
 
-class BanditAssociateEnv(LDMEnv):
+class BanditAssociateEnv(ContinuousAction, MultiBinaryObservation, LDMEnv):
     """Environment base to allow agents to learn from stimulus occuring at different
     probabilities.
 
@@ -174,6 +178,7 @@ class BanditAssociateEnv(LDMEnv):
     """
 
     def __init__(self, stimuli, p_stimuli, p_reward, info={}):
+        super().__init__()
         if min(p_stimuli) < 0 or max(p_stimuli) > 1 or sum(p_stimuli) != 1:
             raise ValueError("All probabilities must be between 0 and 1")
         if min(p_reward) < 0 or max(p_reward) > 1:
@@ -182,10 +187,10 @@ class BanditAssociateEnv(LDMEnv):
             len(set(map(len, (p_stimuli, stimuli, p_reward)))) == 1
         ), "Stimuli and Probability list must be of equal length"
         self._n = len(stimuli[0])
-        self.observation_space = spaces.MultiBinary(self._n)
-        self.action_space = ContinuousSpace()
+        self.set_action_space((1,))
+        self.set_observation_space(self._n)
         for s in stimuli:
-            assert self.observation_space.contains(
+            assert self.observation_space().contains(
                 s
             ), "Stimuli must be in the same MultiBinary space"
 
@@ -193,7 +198,6 @@ class BanditAssociateEnv(LDMEnv):
         self.p_stimuli = p_stimuli
         self.p_reward = p_reward
         self.info = info
-
         self.seed()
 
     def seed(self, seed=None):
@@ -226,7 +230,7 @@ class BanditAssociateEnv(LDMEnv):
         info : str
             Information about the environment.
         """
-        assert self.action_space.contains(
+        assert self.action_space().contains(
             action
         ), "Action does not fit in the environment's action_space"
 

@@ -69,7 +69,7 @@ class RandomRespondModel(
             Normal random variable with mean equal to reward and
             standard deviation equal to sigma model parameter.
         """
-        assert self.observation_space.contains(stimulus)
+        assert self.observation_space().contains(stimulus)
 
         mu_pred = self.paras["mu"]
         sd_pred = self.paras["sigma"]
@@ -128,5 +128,5 @@ class RandomRespondModel(
         action : float
             The action performed by the model.
         """
-        assert self.action_space.contains(action)
-        assert self.observation_space.contains(stimulus)
+        assert self.action_space().contains(action)
+        assert self.observation_space().contains(stimulus)

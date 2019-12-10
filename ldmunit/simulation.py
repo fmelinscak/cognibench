@@ -1,9 +1,12 @@
 import numpy as np
 from functools import partial
+from itertools import starmap
 from ldmunit.models.utils import single_from_multi_obj, reverse_single_from_multi_obj
+from ldmunit.capabilities import ActionSpace, ObservationSpace
+from ldmunit.logging import logger
 
 
-def simulate(env, model, n_trials, seed=None):
+def simulate(env, model, n_trials, seed=None, check_env_model=True):
     """
     Simulate the evolution of an environment and a model for a
     fixed number of steps. Each subject model in the given multi-subject model
@@ -38,6 +41,12 @@ def simulate(env, model, n_trials, seed=None):
     actions : list
         List of actions performed by the model in each trial.
     """
+    if check_env_model and not model_env_capabilities_match(env, model):
+        logger().error(
+            f"simulate : Env {env} and model {model} action and observation spaces aren't the same!"
+        )
+        return [], [], []
+
     actions = []
     rewards = []
     stimuli = []
@@ -58,7 +67,9 @@ def simulate(env, model, n_trials, seed=None):
     return stimuli[1:], rewards, actions
 
 
-def simulate_multienv_multimodel(env_iterable, multimodel, n_trials, seed=None):
+def simulate_multienv_multimodel(
+    env_iterable, multimodel, n_trials, seed=None, check_env_model=True
+):
     """
     Simulate the evolution of multiple environments with multi-subject model.
     Each subject model gets their own environment.
@@ -101,6 +112,17 @@ def simulate_multienv_multimodel(env_iterable, multimodel, n_trials, seed=None):
     simulate_single_env_single_model
     """
     env_list = list(env_iterable)
+    if check_env_model:
+        for i, env in enumerate(env_list):
+            model_i = single_from_multi_obj(multimodel, i)
+            do_match = model_env_capabilities_match(env, model_i)
+            multimodel = reverse_single_from_multi_obj(model_i)
+            if not do_match:
+                logger().error(
+                    f"simulate : Env {env} and model {multimodel} action and observation spaces aren't the same!"
+                )
+                return [], [], []
+
     if np.issubdtype(type(n_trials), np.integer):
         n_trials_list = np.repeat(n_trials, len(env_list))
     else:
@@ -111,7 +133,9 @@ def simulate_multienv_multimodel(env_iterable, multimodel, n_trials, seed=None):
 
     def sim_i(multimodel, idx):
         model_i = single_from_multi_obj(multimodel, idx)
-        out_tuple = simulate(env_list[idx], model_i, n_trials_list[idx], seed)
+        out_tuple = simulate(
+            env_list[idx], model_i, n_trials_list[idx], seed, check_env_model=False
+        )
         multimodel = reverse_single_from_multi_obj(model_i)
         return out_tuple
 
@@ -119,3 +143,30 @@ def simulate_multienv_multimodel(env_iterable, multimodel, n_trials, seed=None):
     stimuli, rewards, actions = zip(*all_out)
 
     return stimuli, rewards, actions
+
+
+def model_env_capabilities_match(env, model):
+    try:
+        env_action_space = _check_unique_space_and_return(env, ActionSpace)
+        env_obs_space = _check_unique_space_and_return(env, ObservationSpace)
+        model_action_space = _check_unique_space_and_return(model, ActionSpace)
+        model_obs_space = _check_unique_space_and_return(model, ObservationSpace)
+
+        is_match = issubclass(model_action_space, env_action_space) and issubclass(
+            model_obs_space, env_obs_space
+        )
+        return is_match
+    except ValueError as v:
+        logger().error(f"model_env_capabilities_match : {v.strerror}")
+        return False
+
+
+def _check_unique_space_and_return(obj, space_type):
+    obj_type = type(obj)
+    bool_list = [issubclass(base, space_type) for base in obj_type.__bases__]
+    bool_sum = sum(bool_list)
+    if bool_sum == 0:
+        raise ValueError("obj has no parents subclassing from ActionSpace")
+    elif bool_sum > 1:
+        raise ValueError("obj has multiple parents subclassing from ActionSpace")
+    return obj_type.__bases__[bool_list.index(True)]

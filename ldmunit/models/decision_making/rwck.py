@@ -67,15 +67,15 @@ class RWCKModel(
     def reset(self):
         w = self.paras["w"]
         self.hidden_state = {
-            "CK": np.zeros((self.n_obs, self.n_action)),
-            "Q": np.full((self.n_obs, self.n_action), w),
+            "CK": np.zeros((self.n_obs(), self.n_action())),
+            "Q": np.full((self.n_obs(), self.n_action()), w),
         }
 
     def _get_rv(self, stimulus):
         """
         Return a random variable object from the given stimulus.
         """
-        assert self.observation_space.contains(stimulus)
+        assert self.observation_space().contains(stimulus)
         CK_i = self.hidden_state["CK"][stimulus]
         Q_i = self.hidden_state["Q"][stimulus]
 
@@ -83,7 +83,7 @@ class RWCKModel(
         beta_c = self.paras["beta_c"]
         V = beta * Q_i + beta_c * CK_i
 
-        xk = np.arange(self.n_action)
+        xk = np.arange(self.n_action())
         pk = softmax(V)
         rv = stats.rv_discrete(values=(xk, pk))
         rv.random_state = self.seed
@@ -142,8 +142,8 @@ class RWCKModel(
         done : bool
             If `True`, do not do any update.
         """
-        assert self.action_space.contains(action)
-        assert self.observation_space.contains(stimulus)
+        assert self.action_space().contains(action)
+        assert self.observation_space().contains(stimulus)
 
         # get model's state
         CK, Q = self.hidden_state["CK"][stimulus], self.hidden_state["Q"][stimulus]
