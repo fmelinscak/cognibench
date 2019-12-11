@@ -70,8 +70,8 @@ class BanditEnv(DiscreteAction, DiscreteObservation, LDMEnv):
         There is no observation/stimulus/cue in bandit environment.
     """
 
-    def __init__(self, p_dist, info={}):
-        super().__init__()
+    def __init__(self, *args, p_dist, info={}, **kwargs):
+        super().__init__(*args, **kwargs)
         if min(p_dist) < 0 or max(p_dist) > 1:
             raise ValueError("All probabilities must be between 0 and 1")
 
@@ -81,17 +81,6 @@ class BanditEnv(DiscreteAction, DiscreteObservation, LDMEnv):
         self.seed()
         self.set_action_space(self.n_bandits)
         self.set_observation_space(1)
-
-    def seed(self, seed=None):
-        """Set the random_state for the environment if given.
-
-        Parameters
-        ----------
-        seed : int
-            Seed for the random_state
-        """
-        self.np_random, seed = seeding.np_random(seed)
-        return [seed]
 
     def step(self, action):
         """Environment reacts to the agent.
@@ -177,8 +166,8 @@ class BanditAssociateEnv(ContinuousAction, MultiBinaryObservation, LDMEnv):
 
     """
 
-    def __init__(self, stimuli, p_stimuli, p_reward, info={}):
-        super().__init__()
+    def __init__(self, *args, stimuli, p_stimuli, p_reward, info={}, **kwargs):
+        super().__init__(*args, **kwargs)
         if min(p_stimuli) < 0 or max(p_stimuli) > 1 or sum(p_stimuli) != 1:
             raise ValueError("All probabilities must be between 0 and 1")
         if min(p_reward) < 0 or max(p_reward) > 1:
@@ -199,17 +188,6 @@ class BanditAssociateEnv(ContinuousAction, MultiBinaryObservation, LDMEnv):
         self.p_reward = p_reward
         self.info = info
         self.seed()
-
-    def seed(self, seed=None):
-        """Set the random_state for the environment if given.
-
-        Parameters
-        ----------
-        seed : int
-            Seed for the random_state
-        """
-        self.np_random, seed = seeding.np_random(seed)
-        return [seed]
 
     def step(self, action):
         """Environment reacts to the agent.
