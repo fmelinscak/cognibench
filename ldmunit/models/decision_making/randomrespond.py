@@ -62,12 +62,12 @@ class RandomRespondModel(
         """
         Return a random variable object from the given stimulus.
         """
-        assert self.observation_space.contains(stimulus)
+        assert self.get_observation_space().contains(stimulus)
 
         bias = self.paras["bias"]
         action_bias = self.paras["action_bias"]
 
-        n = self.n_action
+        n = self.n_action()
         pk = np.full(n, (1 - bias) / (n - 1))
         pk[action_bias] = bias
 
@@ -115,5 +115,5 @@ class RandomRespondModel(
         Doesn't do anything. Stimulus and action must be from their respective
         spaces.
         """
-        assert self.action_space.contains(action)
-        assert self.observation_space.contains(stimulus)
+        assert self.get_action_space().contains(action)
+        assert self.get_observation_space().contains(stimulus)

@@ -17,6 +17,8 @@ class ContinuousSpace(gym.Space):
             Shape of the continuous space. By default, creates a one-dimensional
             continuous space. (Default: None)
         """
+        if shape is not None:
+            assert all(x > 0 for x in shape), "dimensions must be positive!"
         super().__init__(shape, np.float64)
 
     def sample(self):

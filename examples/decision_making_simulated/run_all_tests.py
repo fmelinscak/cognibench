@@ -5,9 +5,7 @@ from os import getcwd
 from os.path import join as pathjoin
 
 from ldmunit.models import decision_making
-from ldmunit.models.utils import (
-    multi_from_single_interactive_parametric as multi_subject,
-)
+from ldmunit.models.utils import multi_from_single_cls as multi_subject
 from ldmunit.testing import InteractiveTest
 from ldmunit.utils import partialclass
 import ldmunit.scores as scores

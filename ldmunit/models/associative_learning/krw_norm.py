@@ -78,10 +78,10 @@ class KrwNormModel(
         super().__init__(paras=paras, **kwargs)
         if is_arraylike(w):
             assert (
-                len(w) == self.n_obs
+                len(w) == self.n_obs()
             ), "w must have the same length as the dimension of the observation space"
         if not is_arraylike(b1):
-            self.paras["b1"] = np.full(self.n_obs, b1)
+            self.paras["b1"] = np.full(self.n_obs(), b1)
 
     def reset(self):
         """
@@ -91,12 +91,12 @@ class KrwNormModel(
         if is_arraylike(w):
             w = np.array(w, dtype=np.float64)
         else:
-            w = np.full(self.n_obs, w, dtype=np.float64)
+            w = np.full(self.n_obs(), w, dtype=np.float64)
 
         sigmaWInit = self.paras["sigmaWInit"]
-        C = sigmaWInit * np.identity(self.n_obs)
+        C = sigmaWInit * np.identity(self.n_obs())
 
-        self.hidden_state = {"w": np.full(self.n_obs, w), "C": C}
+        self.hidden_state = {"w": np.full(self.n_obs(), w), "C": C}
 
     def predict(self, stimulus):
         """
@@ -134,7 +134,7 @@ class KrwNormModel(
         return self.observation(stimulus).rvs()
 
     def _predict_reward(self, stimulus):
-        assert self.observation_space.contains(stimulus)
+        assert self.get_observation_space().contains(stimulus)
         w_curr = self.hidden_state["w"]
         rhat = np.dot(stimulus, w_curr.T)
         return rhat
@@ -156,7 +156,7 @@ class KrwNormModel(
             to sigma model parameter.
         """
         assert self.hidden_state, "hidden state must be set"
-        assert self.observation_space.contains(stimulus)
+        assert self.get_observation_space().contains(stimulus)
 
         b0 = self.paras["b0"]  # intercept
         b1 = self.paras["b1"]  # slope
@@ -192,12 +192,12 @@ class KrwNormModel(
         done : bool
             If True, do not update the hidden state.
         """
-        assert self.action_space.contains(action)
-        assert self.observation_space.contains(stimulus)
+        assert self.get_action_space().contains(action)
+        assert self.get_observation_space().contains(stimulus)
 
         tauSq = self.paras["tauSq"]  # State diffusion variance
         Q = tauSq * np.identity(
-            self.n_obs
+            self.n_obs()
         )  # Transition noise variance (transformed to positive reals); constant over time
         sigmaRSq = self.paras["sigmaRSq"]
 
@@ -217,7 +217,7 @@ class KrwNormModel(
             # Kalman update step
             K = C_pred.dot(stimulus) / (
                 stimulus.dot(C_pred.dot(stimulus)) + sigmaRSq
-            )  # (n_obs,)
+            )  # (n_obs(),)
             w_updt = w_pred + K * delta  # Mean updated with prediction error
             C_updt = C_pred - np.dot(K[:, None], np.dot(stimulus[None, :], C_pred))
 

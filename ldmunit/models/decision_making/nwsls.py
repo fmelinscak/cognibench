@@ -40,9 +40,9 @@ class NWSLSModel(
             provided during initialization.
         """
         paras = dict(epsilon=epsilon)
-        super().__init__(paras=paras, **kwargs)
+        super().__init__(*args, paras=paras, **kwargs)
         assert (
-            epsilon >= 0 and epsilon <= self.n_action
+            epsilon >= 0 and epsilon <= self.n_action()
         ), "epsilon must be in range [0, n_action]"
 
     def reset(self):
@@ -50,16 +50,16 @@ class NWSLSModel(
         Override base class reset behaviour by setting the hidden state to default
         values for NWSLS model.
         """
-        self.hidden_state = dict(win=True, action=self.rng.randint(0, self.n_action))
+        self.hidden_state = dict(win=True, action=self.rng.randint(0, self.n_action()))
 
     def _get_rv(self, stimulus):
         """
         Return a random variable object from the given stimulus.
         """
-        assert self.observation_space.contains(stimulus)
+        assert self.get_observation_space().contains(stimulus)
 
         epsilon = self.paras["epsilon"]
-        n = self.n_action
+        n = self.n_action()
 
         if self.hidden_state["win"]:
             prob_action = 1 - epsilon / n
@@ -124,8 +124,8 @@ class NWSLSModel(
         action : int
             Action performed by the model.
         """
-        assert self.action_space.contains(action)
-        assert self.observation_space.contains(stimulus)
+        assert self.get_action_space().contains(action)
+        assert self.get_observation_space().contains(stimulus)
 
         self.hidden_state["win"] = reward == 1
         self.hidden_state["action"] = action
