@@ -23,17 +23,26 @@ def model_recovery(
     -------
     """
     match, multi = _check_cardinalities_and_return(model_list)
-    if not match:
-        raise ValueError(
-            "Models in model_recovery must be all single subject or all multiple subject"
-        )
+    assert (
+        match
+    ), "Models in model_recovery must be all single subject or all multiple subject"
+    if multi:
+        subj_cnts = [m.n_subjects for m in model_list]
+        assert (
+            len(set(subj_cnts)) == 1
+        ), "All models must have the same number of subjects"
+        n_subjects = model_list[0].n_subjects
+
+    env_name = env.name
     if multi and not is_arraylike(env):
-        env = [copy.deepcopy(env) for _ in range(multi.n_subjects)]
+        env = [copy.deepcopy(env) for _ in range(n_subjects)]
 
     sim_fun = simulation.simulate_multienv_multimodel if multi else simulation.simulate
     test_list = []
     for model in model_list:
-        logger().info(f"model_recovery : Simulating model {model} against env {env}")
+        logger().info(
+            f"model_recovery : Simulating model {model.name} against env {env_name}"
+        )
         stimuli, rewards, actions = sim_fun(env, model, n_trials, seed=seed)
         if multi:
             obs = []

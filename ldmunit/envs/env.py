@@ -70,6 +70,8 @@ class BanditEnv(DiscreteAction, DiscreteObservation, LDMEnv):
         There is no observation/stimulus/cue in bandit environment.
     """
 
+    name = "BanditEnv"
+
     def __init__(self, *args, p_dist, info={}, **kwargs):
         super().__init__(*args, **kwargs)
         if min(p_dist) < 0 or max(p_dist) > 1:
@@ -157,6 +159,8 @@ class ClassicalConditioningEnv(ContinuousAction, MultiBinaryObservation, LDMEnv)
         The multi-binary space set by the stimuli
 
     """
+
+    name = "ClassicalConditioningEnv"
 
     def __init__(self, *args, stimuli, p_stimuli, p_reward, info={}, **kwargs):
         super().__init__(*args, **kwargs)
