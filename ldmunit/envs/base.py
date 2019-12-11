@@ -3,6 +3,8 @@ from gym.utils import seeding
 
 
 class LDMEnv(gym.Env):
+    name = "LDMEnv"
+
     def __init__(self, *args, seed=None, **kwargs):
         """
         Parameters

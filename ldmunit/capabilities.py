@@ -46,6 +46,8 @@ class MultiSubjectModel(sciunit.Capability):
 
     multi_subject_methods = []
 
+    n_subjects = -1
+
     def fit_jointly(self, *args, **kwargs):
         """
         Take the data of all the subjects at once and fit the multi-subject model, either by fitting each model
