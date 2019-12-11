@@ -2,7 +2,7 @@ import numpy as np
 
 from ldmunit.simulation import simulate, simulate_multienv_multimodel
 from ldmunit.models.decision_making import NWSLSModel
-from ldmunit.models.utils import multi_from_single_interactive
+from ldmunit.models.utils import multi_from_single_cls
 from ldmunit.envs import BanditEnv
 
 
@@ -29,7 +29,7 @@ def main_simulate_multi():
     ]
     epsilon_list = [{"epsilon": e} for e in [0, 1, 2]]
 
-    MultiNWSLS = multi_from_single_interactive(NWSLSModel)
+    MultiNWSLS = multi_from_single_cls(NWSLSModel)
     multimodel = MultiNWSLS(param_list=epsilon_list, n_action=7, n_obs=1)
     envs = [BanditEnv(p_dist=p) for p in p_dist]
 

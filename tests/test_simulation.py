@@ -6,7 +6,7 @@ from scipy import stats
 from ldmunit.models import decision_making
 from ldmunit.env import BanditEnv
 from ldmunit.models.utils import (
-    multi_from_single_interactive,
+    multi_from_single_cls,
     simulate_multi_env_multi_model,
 )
 
@@ -15,7 +15,7 @@ class Test_Unit(unittest.TestCase):
     def setUp(self):
         self.env = [BanditEnv([0.01, 0.99])]
         paras = [{"w": 0.0, "eta": 1, "eta_c": 1, "beta": 1, "beta_c": 1}]
-        ModelClass = multi_from_single_interactive(decision_making.RWCKModel)
+        ModelClass = multi_from_single_cls(decision_making.RWCKModel)
         self.model = ModelClass(paras, n_action=2, n_obs=2)
 
     def test_simulation(self):

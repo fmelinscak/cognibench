@@ -77,7 +77,7 @@ class ActionSpace(sciunit.Capability):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def action_space(self):
+    def get_action_space(self):
         """
         Returns
         -------
@@ -98,7 +98,7 @@ class ObservationSpace(sciunit.Capability):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def observation_space(self):
+    def get_observation_space(self):
         """
         Returns
         -------
@@ -120,7 +120,7 @@ class DiscreteObservation(ObservationSpace):
         super().__init__(*args, **kwargs)
 
     @overrides
-    def observation_space(self):
+    def get_observation_space(self):
         """
         Returns
         -------
@@ -154,7 +154,7 @@ class DiscreteObservation(ObservationSpace):
         int
             Dimension of the observation space.
         """
-        return self.observation_space().n
+        return self.get_observation_space().n
 
     def _check_observation(self, values):
         """
@@ -172,7 +172,7 @@ class DiscreteAction(ActionSpace):
         super().__init__(*args, **kwargs)
 
     @overrides
-    def action_space(self):
+    def get_action_space(self):
         """
         Returns
         -------
@@ -206,7 +206,7 @@ class DiscreteAction(ActionSpace):
         int
             Dimension of the action space.
         """
-        return self.action_space().n
+        return self.get_action_space().n
 
     def _check_action(self, values):
         """
@@ -224,7 +224,7 @@ class MultiBinaryObservation(ObservationSpace):
         super().__init__(*args, **kwargs)
 
     @overrides
-    def observation_space(self):
+    def get_observation_space(self):
         """
         Returns
         -------
@@ -267,13 +267,13 @@ class MultiBinaryObservation(ObservationSpace):
         int
             Dimension of the observation space.
         """
-        return self.observation_space().n
+        return self.get_observation_space().n
 
     def _check_observation(self, values):
         """
         Check whether given value is a valid obeservation.
         """
-        return all(self.observation_space.contains(x) for x in values)
+        return all(self.get_observation_space().contains(x) for x in values)
 
 
 class ContinuousAction(ActionSpace):
@@ -285,7 +285,7 @@ class ContinuousAction(ActionSpace):
         super().__init__(*args, **kwargs)
 
     @overrides
-    def action_space(self):
+    def get_action_space(self):
         return self._action_space
 
     @overrides
@@ -303,7 +303,7 @@ class ContinuousAction(ActionSpace):
         """
         Check whether given value is a valid action.
         """
-        return all(self.action_space.contains(x) for x in values)
+        return all(self.get_action_space().contains(x) for x in values)
 
 
 class ContinuousObservation(ObservationSpace):
@@ -315,7 +315,7 @@ class ContinuousObservation(ObservationSpace):
         super().__init__(*args, **kwargs)
 
     @overrides
-    def observation_space(self):
+    def get_observation_space(self):
         return self._observation_space
 
     @overrides
@@ -333,4 +333,4 @@ class ContinuousObservation(ObservationSpace):
         """
         Check whether given value is a valid observation.
         """
-        return all(self.observation_space.contains(x) for x in values)
+        return all(self.get_observation_space().contains(x) for x in values)

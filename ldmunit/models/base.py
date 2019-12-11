@@ -169,8 +169,6 @@ class DADO(LDMModel, DiscreteAction, DiscreteObservation):
             raise AssertionError("stimuli and actions must be of the same length.")
         self.set_action_space(len(np.unique(actions)))
         self.set_observation_space(len(np.unique(stimuli)))
-        print("action_space set to {}".format(self.action_space()))
-        print("observation_space set to {}".format(self.observation_space()))
 
 
 class CACO(LDMModel, ContinuousAction, ContinuousObservation):

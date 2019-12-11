@@ -1,8 +1,10 @@
 import numpy as np
 from functools import partial
 from itertools import starmap
+from ldmunit.models import LDMModel
+from ldmunit.envs import LDMEnv
 from ldmunit.models.utils import single_from_multi_obj, reverse_single_from_multi_obj
-from ldmunit.capabilities import ActionSpace, ObservationSpace
+from ldmunit.capabilities import ActionSpace, ObservationSpace, Interactive
 from ldmunit.logging import logger
 
 
@@ -146,27 +148,25 @@ def simulate_multienv_multimodel(
 
 
 def model_env_capabilities_match(env, model):
-    try:
-        env_action_space = _check_unique_space_and_return(env, ActionSpace)
-        env_obs_space = _check_unique_space_and_return(env, ObservationSpace)
-        model_action_space = _check_unique_space_and_return(model, ActionSpace)
-        model_obs_space = _check_unique_space_and_return(model, ObservationSpace)
+    # check types
+    type_checks = [
+        (model, LDMModel),
+        (model, Interactive),
+        (env, LDMEnv),
+        (model, ActionSpace),
+        (model, ObservationSpace),
+        (env, ActionSpace),
+        (env, ObservationSpace),
+    ]
+    for obj, cls in type_checks:
+        if not isinstance(obj, cls):
+            logger().error(
+                f"model_env_capabilities_match : Model {obj} is not an instance of {cls}!"
+            )
+            return False
 
-        is_match = issubclass(model_action_space, env_action_space) and issubclass(
-            model_obs_space, env_obs_space
-        )
-        return is_match
-    except ValueError as v:
-        logger().error(f"model_env_capabilities_match : {v.strerror}")
-        return False
-
-
-def _check_unique_space_and_return(obj, space_type):
-    obj_type = type(obj)
-    bool_list = [issubclass(base, space_type) for base in obj_type.__bases__]
-    bool_sum = sum(bool_list)
-    if bool_sum == 0:
-        raise ValueError("obj has no parents subclassing from ActionSpace")
-    elif bool_sum > 1:
-        raise ValueError("obj has multiple parents subclassing from ActionSpace")
-    return obj_type.__bases__[bool_list.index(True)]
+    env_action_space = type(env.get_action_space())
+    env_obs_space = type(env.get_observation_space())
+    model_action_space = type(model.get_action_space())
+    model_obs_space = type(model.get_observation_space())
+    return env_action_space == model_action_space and env_obs_space == model_obs_space

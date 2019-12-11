@@ -112,7 +112,7 @@ class BanditEnv(DiscreteAction, DiscreteObservation, LDMEnv):
         info : str
             Information about the environment.
         """
-        assert self.action_space().contains(
+        assert self.get_action_space().contains(
             action
         ), "Action does not fit in the environment's action_space"
         reward = 0
@@ -130,7 +130,7 @@ class BanditEnv(DiscreteAction, DiscreteObservation, LDMEnv):
 
         Since there is no memory preserved by the environment no operation on the env.
         """
-        return self.observation_space().sample()
+        return self.get_observation_space().sample()
 
     def render(self, mode="human", close=False):
         """
@@ -190,7 +190,7 @@ class BanditAssociateEnv(ContinuousAction, MultiBinaryObservation, LDMEnv):
         self.set_action_space((1,))
         self.set_observation_space(self._n)
         for s in stimuli:
-            assert self.observation_space().contains(
+            assert self.get_observation_space().contains(
                 s
             ), "Stimuli must be in the same MultiBinary space"
 
@@ -230,7 +230,7 @@ class BanditAssociateEnv(ContinuousAction, MultiBinaryObservation, LDMEnv):
         info : str
             Information about the environment.
         """
-        assert self.action_space().contains(
+        assert self.get_action_space().contains(
             action
         ), "Action does not fit in the environment's action_space"
 

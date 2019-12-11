@@ -128,7 +128,7 @@ class LSSPDModel(
             Normal random variable with mean equal to reward and
             standard deviation equal to sigma model parameter.
         """
-        assert self.observation_space().contains(stimulus)
+        assert self.get_observation_space().contains(stimulus)
 
         b0 = self.paras["b0"]
         b1 = self.paras["b1"]
@@ -184,7 +184,7 @@ class LSSPDModel(
         return self.observation(stimulus).rvs()
 
     def _predict_reward(self, stimulus):
-        assert self.observation_space().contains(stimulus)
+        assert self.get_observation_space().contains(stimulus)
         w_curr = self.hidden_state["w"]
         rhat = np.dot(stimulus, w_curr.T)
         return rhat
@@ -206,8 +206,8 @@ class LSSPDModel(
         done : bool
             If True, do not update the hidden state.
         """
-        assert self.action_space().contains(action)
-        assert self.observation_space().contains(stimulus)
+        assert self.get_action_space().contains(action)
+        assert self.get_observation_space().contains(stimulus)
 
         eta = self.paras[
             "eta"

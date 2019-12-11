@@ -143,7 +143,7 @@ class BetaBinomialModel(
             Normal random variable with mean equal to reward and
             standard deviation equal to sigma model parameter.
         """
-        assert self.observation_space().contains(stimulus)
+        assert self.get_observation_space().contains(stimulus)
 
         sd_pred = self.paras["sigma"]
 
@@ -210,7 +210,7 @@ class BetaBinomialModel(
         done : bool
             If True, do not update the hidden state.
         """
-        assert self.observation_space().contains(stimulus)
+        assert self.get_observation_space().contains(stimulus)
         # get model's state
         if stimulus not in self.hidden_state.keys():
             self.hidden_state[stimulus] = self._get_default_a_b()

@@ -56,7 +56,7 @@ class NWSLSModel(
         """
         Return a random variable object from the given stimulus.
         """
-        assert self.observation_space().contains(stimulus)
+        assert self.get_observation_space().contains(stimulus)
 
         epsilon = self.paras["epsilon"]
         n = self.n_action()
@@ -124,8 +124,8 @@ class NWSLSModel(
         action : int
             Action performed by the model.
         """
-        assert self.action_space().contains(action)
-        assert self.observation_space().contains(stimulus)
+        assert self.get_action_space().contains(action)
+        assert self.get_observation_space().contains(stimulus)
 
         self.hidden_state["win"] = reward == 1
         self.hidden_state["action"] = action

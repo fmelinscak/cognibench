@@ -75,7 +75,7 @@ class RWCKModel(
         """
         Return a random variable object from the given stimulus.
         """
-        assert self.observation_space().contains(stimulus)
+        assert self.get_observation_space().contains(stimulus)
         CK_i = self.hidden_state["CK"][stimulus]
         Q_i = self.hidden_state["Q"][stimulus]
 
@@ -142,8 +142,8 @@ class RWCKModel(
         done : bool
             If `True`, do not do any update.
         """
-        assert self.action_space().contains(action)
-        assert self.observation_space().contains(stimulus)
+        assert self.get_action_space().contains(action)
+        assert self.get_observation_space().contains(stimulus)
 
         # get model's state
         CK, Q = self.hidden_state["CK"][stimulus], self.hidden_state["Q"][stimulus]
