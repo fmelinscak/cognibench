@@ -121,20 +121,12 @@ class BanditEnv(DiscreteAction, DiscreteObservation, LDMEnv):
         """
         return self.get_observation_space().sample()
 
-    def render(self, mode="human", close=False):
-        """
-        Not implemented
-        """
-        pass
 
-
-class BanditAssociateEnv(ContinuousAction, MultiBinaryObservation, LDMEnv):
+class ClassicalConditioningEnv(ContinuousAction, MultiBinaryObservation, LDMEnv):
     """Environment base to allow agents to learn from stimulus occuring at different
     probabilities.
 
-    BanditEnv will initialize a :class:`gym.Env` instance in which rewards (1 or 0) will be
-    randomly rewarded towards pre-set stimuli. The occurance of the stimulus
-    will be determined by the `p_stimuli`
+    The occurance of the stimulus will be determined by the `p_stimuli`
 
     Parameters
     ----------
@@ -226,7 +218,7 @@ class BanditAssociateEnv(ContinuousAction, MultiBinaryObservation, LDMEnv):
         return observation, reward, done, info
 
     def reset(self):
-        """Reset the n-bandit env.
+        """Reset the env.
 
         Since there is no memory perserved by the environment. No operation on
         the env.
@@ -241,9 +233,3 @@ class BanditAssociateEnv(ContinuousAction, MultiBinaryObservation, LDMEnv):
         )
         observation = self.stimuli[obs_idx]
         return observation
-
-    def render(self, mode="human", close=False):
-        """
-        Not implemented
-        """
-        pass
