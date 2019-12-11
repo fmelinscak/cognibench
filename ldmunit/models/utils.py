@@ -97,6 +97,7 @@ class MultiMeta(type):
             self.subject_models = []
             for param_dict in param_list:
                 self.subject_models.append(single_cls(*args, **param_dict, **kwargs))
+            self.n_subjects = len(self.subject_models)
 
             def new_fn(idx, *args, fn_name, **kwargs):
                 return getattr(self.subject_models[idx], fn_name)(*args, **kwargs)
