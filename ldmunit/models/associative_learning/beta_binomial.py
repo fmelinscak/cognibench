@@ -2,113 +2,54 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
-from scipy.stats import beta
-from ldmunit.models import CAMO
-from ldmunit.models.mixins import (
-    ReinforcementLearningFittingMixin,
-    ParametricModelMixin,
+from ldmunit.models import LDMAgent, PolicyBasedModel
+from ldmunit.capabilities import (
+    ProducesPolicy,
+    ContinuousAction,
+    MultiBinaryObservation,
 )
-from ldmunit.capabilities import Interactive, PredictsLogpdf
-from ldmunit.utils import is_arraylike
 from collections.abc import MutableMapping
+from ldmunit.continuous import ContinuousSpace
+from ldmunit.utils import is_arraylike
 from overrides import overrides
 
 
-class DictWithBinarySequenceKeys(MutableMapping):
-    """
-    Mapping where keys are binary sequences such as [0, 1, 1], [1, 0, 1], etc.
-    """
-
-    def __init__(self, *args, **kwargs):
-        self._storage = dict()
-        self.update(dict(*args, **kwargs))
-
-    def __getitem__(self, key):
-        return self._storage[tuple(key)]
-
-    def __setitem__(self, key, val):
-        self._storage[tuple(key)] = val
-
-    def __delitem__(self, key):
-        del self._storage[tuple(key)]
-
-    def __iter__(self):
-        return iter(self._storage)
-
-    def __len__(self):
-        return len(self._storage)
-
-
-class BetaBinomialModel(
-    ParametricModelMixin,
-    ReinforcementLearningFittingMixin,
-    CAMO,
-    Interactive,
-    PredictsLogpdf,
+class BetaBinomialAgent(
+    LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservation
 ):
-    """
-    Interactive beta-binomial model implementation.
-
-    Occurence and non-occurence counts are stored in variables `a` and `b`, respectively.
-
-    Example
-    -------
-    >>> # Reward is calculated as
-    >>> mu = mean(Beta(a, b))
-    >>> h  = entropy(Beta(a, b))
-    >>> reward = intercept + slope * np.dot(stimulus, (mix_coef * mu  + (1 - mix_coef) * entropy))
-    >>> # Observation is a normal random variable:
-    >>> observation = Normal(reward, sigma)
-    """
-
     name = "BetaBinomial"
 
-    @overrides
-    def __init__(self, *args, a=1, b=1, sigma, mix_coef, intercept, slope, **kwargs):
+    def __init__(self, *args, n_obs, **kwargs):
         """
         Parameters
         ----------
-        a : float
-            Initial value of occurence count variable `a`. Must be positive.
+        n_obs : int
+            Size of the observation space
 
-        b : float
-            Initial value of non-occurence count variable `b`. Must be positive.
+        paras_dict : dict (optional)
+            a : float
+                Initial value of occurence count variable `a`. Must be positive.
 
-        sigma : float
-            Standard deviation of the normal distribution used to generate observations.
-            Must be nonnegative.
+            b : float
+                Initial value of non-occurence count variable `b`. Must be positive.
 
-        mix_coef : float
-            Mixing coefficient used in the convex combination. Must be in [0, 1] range.
+            sigma : float
+                Standard deviation of the normal distribution used to generate observations.
+                Must be nonnegative.
 
-        intercept : float
-            Intercept used when computing the reward.
+            mix_coef : float
+                Mixing coefficient used in the convex combination. Must be in [0, 1] range.
 
-        slope : array-like or float
-            Slope used when computing the reward. If a single scalar is given, each element of the slope vector
-            is equal to that value.
+            intercept : float
+                Intercept used when computing the reward.
 
-        Other Parameters
-        ----------------
-        **kwargs : any type
-            All the mandatory keyword-only arguments required by :class:`ldmunit.models.associative_learning.base.CAMO` must also be
-            provided during initialization.
+            slope : array-like or float
+                Slope used when computing the reward. If a single scalar is given, each element of the slope vector
+                is equal to that value.
         """
-        assert a > 0, "a must be positive"
-        assert b > 0, "b must be positive"
-        assert sigma >= 0, "sigma must be nonnegative"
-        assert mix_coef >= 0 and mix_coef <= 1, "mix_coef must be in range [0, 1]"
-        paras = {
-            "a": a,
-            "b": b,
-            "sigma": sigma,
-            "mix_coef": mix_coef,
-            "intercept": intercept,
-            "slope": slope,
-        }
-        super().__init__(paras=paras, **kwargs)
-        if not is_arraylike(slope):
-            self.paras["slope"] = np.full(self.n_obs(), slope)
+        self.set_action_space(ContinuousSpace())
+        self.set_observation_space(n_obs)
+        super().__init__(*args, **kwargs)
 
     def _get_default_a_b(self):
         """
@@ -126,9 +67,9 @@ class BetaBinomialModel(
         """
         Reset the hidden state to its default value.
         """
-        self.hidden_state = DictWithBinarySequenceKeys()
+        self.hidden_state = _DictWithBinarySequenceKeys()
 
-    def observation(self, stimulus):
+    def eval_policy(self, stimulus):
         """
         Get the reward random variable for the given stimulus.
 
@@ -154,26 +95,6 @@ class BetaBinomialModel(
 
         return rv
 
-    def predict(self, stimulus):
-        """
-        Predict the log-pdf over the continuous action space by using the
-        given stimulus as input.
-
-        Parameters
-        ----------
-        stimulus : array-like
-            A stimulus from the multi-binary observation space for this model. For
-            example, `[0, 1, 1]`.
-
-        Returns
-        -------
-        method
-            :py:meth:`scipy.stats.rv_continuous.logpdf` method over the continuous action space.
-        """
-        if stimulus not in self.hidden_state.keys():
-            self.hidden_state[stimulus] = self._get_default_a_b()
-        return self.observation(stimulus).logpdf
-
     def act(self, stimulus):
         """
         Return an action for the given stimulus.
@@ -189,9 +110,7 @@ class BetaBinomialModel(
         float
             An action from the continuous action space.
         """
-        if stimulus not in self.hidden_state.keys():
-            self.hidden_state[stimulus] = self._get_default_a_b()
-        return self.observation(stimulus).rvs()
+        return self.eval_policy(stimulus).rvs()
 
     def update(self, stimulus, reward, action, done=False):
         """
@@ -239,11 +158,62 @@ class BetaBinomialModel(
         a = self.hidden_state[stimulus]["a"]
         b = self.hidden_state[stimulus]["b"]
 
-        mu = beta(a, b).mean()
-        entropy = beta(a, b).entropy()
+        mu = stats.beta(a, b).mean()
+        entropy = stats.beta(a, b).entropy()
 
         rhat = intercept + np.dot(
             slope, (mix_coef * mu + (1 - mix_coef) * entropy) * stimulus
         )
 
         return rhat
+
+
+class BetaBinomialModel(PolicyBasedModel):
+    """
+    Beta-binomial model implementation.
+    """
+
+    name = "Beta Binomial"
+
+    @overrides
+    def __init__(self, *args, n_obs, seed=None, **kwargs):
+        agent = BetaBinomialAgent(n_obs=n_obs, seed=seed)
+
+        def initializer(seed):
+            return {
+                "a": stats.expon.rvs(scale=5, random_state=seed),
+                "b": stats.expon.rvs(scale=5, random_state=seed),
+                "sigma": stats.expon.rvs(random_state=seed),
+                "mix_coef": stats.uniform.rvs(random_state=seed),
+                "intercept": stats.norm.rvs(random_state=seed),
+                "slope": stats.norm.rvs(size=n_obs, random_state=seed),
+            }
+
+        super().__init__(
+            *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
+        )
+
+
+class _DictWithBinarySequenceKeys(MutableMapping):
+    """
+    Mapping where keys are binary sequences such as [0, 1, 1], [1, 0, 1], etc.
+    """
+
+    def __init__(self, *args, **kwargs):
+        self._storage = dict()
+        self.update(dict(*args, **kwargs))
+
+    def __getitem__(self, key):
+        return self._storage[tuple(key)]
+
+    def __setitem__(self, key, val):
+        self._storage[tuple(key)] = val
+
+    def __delitem__(self, key):
+        del self._storage[tuple(key)]
+
+    def __iter__(self):
+        return iter(self._storage)
+
+    def __len__(self):
+        return len(self._storage)

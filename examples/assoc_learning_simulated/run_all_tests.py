@@ -9,7 +9,7 @@ from ldmunit.models.utils import multi_from_single_cls as multi_subject
 from ldmunit.testing import InteractiveTest
 from ldmunit.utils import partialclass
 import ldmunit.scores as scores
-from read_example_data import get_simulation_data, get_model_params
+from read_example_data import get_simulation_data
 
 DATA_PATH = "data"
 # sciunit CWD directory should contain config.json file
@@ -56,20 +56,16 @@ def get_models():
     MultiBetaBinomialModel = multi_subject(associative_learning.BetaBinomialModel)
     MultiLSSPDModel = multi_subject(associative_learning.LSSPDModel)
 
-    param_list = get_model_params(pathjoin(DATA_PATH, "multi-rw_norm_prior.csv"))
-    multi_rw_norm = MultiRwNormModel(param_list, n_obs=4)
+    multi_rw_norm = MultiRwNormModel(n_subj=3, n_obs=4)
     multi_rw_norm.name = "rw_norm"
 
-    param_list = get_model_params(pathjoin(DATA_PATH, "multi-krw_norm_prior.csv"))
-    multi_krw_norm = MultiKrwNormModel(param_list, n_obs=4)
+    multi_krw_norm = MultiKrwNormModel(n_subj=3, n_obs=4)
     multi_krw_norm.name = "krw_norm"
 
-    param_list = get_model_params(pathjoin(DATA_PATH, "multi-lsspd_prior.csv"))
-    multi_lsspd = MultiLSSPDModel(param_list, n_obs=4)
+    multi_lsspd = MultiLSSPDModel(n_subj=3, n_obs=4)
     multi_lsspd.name = "lsspd"
 
-    param_list = get_model_params(pathjoin(DATA_PATH, "multi-beta_binomial_prior.csv"))
-    multi_bb = MultiBetaBinomialModel(param_list, n_obs=4)
+    multi_bb = MultiBetaBinomialModel(n_subj=3, n_obs=4)
     multi_bb.name = "bb"
 
     return [multi_rw_norm, multi_krw_norm, multi_lsspd, multi_bb]

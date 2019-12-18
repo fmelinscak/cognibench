@@ -3,10 +3,6 @@ import gym
 from gym import spaces
 from scipy import stats
 from ldmunit.models import LDMAgent, PolicyBasedModel
-from ldmunit.models.mixins import (
-    ReinforcementLearningFittingMixin,
-    ParametricModelMixin,
-)
 from ldmunit.capabilities import (
     ProducesPolicy,
     ContinuousAction,
@@ -198,7 +194,6 @@ class KrwNormModel(PolicyBasedModel):
 
         def initializer(seed):
             return {
-                "sigma": stats.expon.rvs(random_state=seed),
                 "tauSq": stats.expon.rvs(random_state=seed),
                 "sigmaRSq": stats.expon.rvs(random_state=seed),
                 "w": stats.norm.rvs(size=n_obs, random_state=seed),

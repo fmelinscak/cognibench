@@ -170,6 +170,7 @@ class PolicyBasedModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
             paras_init = self.param_initializer
         else:
             paras_init = self.param_initializer(seed=self.seed)
+
         self.agent.paras = paras_init
 
         def f(x, lens):

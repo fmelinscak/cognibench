@@ -2,98 +2,53 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
-from ldmunit.models import CAMO
-from ldmunit.models.mixins import (
-    ParametricModelMixin,
-    ReinforcementLearningFittingMixin,
+from ldmunit.models import LDMAgent, PolicyBasedModel
+from ldmunit.capabilities import (
+    ProducesPolicy,
+    ContinuousAction,
+    MultiBinaryObservation,
 )
-from ldmunit.capabilities import Interactive, PredictsLogpdf
+from ldmunit.continuous import ContinuousSpace
 from ldmunit.utils import is_arraylike
 from overrides import overrides
 
 
-class RwNormModel(
-    ParametricModelMixin,
-    ReinforcementLearningFittingMixin,
-    CAMO,
-    Interactive,
-    PredictsLogpdf,
-):
-    """
-    Rescorla-Wagner model implementation.
-    """
+class RwNormAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservation):
+    def __init__(self, *args, n_obs, **kwargs):
+        """
+        Parameters
+        ----------
+        n_obs : int
+            Size of the observation space
 
-    name = "RwNorm"
+        paras_dict : dict (optional)
+            w : float or array-like
+                Initial value of weight vector w. If float, then all elements of the
+                weight vector is set to this value. If array-like, must have the same
+                length as the dimension of the observation space.
+
+            sigma : float
+                Standard deviation of the normal distribution used to generate observations.
+                Must be nonnegative.
+
+            b0 : float
+                Intercept used when computing the mean of normal distribution from reward.
+
+            b1 : array-like or float
+                Slope used when computing the mean of the normal distribution from reward.
+                If a scalar is given, all elements of the slope vector is equal to that value.
+
+            eta : float
+                Learning rate for w updates. Must be nonnegative.
+        """
+
+        self.set_action_space(ContinuousSpace())
+        self.set_observation_space(n_obs)
+        # TODO: get params here
+        super().__init__(*args, **kwargs)
 
     @overrides
-    def __init__(self, *args, w, b0, b1, sigma, eta, **kwargs):
-        """
-        Parameters
-        ----------
-        w : float or array-like
-            Initial value of weight vector w. If float, then all elements of the
-            weight vector is set to this value. If array-like, must have the same
-            length as the dimension of the observation space.
-
-        sigma : float
-            Standard deviation of the normal distribution used to generate observations.
-            Must be nonnegative.
-
-        b0 : float
-            Intercept used when computing the mean of normal distribution from reward.
-
-        b1 : array-like or float
-            Slope used when computing the mean of the normal distribution from reward.
-            If a scalar is given, all elements of the slope vector is equal to that value.
-
-        eta : float
-            Learning rate for w updates. Must be nonnegative.
-
-        Other Parameters
-        ----------------
-        **kwargs : any type
-            All the mandatory keyword-only arguments required by :class:`ldmunit.models.associative_learning.base.CAMO` must also be
-            provided during initialization.
-        """
-        assert sigma >= 0, "sigma must be nonnegative"
-        assert eta >= 0, "eta must be nonnegative"
-        paras = {"w": w, "b0": b0, "b1": b1, "sigma": sigma, "eta": eta}
-        super().__init__(paras=paras, **kwargs)
-        if is_arraylike(w):
-            assert (
-                len(w) == self.n_obs()
-            ), "w must have the same length as the dimension of the observation space"
-        if not is_arraylike(b1):
-            self.paras["b1"] = np.full(self.n_obs(), b1)
-
-    def reset(self):
-        w = self.paras["w"] if "w" in self.paras else 0
-        if is_arraylike(w):
-            w = np.array(w, dtype=np.float64)
-        else:
-            w = np.full(self.n_obs(), w, dtype=np.float64)
-
-        self.hidden_state = {"w": w}
-
-    def predict(self, stimulus):
-        """
-        Predict the log-pdf over the continuous action space by using the
-        given stimulus as input.
-
-        Parameters
-        ----------
-        stimulus : array-like
-            A stimulus from the multi-binary observation space for this model. For
-            example, `[0, 1, 1]`.
-
-        Returns
-        -------
-        method
-            :py:meth:`scipy.stats.rv_continuous.logpdf` method over the continuous action space.
-        """
-        return self.observation(stimulus).logpdf
-
-    def act(self, stimulus):
+    def act(self, *args, **kwargs):
         """
         Return an action for the given stimulus.
 
@@ -108,7 +63,7 @@ class RwNormModel(
         float
             An action from the continuous action space.
         """
-        return self.observation(stimulus).rvs()
+        return self.eval_policy(*args, **kwargs).rvs()
 
     def _predict_reward(self, stimulus):
         assert self.get_observation_space().contains(stimulus)
@@ -116,39 +71,7 @@ class RwNormModel(
         rhat = np.dot(stimulus, w_curr.T)
         return rhat
 
-    def observation(self, stimulus):
-        """
-        Get the reward random variable for the given stimulus.
-
-        Parameters
-        ----------
-        stimulus : array-like
-            Single stimulus from the observation space.
-
-        Returns
-        -------
-        :class:`scipy.stats.rv_continuous`
-            Normal random variable with mean equal to linearly transformed
-            reward using b0 and b1 parameters, and standard deviation equal
-            to sigma model parameter.
-        """
-        assert self.hidden_state, "hidden state must be set"
-        assert self.get_observation_space().contains(stimulus)
-
-        b0 = self.paras["b0"]  # intercept
-        b1 = self.paras["b1"]  # slope
-        sd_pred = self.paras["sigma"]
-
-        w_curr = self.hidden_state["w"]
-
-        # Predict response
-        mu_pred = b0 + np.dot(b1, stimulus * w_curr)
-
-        rv = stats.norm(loc=mu_pred, scale=sd_pred)
-        rv.random_state = self.seed
-
-        return rv
-
+    @overrides
     def update(self, stimulus, reward, action, done=False):
         """
         Update the hidden state of the model based on input stimulus, action performed
@@ -183,3 +106,70 @@ class RwNormModel(
             self.hidden_state["w"] = w_curr
 
         return w_curr
+
+    @overrides
+    def eval_policy(self, stimulus):
+        """
+        Get the action random variable for the given stimulus.
+
+        Parameters
+        ----------
+        stimulus : array-like
+            Single stimulus from the observation space.
+
+        Returns
+        -------
+        :class:`scipy.stats.rv_continuous`
+            Normal random variable with mean equal to linearly transformed
+            reward using b0 and b1 parameters, and standard deviation equal
+            to sigma model parameter.
+        """
+        assert self.hidden_state, "hidden state must be set"
+        assert self.get_observation_space().contains(stimulus)
+
+        b0 = self.paras["b0"]  # intercept
+        b1 = self.paras["b1"]  # slope
+        sd_pred = self.paras["sigma"]
+
+        w_curr = self.hidden_state["w"]
+
+        # Predict response
+        mu_pred = b0 + np.dot(b1, stimulus * w_curr)
+
+        rv = stats.norm(loc=mu_pred, scale=sd_pred)
+        rv.random_state = self.seed
+
+        return rv
+
+    @overrides
+    def reset(self):
+        """
+        Reset the hidden state to its default value.
+        """
+        w = self.paras["w"]
+        self.hidden_state = {"w": w}
+
+
+class RwNormModel(PolicyBasedModel):
+    """
+    Rescorla-Wagner model implementation.
+    """
+
+    name = "RwNorm"
+
+    @overrides
+    def __init__(self, *args, n_obs, seed=None, **kwargs):
+        agent = RwNormAgent(n_obs=n_obs, seed=seed)
+
+        def initializer(seed):
+            return {
+                "w": stats.norm.rvs(size=n_obs, random_state=seed),
+                "sigma": stats.expon.rvs(random_state=seed),
+                "b0": stats.norm.rvs(random_state=seed),
+                "b1": stats.norm.rvs(size=n_obs, random_state=seed),
+                "eta": np.ones(n_obs) * 1e-3,
+            }
+
+        super().__init__(
+            *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
+        )
