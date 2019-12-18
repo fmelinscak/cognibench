@@ -1,57 +1,47 @@
 import numpy as np
+from scipy.special import softmax
 from gym import spaces
 from scipy import stats
-from scipy.special import softmax
 
-from ldmunit.models import DADO
-from ldmunit.models.mixins import (
-    ParametricModelMixin,
-    ReinforcementLearningFittingMixin,
-)
+from ldmunit.models import LDMAgent, PolicyBasedModel
 from ldmunit.capabilities import Interactive, PredictsLogpdf
+from ldmunit.capabilities import (
+    ProducesPolicy,
+    DiscreteAction,
+    DiscreteObservation,
+)
 from overrides import overrides
 
 
-class RWCKModel(
-    ReinforcementLearningFittingMixin,
-    ParametricModelMixin,
-    Interactive,
-    PredictsLogpdf,
-    DADO,
-):
-    """
-    Rescorla-Wagner Choice Kernel model implementation.
-
-    Random variable for a given stimulus i is computed using ith row of Q
-    matrix (Q_i), ith row of CK matrix (CK_i) and weights:
-
-    >>> logits = beta * Q_i + beta_c * CK_i
-    >>> probs = softmax(logits)
-    """
-
-    name = "RWCKModel"
-
+class RWCKAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
     @overrides
-    def __init__(self, *args, w, beta, beta_c, eta, eta_c, **kwargs):
+    def __init__(self, *args, n_action, n_obs, **kwargs):
         """
         Parameters
         ----------
-        w : float
-            Initial value of every element of weight matrix Q.
+        n_action : int
+            Dimension of the action space.
 
-        beta : float
-            Multiplicative factor used to multiply a row of Q matrix when computing
-            logits.
+        n_obs : int
+            Dimension of the observation space.
 
-        beta_c : float
-            Multiplicative factor used to multiply a row of CK matrix when computing
-            logits.
+        paras_dict : dict (optional)
+            w : float
+                Initial value of every element of weight matrix Q.
 
-        eta : float
-            Learning rate for Q updates. Must be nonnegative.
+            beta : float
+                Multiplicative factor used to multiply a row of Q matrix when computing
+                logits.
 
-        eta_c : float
-            Learning rate for CK updates. Must be nonnegative.
+            beta_c : float
+                Multiplicative factor used to multiply a row of CK matrix when computing
+                logits.
+
+            eta : float
+                Learning rate for Q updates. Must be nonnegative.
+
+            eta_c : float
+                Learning rate for CK updates. Must be nonnegative.
 
         Other Parameters
         ----------------
@@ -59,10 +49,9 @@ class RWCKModel(
             All the mandatory keyword-only arguments required by :class:`ldmunit.models.decision_making.base.DADO` must also be
             provided during initialization.
         """
-        assert eta >= 0, "eta must be nonnegative"
-        assert eta_c >= 0, "eta_c must be nonnegative"
-        paras = {"w": w, "beta": beta, "beta_c": beta_c, "eta": eta, "eta_c": eta_c}
-        super().__init__(paras=paras, **kwargs)
+        self.set_action_space(n_action)
+        self.set_observation_space(n_obs)
+        super().__init__(*args, **kwargs)
 
     def reset(self):
         w = self.paras["w"]
@@ -71,7 +60,7 @@ class RWCKModel(
             "Q": np.full((self.n_obs(), self.n_action()), w),
         }
 
-    def _get_rv(self, stimulus):
+    def eval_policy(self, stimulus):
         """
         Return a random variable object from the given stimulus.
         """
@@ -89,23 +78,6 @@ class RWCKModel(
         rv.random_state = self.seed
 
         return rv
-
-    def predict(self, stimulus):
-        """
-        Predict the log-pmf over the discrete action space by using the
-        given stimulus as input.
-
-        Parameters
-        ----------
-        stimulus : int
-            A stimulus from the observation space for this model.
-
-        Returns
-        -------
-        method
-            :py:meth:`scipy.stats.rv_discrete.logpmf` method over the discrete action space.
-        """
-        return self._get_rv(stimulus).logpmf
 
     def act(self, stimulus):
         """
@@ -167,37 +139,76 @@ class RWCKModel(
         return CK, Q
 
 
-class RWModel(RWCKModel):
+class RWCKModel(PolicyBasedModel):
     """
-    Rescorla-Wagner model implementation as a special case of
-    Rescorla-Wagner Choice Kernel model
+    Random respond model implementation.
+    """
+
+    name = "RWCKModel"
+
+    @overrides
+    def __init__(self, *args, n_action, n_obs, seed=None, **kwargs):
+        agent = RWCKAgent(n_action=n_action, n_obs=n_obs)
+
+        def initializer(seed):
+            return {
+                "w": stats.uniform.rvs(scale=5, random_state=seed),
+                "beta": stats.uniform.rvs(scale=5, random_state=seed),
+                "beta_c": stats.uniform.rvs(scale=5, random_state=seed),
+                "eta": 1e-2,
+                "eta_c": 1e-2,
+            }
+
+        super().__init__(
+            *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
+        )
+
+
+class RWModel(PolicyBasedModel):
+    """
+    Random respond model implementation.
     """
 
     name = "RWModel"
 
     @overrides
-    def __init__(self, *args, **kwargs):
-        """
-        Rescorla-Wagner is implemented as a special case of RWCK by setting
-        `beta_c` parameter to 0.
-        """
-        super().__init__(*args, **kwargs)
-        self.paras["beta_c"] = 0
+    def __init__(self, *args, n_action, n_obs, seed=None, **kwargs):
+        agent = RWCKAgent(n_action=n_action, n_obs=n_obs)
+
+        def initializer(seed):
+            return {
+                "w": stats.uniform.rvs(scale=5, random_state=seed),
+                "beta": stats.uniform.rvs(scale=5, random_state=seed),
+                "beta_c": 0,
+                "eta": 1e-2,
+                "eta_c": 1e-2,
+            }
+
+        super().__init__(
+            *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
+        )
 
 
-class CKModel(RWCKModel):
+class CKModel(PolicyBasedModel):
     """
-    Choice Kernel model implementation as a special case of
-    Rescorla-Wagner Choice Kernel model
+    Random respond model implementation.
     """
 
     name = "CKModel"
 
     @overrides
-    def __init__(self, *args, **kwargs):
-        """
-        Choice Kernel is implemented as a special case of RWCK by setting
-        `beta` parameter to 0.
-        """
-        super().__init__(*args, **kwargs)
-        self.paras["beta"] = 0
+    def __init__(self, *args, n_action, n_obs, seed=None, **kwargs):
+        agent = RWCKAgent(n_action=n_action, n_obs=n_obs)
+
+        def initializer(seed):
+            return {
+                "w": stats.uniform.rvs(scale=5, random_state=seed),
+                "beta": 0,
+                "beta_c": stats.uniform.rvs(scale=5, random_state=seed),
+                "eta": 1e-2,
+                "eta_c": 1e-2,
+            }
+
+        super().__init__(
+            *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
+        )

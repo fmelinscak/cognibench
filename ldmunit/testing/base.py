@@ -1,4 +1,5 @@
 from os import makedirs
+import traceback
 from os.path import join as pathjoin
 import numpy as np
 from sciunit import Test as SciunitTest, Score as SciunitScore

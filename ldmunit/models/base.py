@@ -186,7 +186,7 @@ class PolicyBasedModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
         x0, lens = _flatten_dict_into_array(self.agent.paras)
         # TODO: make this modifiable from outside
         opt_res = minimize(
-            f, x0, args=(lens,), method="Nelder-Mead", options={"maxiter": 1}
+            f, x0, args=(lens,), method="Nelder-Mead", options={"maxiter": 2}
         )
         if not opt_res.success:
             logger().debug(
@@ -201,7 +201,8 @@ class PolicyBasedModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
 
     @overrides
     def predict(self, stimulus):
-        return self.agent.eval_policy(stimulus).logpdf
+        policy = self.agent.eval_policy(stimulus)
+        return policy.logpdf if hasattr(policy, "logpdf") else policy.logpmf
 
     def update(self, stimulus, reward, action, done=False):
         return self.agent.update(stimulus, reward, action, done)

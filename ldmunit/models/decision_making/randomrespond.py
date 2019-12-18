@@ -2,55 +2,43 @@ import numpy as np
 from gym import spaces
 from scipy import stats
 
-from ldmunit.models import DADO
-from ldmunit.models.mixins import (
-    ParametricModelMixin,
-    ReinforcementLearningFittingMixin,
-)
+from ldmunit.models import LDMAgent, PolicyBasedModel
 from ldmunit.capabilities import Interactive, PredictsLogpdf
+from ldmunit.capabilities import (
+    ProducesPolicy,
+    DiscreteAction,
+    DiscreteObservation,
+)
 from overrides import overrides
 
 
-class RandomRespondModel(
-    ParametricModelMixin,
-    ReinforcementLearningFittingMixin,
-    DADO,
-    Interactive,
-    PredictsLogpdf,
-):
+class RandomRespondAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
     """
-    Random respond model that predicts random actions for any
+    Random respond agent that predicts random actions for any
     kind of observation.
     """
 
-    name = "RandomRespondModel"
-
     @overrides
-    def __init__(self, *args, bias, action_bias, **kwargs):
+    def __init__(self, *args, n_action, n_obs, **kwargs):
         """
         Parameters
         ----------
-        bias : float
-            Bias probability. Must be in range [0, 1].
+        n_action : int
+            Dimension of the action space.
 
-        action_bias : int
-            ID of the action. Must be in range [0, n_action)
+        n_obs : int
+            Dimension of the observation space.
 
-        Other Parameters
-        ----------------
-        **kwargs : any type
-            All the mandatory keyword-only arguments required by :class:`ldmunit.models.decision_making.base.DADO` must also be
-            provided during initialization.
+        paras_dict : dict (optional)
+            bias : float
+                Bias probability. Must be in range [0, 1].
+
+            action_bias : int
+                ID of the action. Must be in range [0, n_action)
         """
-        assert bias >= 0 and bias <= 1, "bias must be in range [0, 1]"
-        assert np.issubdtype(
-            type(action_bias), np.integer
-        ), "action_bias must be integer"
-        paras = dict(bias=bias, action_bias=action_bias)
-        super().__init__(paras=paras, **kwargs)
-        assert (
-            action_bias >= 0 and action_bias < self.n_action
-        ), "action_bias must be in range [0, n_action)"
+        self.set_action_space(n_action)
+        self.set_observation_space(n_obs)
+        super().__init__(*args, **kwargs)
 
     def reset(self):
         """
@@ -58,7 +46,7 @@ class RandomRespondModel(
         """
         self.hidden_state = dict()
 
-    def _get_rv(self, stimulus):
+    def eval_policy(self, stimulus):
         """
         Return a random variable object from the given stimulus.
         """
@@ -77,23 +65,6 @@ class RandomRespondModel(
 
         return rv
 
-    def predict(self, stimulus):
-        """
-        Predict the log-pmf over the discrete action space by using the
-        given stimulus as input.
-
-        Parameters
-        ----------
-        stimulus : int
-            A stimulus from the observation space for this model.
-
-        Returns
-        -------
-        method
-            :py:meth:`scipy.stats.rv_discrete.logpmf` method over the discrete action space.
-        """
-        return self._get_rv(stimulus).logpmf
-
     def act(self, stimulus):
         """
         Return an action for the given stimulus.
@@ -108,7 +79,7 @@ class RandomRespondModel(
         int
             An action from the action space.
         """
-        return self._get_rv(stimulus).rvs()
+        return self.eval_policy(stimulus).rvs()
 
     def update(self, stimulus, reward, action, done=False):
         """
@@ -117,3 +88,27 @@ class RandomRespondModel(
         """
         assert self.get_action_space().contains(action)
         assert self.get_observation_space().contains(stimulus)
+
+
+class RandomRespondModel(PolicyBasedModel):
+    """
+    Random respond model implementation.
+    """
+
+    name = "RandomRespondModel"
+
+    @overrides
+    def __init__(self, *args, n_action, n_obs, seed=None, **kwargs):
+        agent = RandomRespondAgent(n_action=n_action, n_obs=n_obs)
+
+        def initializer(seed):
+            return {
+                "bias": stats.uniform.rvs(loc=0, scale=1, random_state=seed),
+                "action_bias": int(
+                    stats.uniform.rvs(loc=0, scale=n_action, random_state=seed)
+                ),
+            }
+
+        super().__init__(
+            *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
+        )

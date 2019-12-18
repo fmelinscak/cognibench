@@ -57,20 +57,16 @@ def get_models():
     MultiNWSLSModel = multi_subject(decision_making.NWSLSModel)
     n_action, n_obs = 3, 3
 
-    param_list = get_model_params(pathjoin(DATA_PATH, "multi-ck_prior.csv"))
-    multi_ck = MultiCKModel(param_list, n_action=n_action, n_obs=n_obs)
+    multi_ck = MultiCKModel(n_subj=3, n_action=n_action, n_obs=n_obs)
     multi_ck.name = "ck"
 
-    param_list = get_model_params(pathjoin(DATA_PATH, "multi-rw_prior.csv"))
-    multi_rw = MultiRWModel(param_list, n_action=n_action, n_obs=n_obs)
+    multi_rw = MultiRWModel(n_subj=3, n_action=n_action, n_obs=n_obs)
     multi_rw.name = "rw"
 
-    param_list = get_model_params(pathjoin(DATA_PATH, "multi-rwck_prior.csv"))
-    multi_rwck = MultiRWCKModel(param_list, n_action=n_action, n_obs=n_obs)
+    multi_rwck = MultiRWCKModel(n_subj=3, n_action=n_action, n_obs=n_obs)
     multi_rwck.name = "rwck"
 
-    param_list = get_model_params(pathjoin(DATA_PATH, "multi-nwsls_prior.csv"))
-    multi_nwsls = MultiNWSLSModel(param_list, n_action=n_action, n_obs=n_obs)
+    multi_nwsls = MultiNWSLSModel(n_subj=3, n_action=n_action, n_obs=n_obs)
     multi_nwsls.name = "nwsls"
 
     return [multi_ck, multi_rw, multi_rwck, multi_nwsls]
