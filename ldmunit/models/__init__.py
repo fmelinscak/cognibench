@@ -1,1 +1,1 @@
-from .base import LDMModel, DADO, CAMO, CACO
+from .base import LDMModel, Agent, PolicyBasedModel

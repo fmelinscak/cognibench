@@ -150,9 +150,9 @@ class LDMTest(SciunitTest):
         if self.optimize_models:
             try:
                 self.optimize(model)
-            except Exception:
+            except Exception as e:
                 logger().error(
-                    f"{self.name} : Optimization procedure for model {model.name} has failed!"
+                    f"{self.name} : Optimization procedure for model {model.name} has failed: {e}"
                 )
 
         return super().judge(model, *args, **kwargs)

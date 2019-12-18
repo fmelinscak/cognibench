@@ -31,7 +31,13 @@ class PredictsLogpdf(sciunit.Capability):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    pass
+
+class ProducesPolicy(sciunit.Capability):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def eval_policy(self, *args, **kwargs):
+        raise NotImplementedError("Must implement eval_policy.")
 
 
 class MultiSubjectModel(sciunit.Capability):
