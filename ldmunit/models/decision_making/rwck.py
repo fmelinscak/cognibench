@@ -3,7 +3,8 @@ from scipy.special import softmax
 from gym import spaces
 from scipy import stats
 
-from ldmunit.models import LDMAgent, PolicyBasedModel
+from ldmunit.models import LDMAgent
+from ldmunit.models.policy_model import PolicyModel
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 from ldmunit.capabilities import (
     ProducesPolicy,
@@ -139,7 +140,7 @@ class RWCKAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
         return CK, Q
 
 
-class RWCKModel(PolicyBasedModel):
+class RWCKModel(PolicyModel):
     """
     Random respond model implementation.
     """
@@ -164,7 +165,7 @@ class RWCKModel(PolicyBasedModel):
         )
 
 
-class RWModel(PolicyBasedModel):
+class RWModel(PolicyModel):
     """
     Random respond model implementation.
     """
@@ -189,7 +190,7 @@ class RWModel(PolicyBasedModel):
         )
 
 
-class CKModel(PolicyBasedModel):
+class CKModel(PolicyModel):
     """
     Random respond model implementation.
     """

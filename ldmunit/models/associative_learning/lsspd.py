@@ -2,7 +2,8 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
-from ldmunit.models import LDMAgent, PolicyBasedModel
+from ldmunit.models import LDMAgent
+from ldmunit.models.policy_model import PolicyModel
 from ldmunit.capabilities import (
     ProducesPolicy,
     ContinuousAction,
@@ -176,7 +177,7 @@ class LSSPDAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservat
         self.hidden_state = {"w": w, "alpha": alpha}
 
 
-class LSSPDModel(PolicyBasedModel):
+class LSSPDModel(PolicyModel):
     """
     LSSPD (Rescorla Wagner Pearce Hall, RWPH) model implementation.
     """

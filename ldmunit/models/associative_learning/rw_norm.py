@@ -2,7 +2,8 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
-from ldmunit.models import LDMAgent, PolicyBasedModel
+from ldmunit.models import LDMAgent
+from ldmunit.models.policy_model import PolicyModel
 from ldmunit.capabilities import (
     ProducesPolicy,
     ContinuousAction,
@@ -150,7 +151,7 @@ class RwNormAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserva
         self.hidden_state = {"w": w}
 
 
-class RwNormModel(PolicyBasedModel):
+class RwNormModel(PolicyModel):
     """
     Rescorla-Wagner model implementation.
     """

@@ -56,16 +56,16 @@ def get_models():
     MultiBetaBinomialModel = multi_subject(associative_learning.BetaBinomialModel)
     MultiLSSPDModel = multi_subject(associative_learning.LSSPDModel)
 
-    multi_rw_norm = MultiRwNormModel(n_subj=3, n_obs=4)
+    multi_rw_norm = MultiRwNormModel(n_subj=3, n_obs=4, seed=42)
     multi_rw_norm.name = "rw_norm"
 
-    multi_krw_norm = MultiKrwNormModel(n_subj=3, n_obs=4)
+    multi_krw_norm = MultiKrwNormModel(n_subj=3, n_obs=4, seed=42)
     multi_krw_norm.name = "krw_norm"
 
-    multi_lsspd = MultiLSSPDModel(n_subj=3, n_obs=4)
+    multi_lsspd = MultiLSSPDModel(n_subj=3, n_obs=4, seed=42)
     multi_lsspd.name = "lsspd"
 
-    multi_bb = MultiBetaBinomialModel(n_subj=3, n_obs=4)
+    multi_bb = MultiBetaBinomialModel(n_subj=3, n_obs=4, seed=42)
     multi_bb.name = "bb"
 
     return [multi_rw_norm, multi_krw_norm, multi_lsspd, multi_bb]

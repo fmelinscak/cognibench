@@ -2,7 +2,8 @@ import numpy as np
 from gym import spaces
 from scipy import stats
 
-from ldmunit.models import LDMAgent, PolicyBasedModel
+from ldmunit.models import LDMAgent
+from ldmunit.models.policy_model import PolicyModel
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 from ldmunit.capabilities import (
     ProducesPolicy,
@@ -106,7 +107,7 @@ class NWSLSAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
         self.hidden_state["action"] = action
 
 
-class NWSLSModel(PolicyBasedModel):
+class NWSLSModel(PolicyModel):
     """
     Noisy-win-stay-lose-shift model implementation.
     """

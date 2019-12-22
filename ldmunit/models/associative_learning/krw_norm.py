@@ -2,7 +2,8 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
-from ldmunit.models import LDMAgent, PolicyBasedModel
+from ldmunit.models import LDMAgent
+from ldmunit.models.policy_model import PolicyModel
 from ldmunit.capabilities import (
     ProducesPolicy,
     ContinuousAction,
@@ -181,7 +182,7 @@ class KrwNormAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserv
         self.hidden_state = {"w": np.full(self.n_obs(), w), "C": C}
 
 
-class KrwNormModel(PolicyBasedModel):
+class KrwNormModel(PolicyModel):
     """
     Kalman Rescorla-Wagner model implementation.
     """

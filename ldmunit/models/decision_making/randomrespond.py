@@ -2,7 +2,8 @@ import numpy as np
 from gym import spaces
 from scipy import stats
 
-from ldmunit.models import LDMAgent, PolicyBasedModel
+from ldmunit.models import LDMAgent
+from ldmunit.models.policy_model import PolicyModel
 from ldmunit.capabilities import Interactive, PredictsLogpdf
 from ldmunit.capabilities import (
     ProducesPolicy,
@@ -90,7 +91,7 @@ class RandomRespondAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObser
         assert self.get_observation_space().contains(stimulus)
 
 
-class RandomRespondModel(PolicyBasedModel):
+class RandomRespondModel(PolicyModel):
     """
     Random respond model implementation.
     """

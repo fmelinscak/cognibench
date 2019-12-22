@@ -57,16 +57,16 @@ def get_models():
     MultiNWSLSModel = multi_subject(decision_making.NWSLSModel)
     n_action, n_obs = 3, 3
 
-    multi_ck = MultiCKModel(n_subj=3, n_action=n_action, n_obs=n_obs)
+    multi_ck = MultiCKModel(n_subj=3, n_action=n_action, n_obs=n_obs, seed=42)
     multi_ck.name = "ck"
 
-    multi_rw = MultiRWModel(n_subj=3, n_action=n_action, n_obs=n_obs)
+    multi_rw = MultiRWModel(n_subj=3, n_action=n_action, n_obs=n_obs, seed=42)
     multi_rw.name = "rw"
 
-    multi_rwck = MultiRWCKModel(n_subj=3, n_action=n_action, n_obs=n_obs)
+    multi_rwck = MultiRWCKModel(n_subj=3, n_action=n_action, n_obs=n_obs, seed=42)
     multi_rwck.name = "rwck"
 
-    multi_nwsls = MultiNWSLSModel(n_subj=3, n_action=n_action, n_obs=n_obs)
+    multi_nwsls = MultiNWSLSModel(n_subj=3, n_action=n_action, n_obs=n_obs, seed=42)
     multi_nwsls.name = "nwsls"
 
     return [multi_ck, multi_rw, multi_rwck, multi_nwsls]

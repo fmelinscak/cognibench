@@ -1,1 +1,1 @@
-from .base import LDMModel, LDMAgent, PolicyBasedModel
+from .base import LDMModel, LDMAgent

@@ -2,7 +2,8 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
-from ldmunit.models import LDMAgent, PolicyBasedModel
+from ldmunit.models import LDMAgent
+from ldmunit.models.policy_model import PolicyModel
 from ldmunit.capabilities import (
     ProducesPolicy,
     ContinuousAction,
@@ -168,7 +169,7 @@ class BetaBinomialAgent(
         return rhat
 
 
-class BetaBinomialModel(PolicyBasedModel):
+class BetaBinomialModel(PolicyModel):
     """
     Beta-binomial model implementation.
     """
