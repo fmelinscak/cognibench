@@ -6,9 +6,7 @@ import sciunit
 import copy
 
 
-def model_recovery(
-    model_list, env, interactive_test_cls, n_trials=50, seed=None, **kwargs
-):
+def model_recovery(model_list, env, interactive_test_cls, n_trials=50, seed=None):
     """
     For each of the given models,
       simulate the model with the environment
@@ -68,20 +66,27 @@ def model_recovery(
     return suite, score_matrix
 
 
-# TODO: too many arguments. Make them kw only?
 def param_recovery(
-    param_list,
-    param_prior_list,
-    model,
-    env,
-    test_cls,
-    n_runs=5,
-    n_trials=50,
-    seed=42,
-    **kwargs,
+    paras_list, model, env, n_runs=5, n_trials=50, seed=42,
 ):
-    #
-    pass
+    """
+    aeu
+    """
+    out = []
+    for i, paras in enumerate(paras_list):
+        logger().info(f"param_recovery: Recovering parameters with index {i}")
+        out_paras = []
+        for _ in range(n_runs):
+            model.set_paras(paras)
+            stimuli, rewards, actions = simulation.simulate(
+                env, model, n_trials, seed=seed
+            )
+            model.init_paras()
+            model.reset()
+            model.fit(stimuli, rewards, actions)
+            out_paras.append(model.get_paras())
+        out.append(out_paras)
+    return out
 
 
 def _check_cardinalities_and_return(model_list):

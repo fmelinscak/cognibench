@@ -17,14 +17,13 @@ from overrides import overrides
 
 class PolicyModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
     # TODO: adapt action and obs spaces according to the Agent
-    def __init__(self, *args, agent, param_initializer, **kwargs):
+    def __init__(self, *args, agent, **kwargs):
         assert isinstance(
             agent, ProducesPolicy
         ), "PolicyModel can only accept agents satisfying ProducesPolicy capability"
         super().__init__(*args, **kwargs)
         self.agent = agent
-        self.param_initializer = param_initializer
-        self.agent.paras = param_initializer(self.seed)
+        self.init_paras()
         self.agent.reset()
 
     @overrides
@@ -34,6 +33,14 @@ class PolicyModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
     @overrides
     def reset(self):
         self.agent.reset()
+
+    @overrides
+    def set_paras(self, paras_dict):
+        self.agent.paras = paras_dict
+
+    @overrides
+    def get_paras(self):
+        return self.agent.paras
 
     @overrides
     def fit(self, stimuli, rewards, actions):
