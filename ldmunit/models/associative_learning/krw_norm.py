@@ -182,7 +182,7 @@ class KrwNormAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserv
         self.hidden_state = {"w": np.full(self.n_obs(), w), "C": C}
 
 
-class KrwNormModel(PolicyModel):
+class KrwNormModel(PolicyModel, ContinuousAction, MultiBinaryObservation):
     """
     Kalman Rescorla-Wagner model implementation.
     """
@@ -191,6 +191,8 @@ class KrwNormModel(PolicyModel):
 
     @overrides
     def __init__(self, *args, n_obs, seed=None, **kwargs):
+        self.set_action_space(ContinuousSpace())
+        self.set_observation_space(n_obs)
         agent = KrwNormAgent(n_obs=n_obs, seed=seed)
 
         def initializer(seed):

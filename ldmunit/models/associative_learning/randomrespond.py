@@ -111,7 +111,7 @@ class RandomRespondAgent(
         assert self.get_observation_space().contains(stimulus)
 
 
-class RandomRespondModel(PolicyModel):
+class RandomRespondModel(PolicyModel, ContinuousAction, MultiBinaryObservation):
     """
     Random respond model implementation.
     """
@@ -120,6 +120,8 @@ class RandomRespondModel(PolicyModel):
 
     @overrides
     def __init__(self, *args, n_obs, seed=None, **kwargs):
+        self.set_action_space(ContinuousSpace())
+        self.set_observation_space(n_obs)
         agent = RandomRespondAgent(n_obs=n_obs, seed=seed)
 
         def initializer(seed):

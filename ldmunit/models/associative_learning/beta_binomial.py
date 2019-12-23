@@ -169,7 +169,7 @@ class BetaBinomialAgent(
         return rhat
 
 
-class BetaBinomialModel(PolicyModel):
+class BetaBinomialModel(PolicyModel, ContinuousAction, MultiBinaryObservation):
     """
     Beta-binomial model implementation.
     """
@@ -178,6 +178,8 @@ class BetaBinomialModel(PolicyModel):
 
     @overrides
     def __init__(self, *args, n_obs, seed=None, **kwargs):
+        self.set_action_space(ContinuousSpace())
+        self.set_observation_space(n_obs)
         agent = BetaBinomialAgent(n_obs=n_obs, seed=seed)
 
         def initializer(seed):

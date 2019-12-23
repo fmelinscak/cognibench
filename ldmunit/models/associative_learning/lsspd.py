@@ -177,7 +177,7 @@ class LSSPDAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservat
         self.hidden_state = {"w": w, "alpha": alpha}
 
 
-class LSSPDModel(PolicyModel):
+class LSSPDModel(PolicyModel, ContinuousAction, MultiBinaryObservation):
     """
     LSSPD (Rescorla Wagner Pearce Hall, RWPH) model implementation.
     """
@@ -187,6 +187,8 @@ class LSSPDModel(PolicyModel):
 
     @overrides
     def __init__(self, *args, n_obs, seed=None, **kwargs):
+        self.set_action_space(ContinuousSpace())
+        self.set_observation_space(n_obs)
         agent = LSSPDAgent(n_obs=n_obs, seed=seed)
 
         def initializer(seed):

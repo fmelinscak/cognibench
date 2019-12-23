@@ -91,7 +91,7 @@ class RandomRespondAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObser
         assert self.get_observation_space().contains(stimulus)
 
 
-class RandomRespondModel(PolicyModel):
+class RandomRespondModel(PolicyModel, DiscreteAction, DiscreteObservation):
     """
     Random respond model implementation.
     """
@@ -100,6 +100,8 @@ class RandomRespondModel(PolicyModel):
 
     @overrides
     def __init__(self, *args, n_action, n_obs, seed=None, **kwargs):
+        self.set_action_space(n_action)
+        self.set_observation_space(n_obs)
         agent = RandomRespondAgent(n_action=n_action, n_obs=n_obs)
 
         def initializer(seed):

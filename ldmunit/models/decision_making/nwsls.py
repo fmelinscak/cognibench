@@ -107,7 +107,7 @@ class NWSLSAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
         self.hidden_state["action"] = action
 
 
-class NWSLSModel(PolicyModel):
+class NWSLSModel(PolicyModel, DiscreteAction, DiscreteObservation):
     """
     Noisy-win-stay-lose-shift model implementation.
     """
@@ -116,6 +116,8 @@ class NWSLSModel(PolicyModel):
 
     @overrides
     def __init__(self, *args, n_action, n_obs, seed=None, **kwargs):
+        self.set_action_space(n_action)
+        self.set_observation_space(n_obs)
         agent = NWSLSAgent(n_action=n_action, n_obs=n_obs)
 
         def initializer(seed):

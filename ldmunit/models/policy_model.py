@@ -24,6 +24,8 @@ class PolicyModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
         super().__init__(*args, **kwargs)
         self.agent = agent
         self.param_initializer = param_initializer
+        self.agent.paras = param_initializer(self.seed)
+        self.agent.reset()
 
     @overrides
     def n_params(self):
@@ -75,6 +77,10 @@ class PolicyModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
 
     def update(self, stimulus, reward, action, done=False):
         return self.agent.update(stimulus, reward, action, done)
+
+    @overrides
+    def act(self, stimulus):
+        return self.agent.act(stimulus)
 
 
 def _flatten_array_into_dict(dictionary, arr, lens):

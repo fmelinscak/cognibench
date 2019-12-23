@@ -61,9 +61,16 @@ class LDMModel(sciunit.Model):
 
     def predict(self, *args, **kwargs):
         """
-        Make a prediction given a stimulus.
+        Make a prediction over the action space given a stimulus. `predict` function is generally expected to return
+        a distribution over actions, but the exact return type would depend on how `ldmunit` library is being used.
         """
         raise NotImplementedError("Must implement predict.")
+
+    def act(self, *args, **kwargs):
+        """
+        Return an action given a stimulus.
+        """
+        raise NotImplementedError("Must implement act.")
 
     def reset(self):
         """
@@ -78,6 +85,7 @@ class LDMAgent:
     def __init__(self, *args, paras_dict=None, seed=None, **kwargs):
         self.seed = seed
         self.paras = paras_dict
+        self.hidden_state = dict()
         super().__init__(*args, **kwargs)
 
     @property

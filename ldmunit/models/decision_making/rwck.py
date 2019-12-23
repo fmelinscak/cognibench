@@ -140,7 +140,7 @@ class RWCKAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
         return CK, Q
 
 
-class RWCKModel(PolicyModel):
+class RWCKModel(PolicyModel, DiscreteAction, DiscreteObservation):
     """
     Random respond model implementation.
     """
@@ -149,6 +149,8 @@ class RWCKModel(PolicyModel):
 
     @overrides
     def __init__(self, *args, n_action, n_obs, seed=None, **kwargs):
+        self.set_action_space(n_action)
+        self.set_observation_space(n_obs)
         agent = RWCKAgent(n_action=n_action, n_obs=n_obs)
 
         def initializer(seed):
@@ -165,7 +167,7 @@ class RWCKModel(PolicyModel):
         )
 
 
-class RWModel(PolicyModel):
+class RWModel(PolicyModel, DiscreteAction, DiscreteObservation):
     """
     Random respond model implementation.
     """
@@ -174,6 +176,8 @@ class RWModel(PolicyModel):
 
     @overrides
     def __init__(self, *args, n_action, n_obs, seed=None, **kwargs):
+        self.set_action_space(n_action)
+        self.set_observation_space(n_obs)
         agent = RWCKAgent(n_action=n_action, n_obs=n_obs)
 
         def initializer(seed):
@@ -190,7 +194,7 @@ class RWModel(PolicyModel):
         )
 
 
-class CKModel(PolicyModel):
+class CKModel(PolicyModel, DiscreteAction, DiscreteObservation):
     """
     Random respond model implementation.
     """
@@ -199,6 +203,8 @@ class CKModel(PolicyModel):
 
     @overrides
     def __init__(self, *args, n_action, n_obs, seed=None, **kwargs):
+        self.set_action_space(n_action)
+        self.set_observation_space(n_obs)
         agent = RWCKAgent(n_action=n_action, n_obs=n_obs)
 
         def initializer(seed):
