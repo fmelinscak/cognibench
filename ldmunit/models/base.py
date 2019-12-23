@@ -10,7 +10,7 @@ class LDMModel(sciunit.Model):
     """
 
     @overrides
-    def __init__(self, seed=None, **kwargs):
+    def __init__(self, seed=None, param_initializer=None, **kwargs):
         """
         Parameters
         ----------
@@ -19,6 +19,7 @@ class LDMModel(sciunit.Model):
             random state is set randomly by gym.utils.seeding. (Default: None)
         """
         self.seed = seed
+        self.param_initializer = param_initializer
         super().__init__(**kwargs)
 
     @property
@@ -79,6 +80,25 @@ class LDMModel(sciunit.Model):
         state is set to this default during object initialization.
         """
         pass
+
+    def init_paras(self):
+        if self.param_initializer is None:
+            raise ValueError(
+                "{self.name.init_params}: self.param_initializer is None; cannot initializer parameters"
+            )
+        self.set_paras(self.param_initializer(self.seed))
+
+    def set_paras(self, *args, **kwargs):
+        """
+        Set the parameters for the model.
+        """
+        pass
+
+    def get_paras(self):
+        """
+        Get the parameters of the model.
+        """
+        return dict()
 
 
 class LDMAgent:

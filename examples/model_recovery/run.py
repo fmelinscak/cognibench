@@ -17,38 +17,12 @@ from ldmunit.utils import partialclass
 
 sciunit.settings["CWD"] = getcwd()
 N_OBS = 5
-models_params = [
-    (RwNormModel, dict(w=0.6964, eta=0.2561, sigma=0.2268, b0=0.5513, b1=10.7194)),
-    (
-        KrwNormModel,
-        dict(
-            w=0.6964,
-            sigma=0.2861,
-            b0=0.2268,
-            b1=0.5513,
-            sigmaWInit=2.0533,
-            tauSq=1.5266,
-            sigmaRSq=2.6664,
-            alpha=0.6848,
-        ),
-    ),
-    (
-        BetaBinomialModel,
-        dict(intercept=0.6964, slope=0.2861, mix_coef=0.2268, sigma=0.5513),
-    ),
-    (
-        LSSPDModel,
-        dict(
-            w=0.6964,
-            alpha=0.2861,
-            b0=0.2268,
-            b1=0.5513,
-            mix_coef=0.7194,
-            eta=0.2531,
-            kappa=0.9807,
-            sigma=0.6848,
-        ),
-    ),
+# TODO: initialize the models by fitting them to some data, and then try to recover?
+models = [
+    RwNormModel,
+    KrwNormModel,
+    BetaBinomialModel,
+    LSSPDModel,
 ]
 
 env_stimuli = [
@@ -60,7 +34,11 @@ env_stimuli = [
 
 
 def main_recovery_single():
-    model_list = [ctor(n_obs=N_OBS, **dictionary) for ctor, dictionary in models_params]
+    model_list = []
+    for ctor in models:
+        model = ctor(n_obs=N_OBS)
+        model.init_paras()
+        model_list.append(model)
 
     stimuli, p_stimuli, p_reward = zip(*env_stimuli)
     env = ClassicalConditioningEnv(
@@ -79,10 +57,12 @@ def main_recovery_single():
 def main_recovery_multi():
     n_subj = 5
     model_list = []
-    for model, param in models_params:
-        param_list = n_subj * [param]
+    for model in models:
         multimodel = multi_from_single_cls(model)
-        model_list.append(multimodel(param_list, n_obs=N_OBS))
+        model = multimodel(n_subj=n_subj, n_obs=N_OBS)
+        for i in range(n_subj):
+            model.init_paras(i)
+        model_list.append(model)
 
     stimuli, p_stimuli, p_reward = zip(*env_stimuli)
     env = ClassicalConditioningEnv(
