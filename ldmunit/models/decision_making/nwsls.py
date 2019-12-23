@@ -2,57 +2,50 @@ import numpy as np
 from gym import spaces
 from scipy import stats
 
-from ldmunit.models import DADO
-from ldmunit.models.mixins import (
-    ParametricModelMixin,
-    ReinforcementLearningFittingMixin,
-)
+from ldmunit.models import LDMAgent
+from ldmunit.models.policy_model import PolicyModel
 from ldmunit.capabilities import Interactive, PredictsLogpdf
+from ldmunit.capabilities import (
+    ProducesPolicy,
+    DiscreteAction,
+    DiscreteObservation,
+)
 from overrides import overrides
 
 
-class NWSLSModel(
-    ParametricModelMixin,
-    ReinforcementLearningFittingMixin,
-    DADO,
-    Interactive,
-    PredictsLogpdf,
-):
+class NWSLSAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
     """
-    Noisy-win-stay-lose-shift model implementation.
+    Noisy-win-stay-lose-shift agent implementation.
     """
-
-    name = "NWSLSModel"
 
     @overrides
-    def __init__(self, *args, epsilon, **kwargs):
+    def __init__(self, *args, n_action, n_obs, **kwargs):
         """
         Parameters
         ----------
-        epsilon : int
-            Number of loose actions. Must be nonnegative and less than or equal
-            to the dimension of the action space.
+        n_action : int
+            Dimension of the action space.
 
-        Other Parameters
-        ----------------
-        **kwargs : any type
-            All the mandatory keyword-only arguments required by :class:`ldmunit.models.decision_making.base.DADO` must also be
-            provided during initialization.
+        n_obs : int
+            Dimension of the observation space.
+
+        paras_dict : dict (optional)
+            epsilon : int
+                Number of loose actions. Must be nonnegative and less than or equal
+                to the dimension of the action space.
         """
-        paras = dict(epsilon=epsilon)
-        super().__init__(*args, paras=paras, **kwargs)
-        assert (
-            epsilon >= 0 and epsilon <= self.n_action()
-        ), "epsilon must be in range [0, n_action]"
+        self.set_action_space(n_action)
+        self.set_observation_space(n_obs)
+        super().__init__(*args, **kwargs)
 
     def reset(self):
         """
         Override base class reset behaviour by setting the hidden state to default
         values for NWSLS model.
         """
-        self.hidden_state = dict(win=True, action=self.rng.randint(0, self.n_action()))
+        self.hidden_state = dict(win=True, action=int(self.paras["epsilon"]))
 
-    def _get_rv(self, stimulus):
+    def eval_policy(self, stimulus):
         """
         Return a random variable object from the given stimulus.
         """
@@ -75,23 +68,6 @@ class NWSLSModel(
 
         return rv
 
-    def predict(self, stimulus):
-        """
-        Predict the log-pmf over the discrete action space by using the
-        given stimulus as input.
-
-        Parameters
-        ----------
-        stimulus : int
-            A stimulus from the observation space for this model.
-
-        Returns
-        -------
-        method
-            :py:meth:`scipy.stats.rv_discrete.logpmf` method over the discrete action space.
-        """
-        return self._get_rv(stimulus).logpmf
-
     def act(self, stimulus):
         """
         Return an action for the given stimulus.
@@ -106,7 +82,7 @@ class NWSLSModel(
         int
             An action from the action space.
         """
-        return self._get_rv(stimulus).rvs()
+        return self.eval_policy(stimulus).rvs()
 
     def update(self, stimulus, reward, action, done=False):
         """
@@ -129,3 +105,28 @@ class NWSLSModel(
 
         self.hidden_state["win"] = reward == 1
         self.hidden_state["action"] = action
+
+
+class NWSLSModel(PolicyModel, DiscreteAction, DiscreteObservation):
+    """
+    Noisy-win-stay-lose-shift model implementation.
+    """
+
+    name = "NWSLSModel"
+
+    @overrides
+    def __init__(self, *args, n_action, n_obs, seed=None, **kwargs):
+        self.set_action_space(n_action)
+        self.set_observation_space(n_obs)
+        agent = NWSLSAgent(n_action=n_action, n_obs=n_obs)
+
+        def initializer(seed):
+            return {
+                "epsilon": int(
+                    stats.uniform.rvs(loc=0, scale=n_action, random_state=seed)
+                )
+            }
+
+        super().__init__(
+            *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
+        )

@@ -2,21 +2,20 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
-from ldmunit.models import CAMO
-from ldmunit.models.mixins import (
-    ReinforcementLearningFittingMixin,
-    ParametricModelMixin,
+from ldmunit.models import LDMAgent
+from ldmunit.models.policy_model import PolicyModel
+from ldmunit.capabilities import (
+    ProducesPolicy,
+    ContinuousAction,
+    MultiBinaryObservation,
 )
-from ldmunit.capabilities import Interactive, PredictsLogpdf
+from ldmunit.continuous import ContinuousSpace
+from ldmunit.utils import is_arraylike
 from overrides import overrides
 
 
-class RandomRespondModel(
-    ParametricModelMixin,
-    ReinforcementLearningFittingMixin,
-    CAMO,
-    Interactive,
-    PredictsLogpdf,
+class RandomRespondAgent(
+    LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservation
 ):
     """
     Random respond model that predicts random actions for any
@@ -26,27 +25,25 @@ class RandomRespondModel(
     name = "RandomRespond"
 
     @overrides
-    def __init__(self, *args, mu, sigma, **kwargs):
+    def __init__(self, *args, n_obs, **kwargs):
         """
         Parameters
         ----------
-        mu : float
-            Mean of the normal random variables used to predict actions
-            and rewards.
+        n_obs : int
+            Size of the observation space
 
-        sigma : float
-            Standard deviation of the normal random variables used to predict
-            actions and rewards. Must be nonnegative.
+        paras_dict : dict (optional)
+            mu : float
+                Mean of the normal random variables used to predict actions
+                and rewards.
 
-        Other Parameters
-        ----------------
-        **kwargs : any type
-            All the mandatory keyword-only arguments required by :class:`ldmunit.models.associative_learning.base.CAMO` must also be
-            provided during initialization.
+            sigma : float
+                Standard deviation of the normal random variables used to predict
+                actions and rewards. Must be nonnegative.
         """
-        assert sigma >= 0, "sigma must be nonnegative"
-        paras = dict(mu=mu, sigma=sigma)
-        super().__init__(paras=paras, **kwargs)
+        self.set_action_space(ContinuousSpace())
+        self.set_observation_space(n_obs)
+        super().__init__(*args, **kwargs)
 
     def reset(self):
         """
@@ -54,7 +51,7 @@ class RandomRespondModel(
         """
         self.hidden_state = dict()
 
-    def observation(self, stimulus):
+    def eval_policy(self, stimulus):
         """
         Get the random variable for the given stimulus.
 
@@ -79,24 +76,6 @@ class RandomRespondModel(
 
         return rv
 
-    def predict(self, stimulus):
-        """
-        Predict the log-pdf over the continuous action space by using the
-        given stimulus as input.
-
-        Parameters
-        ----------
-        stimulus : array-like
-            A stimulus from the multi-binary observation space for this model. For
-            example, `[0, 1, 1]`.
-
-        Returns
-        -------
-        method
-            :py:meth:`scipy.stats.rv_continuous.logpdf` method over the continuous action space.
-        """
-        return self.observation(stimulus).logpdf
-
     def act(self, stimulus):
         """
         Return an action for the given stimulus.
@@ -112,7 +91,7 @@ class RandomRespondModel(
         float
             An action from the continuous action space.
         """
-        return self.observation(stimulus).rvs()
+        return self.eval_policy(stimulus).rvs()
 
     def update(self, stimulus, reward, action, done=False):
         """
@@ -130,3 +109,27 @@ class RandomRespondModel(
         """
         assert self.get_action_space().contains(action)
         assert self.get_observation_space().contains(stimulus)
+
+
+class RandomRespondModel(PolicyModel, ContinuousAction, MultiBinaryObservation):
+    """
+    Random respond model implementation.
+    """
+
+    name = "Random respond"
+
+    @overrides
+    def __init__(self, *args, n_obs, seed=None, **kwargs):
+        self.set_action_space(ContinuousSpace())
+        self.set_observation_space(n_obs)
+        agent = RandomRespondAgent(n_obs=n_obs, seed=seed)
+
+        def initializer(seed):
+            return {
+                "mu": stats.norm.rvs(scale=0, random_state=seed),
+                "sigma": stats.expon.rvs(scale=2, random_state=seed),
+            }
+
+        super().__init__(
+            *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
+        )

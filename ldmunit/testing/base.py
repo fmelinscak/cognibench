@@ -1,4 +1,5 @@
 from os import makedirs
+import traceback
 from os.path import join as pathjoin
 import numpy as np
 from sciunit import Test as SciunitTest, Score as SciunitScore
@@ -150,9 +151,9 @@ class LDMTest(SciunitTest):
         if self.optimize_models:
             try:
                 self.optimize(model)
-            except Exception:
+            except Exception as e:
                 logger().error(
-                    f"{self.name} : Optimization procedure for model {model.name} has failed!"
+                    f"{self.name} : Optimization procedure for model {model.name} has failed! Exception {e}"
                 )
 
         return super().judge(model, *args, **kwargs)
@@ -192,9 +193,9 @@ class LDMTest(SciunitTest):
                     pred_single = self.predict_single(
                         single_subj_adapter, observations[subj_idx]
                     )
-                except Exception:
+                except Exception as e:
                     logger().error(
-                        f"{self.name} : {model.name} predict_single call has failed!"
+                        f"{self.name} : {model.name} predict_single call has failed! Exception: {e}"
                     )
                     pred_single = []
 
@@ -208,9 +209,9 @@ class LDMTest(SciunitTest):
         else:
             try:
                 predictions = self.predict_single(model, observations)
-            except Exception:
+            except Exception as e:
                 logger().error(
-                    f"{self.name} : {model.name} predict_single call has failed!"
+                    f"{self.name} : {model.name} predict_single call has failed! Exception {e}"
                 )
                 predictions = []
 
@@ -244,8 +245,10 @@ class LDMTest(SciunitTest):
                         **self.score_kwargs[subj_idx],
                         **kwargs,
                     ).score
-                except Exception:
-                    logger().error(f"{self.name} : compute_score_single has failed!")
+                except Exception as e:
+                    logger().error(
+                        f"{self.name} : compute_score_single has failed! Exception {e}"
+                    )
                     single_score = np.NaN
                 scores.append(single_score)
             score = self.score_type(self.score_aggr_fn(scores))
@@ -254,8 +257,10 @@ class LDMTest(SciunitTest):
                 score = self.compute_score_single(
                     observations, predictions, **self.score_kwargs, **kwargs
                 )
-            except Exception:
-                logger().error(f"{self.name} : compute_score_single has failed!")
+            except Exception as e:
+                logger().error(
+                    f"{self.name} : compute_score_single has failed! Exception {e}"
+                )
                 score = self.score_type(np.NaN)
         return score
 
@@ -342,18 +347,20 @@ class LDMTest(SciunitTest):
         model_filepath = pathjoin(folderpath, "model")
         try:
             self.persist_score(score_filepath, score)
-        except Exception:
-            logger().error(f"{self.name} : persist_score has failed!")
+        except Exception as e:
+            logger().error(f"{self.name} : persist_score has failed! Exception {e}")
 
         try:
             self.persist_predictions(pred_filepath, prediction)
-        except Exception:
-            logger().error(f"{self.name} : persist_predictions has failed!")
+        except Exception as e:
+            logger().error(
+                f"{self.name} : persist_predictions has failed! Exception {e}"
+            )
 
         try:
             self.persist_model(model_filepath, model)
-        except Exception:
-            logger().error(f"{self.name} : persist_model has failed!")
+        except Exception as e:
+            logger().error(f"{self.name} : persist_model has failed! Exception {e}")
 
         logger().info("Test results have been persisted")
 

@@ -68,7 +68,19 @@ def model_recovery(
     return suite, score_matrix
 
 
-def param_recovery():
+# TODO: too many arguments. Make them kw only?
+def param_recovery(
+    param_list,
+    param_prior_list,
+    model,
+    env,
+    test_cls,
+    n_runs=5,
+    n_trials=50,
+    seed=42,
+    **kwargs,
+):
+    #
     pass
 
 

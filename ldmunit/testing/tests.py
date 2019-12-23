@@ -98,7 +98,8 @@ class BatchTestWithSplit(BatchTest):
         --------
         :class:`ldmunit.testing.LDMTest` for a description of the arguments.
         """
-        kwargs["optimize_models"] = True
+        if "optimize_models" not in kwargs:
+            kwargs["optimize_models"] = True
         super().__init__(*args, **kwargs)
 
     @overrides

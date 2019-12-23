@@ -1,18 +1,25 @@
 import pandas as pd
 import numpy as np
 from scipy.stats import rv_discrete
-from ldmunit.models import DADO
+from ldmunit.models import LDMModel
+from ldmunit.capabilities import DiscreteAction, DiscreteObservation
 from ldmunit.capabilities import PredictsLogpdf, ReturnsNumParams
 
 
-class HbayesdmModel(DADO, PredictsLogpdf, ReturnsNumParams):
+class HbayesdmModel(
+    LDMModel, DiscreteAction, DiscreteObservation, PredictsLogpdf, ReturnsNumParams
+):
     name = "hBayesDM Model"
 
-    def __init__(self, *args, hbayesdm_model_func, col_names, **kwargs):
+    def __init__(
+        self, *args, hbayesdm_model_func, col_names, n_action, n_obs, **kwargs
+    ):
         assert (
             "inc_postpred" not in kwargs
         ), "'inc_postpred' cannot be specified in the current version"
-        DADO.__init__(self, *args, **kwargs)
+        LDMModel.__init__(self, *args, **kwargs)
+        self.set_action_space(n_action)
+        self.set_observation_space(n_obs)
         self.hbayesdm_model_func = hbayesdm_model_func
         self.col_names = col_names
         self.kwargs = kwargs

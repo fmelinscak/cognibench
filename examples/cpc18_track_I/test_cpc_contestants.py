@@ -111,6 +111,3 @@ if __name__ == "__main__":
 
     # judge
     suite.judge(models)
-
-    # TODO: add ability to save testing output results for logging
-    # np.savetxt("outputAll.csv", PredictedAll, delimiter=",", header = "B1,B2,B3,B4,B5", fmt='%.4f')

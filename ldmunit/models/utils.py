@@ -93,10 +93,10 @@ class MultiMeta(type):
             and not (f.startswith("__") and f.endswith("__"))
         ]
 
-        def multi_init(self, param_list, *args, **kwargs):
+        def multi_init(self, *args, n_subj, **kwargs):
             self.subject_models = []
-            for param_dict in param_list:
-                self.subject_models.append(single_cls(*args, **param_dict, **kwargs))
+            for _ in range(n_subj):
+                self.subject_models.append(single_cls(*args, **kwargs))
             self.n_subjects = len(self.subject_models)
 
             def new_fn(idx, *args, fn_name, **kwargs):

@@ -5,8 +5,7 @@ import time
 from ldmunit.testing import BatchTestWithSplit
 import ldmunit.scores as scores
 from ldmunit.utils import partialclass
-from ldmunit.models import CACO
-from ldmunit.capabilities import Interactive
+from ldmunit import logging
 from sciunit import TestSuite
 from sciunit import settings as sciunit_settings
 
@@ -140,5 +139,6 @@ if __name__ == "__main__":
         name="Batch train and test suite",
     )
 
+    logging.set_logging_level(logging.ALL)
     # judge
     suite.judge(models)
