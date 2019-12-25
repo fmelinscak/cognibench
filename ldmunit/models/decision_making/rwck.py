@@ -15,6 +15,10 @@ from overrides import overrides
 
 
 class RWCKAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
+    """
+    Rescorla-Wagner choice kernel agent implementation.
+    """
+
     @overrides
     def __init__(self, *args, n_action, n_obs, **kwargs):
         """
@@ -142,7 +146,7 @@ class RWCKAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
 
 class RWCKModel(PolicyModel, DiscreteAction, DiscreteObservation):
     """
-    Random respond model implementation.
+    Rescorla-Wagner choice kernel model implementation using RWCK agent implementation as the underlying agent equations.
     """
 
     name = "RWCKModel"
@@ -169,7 +173,7 @@ class RWCKModel(PolicyModel, DiscreteAction, DiscreteObservation):
 
 class RWModel(PolicyModel, DiscreteAction, DiscreteObservation):
     """
-    Random respond model implementation.
+    Rescorla-Wagner model implementation as a special case of Rescorla-Wagner choice kernel model.
     """
 
     name = "RWModel"
@@ -196,7 +200,7 @@ class RWModel(PolicyModel, DiscreteAction, DiscreteObservation):
 
 class CKModel(PolicyModel, DiscreteAction, DiscreteObservation):
     """
-    Random respond model implementation.
+    Choice kernel model implementation as a special case of Rescorla-Wagner choice kernel model.
     """
 
     name = "CKModel"

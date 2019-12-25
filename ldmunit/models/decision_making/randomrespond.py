@@ -15,8 +15,7 @@ from overrides import overrides
 
 class RandomRespondAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
     """
-    Random respond agent that predicts random actions for any
-    kind of observation.
+    Random respond agent that performs random actions for any kind of stimulus.
     """
 
     @overrides

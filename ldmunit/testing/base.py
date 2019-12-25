@@ -19,11 +19,10 @@ class LDMTest(SciunitTest):
     """
     Base test class for all LDMUnit tests.
 
-    This class can not be used directly. The deriving
-    classes should implement `predict_single` and `compute_score_single` methods to define the
-    testing procedure.
-
-    This class only accepts derivatives of :class:`ldmunit.models.LDMModel` class.
+    This class defines the common functionality that can be used by further testing classes. In addition to sciunit
+    interaction, this class defines the multi-subject testing framework, and requires deriving classes to only define
+    single-subject testing logic. This class can not be used directly. The deriving classes should implement at least `predict_single` and `compute_score_single` methods
+    to define the testing procedure. This class only accepts models that are subclasses of :class:`ldmunit.models.LDMModel`.
     """
 
     score_type = None
@@ -44,11 +43,6 @@ class LDMTest(SciunitTest):
         """
         Parameters
         ----------
-        score_type : :class:`sciunit.Score`
-            A sciunit Score class. See `ldmunit.scores` for several possibilities. The score type can define its own
-            `required_capabilities` class field. In that case, these capabilities will be appended to the required
-            capabilities of the test class.
-
         observation : dict or list of dict
             In a single-subject test, this dictionary must contain the data for testing. The exact keys of the dictionary
             is determined by the concrete test classes.
@@ -56,37 +50,41 @@ class LDMTest(SciunitTest):
             In a multi-subject test, this is a sequence where each element is a dictionary storing the data for the
             corresponding subject. Similarly, exact keys are left to the concrete test classes.
 
+        score_type : :class:`sciunit.Score`
+            A sciunit Score class (not object). See `ldmunit.scores` for several possibilities. The score type can define its own
+            `required_capabilities` class field. In that case, these capabilities will be appended to the required
+            capabilities of the test class.
+
         multi_subject : bool
             Whether the data and the models are multi-subject.
 
-            If True, the data is expected to be
-            sequence where each element is the dictionary of the corresponding subject. Similarly, the model
-            should be a multi-subject model.
+            If `True`, the data is expected to be a sequence where each element is the dictionary of the corresponding subject. Similarly, the model
+            should be a multi-subject model (see :py:function:`ldmunit.models.utils.multi_from_single_cls` and :class:`ldmunit.capabilities.MultiSubjectModel`).
 
-            If False, data is expected to be a dictionary as usual, and the model should be a standard single-subject
+            If `False`, data is expected to be a dictionary as usual, and the model should be a standard single-subject
             model.
 
         score_aggr_fn : callable
-            If a multi-subject test is performed, this callable defines how to combine the score value of different
-            subjects to compute the final score of the test. Signature is as below:
+            If a multi-subject test is performed, this callable defines how to combine the score values of different
+            subjects to compute the final score of the test. Signature is as below (e.g. :py:function:`numpy.mean`):
 
-            score_aggr_fn(Sequence[float]) -> float
+            `score_aggr_fn(Sequence[float]) -> float`
 
-        persist_path : str
+        persist_path : str (Optional)
             Path to the folder where test logs such as predictions, scores and models will be saved. Directory
-            is automatically created if it does not exist.
+            is automatically created if it does not exist. If `None`, no logs will be persisted.
 
         fn_kwargs_for_score : callable
             Callable to generate required keyword arguments for the score computation, if necessary. Some score objects
             require more than just the predictions and the observations to be computed, such as AIC or BIC. In that case
-            this function can be used to generate a dictionary to provide these argument to such score computing functions.
+            this function can be used to generate a dictionary to provide these arguments to such score computing functions.
             The signature is as below:
 
-            fn_kwargs_for_score(single_subj_model, single_subj_observations, single_subj_predictions)
+            `fn_kwargs_for_score(single_subj_model, single_subj_observations, single_subj_predictions) -> dict`
 
         optimize_models : bool
-            If True, passed models' `fit` method will be called on the given observation data before generating the
-            predictions. If False, no model fitting is performed.
+            If `True`, passed models' `fit` method will be called on the given observation data before generating the
+            predictions. If `False`, no model fitting is performed.
         """
         self.multi_subject = multi_subject
         self.score_aggr_fn = score_aggr_fn
@@ -96,6 +94,7 @@ class LDMTest(SciunitTest):
 
         if multi_subject:
             assert isinstance(observation, list)
+            # required to make observation variable play well with sciunit
             observation = {_MULTI_LIST_KEY: observation}
 
         if score_type is not None:
@@ -121,12 +120,41 @@ class LDMTest(SciunitTest):
         super().check_capabilities(model, **kwargs)
 
     def get_fitting_observations_single(self, dictionary):
+        """
+        Return part of the single subject observation dictionary that will be used for model fitting.
+
+        Parameters
+        ----------
+        dictionary : dict
+            Dictionary containing observations for a single subject.
+
+        Returns
+        -------
+        out : dict
+            Dictionary containing fitting observations.
+        """
         return dictionary
 
     def get_testing_observations_single(self, dictionary):
+        """
+        Return part of the single subject observation dictionary that will be used for model testing.
+
+        Parameters
+        ----------
+        dictionary : dict
+            Dictionary containing observations for a single subject.
+
+        Returns
+        -------
+        out : dict
+            Dictionary containing testing observations.
+        """
         return dictionary
 
     def get_fitting_observations(self):
+        """
+        Get the fitting part of `self.observation` variable.
+        """
         if self.multi_subject:
             out = [
                 self.get_fitting_observations_single(x)
@@ -137,6 +165,9 @@ class LDMTest(SciunitTest):
             return self.get_fitting_observations_single(self.observation)
 
     def get_testing_observations(self):
+        """
+        Get the testing part of `self.observation` variable.
+        """
         if self.multi_subject:
             out = [
                 self.get_testing_observations_single(x)
@@ -148,6 +179,10 @@ class LDMTest(SciunitTest):
 
     @overrides
     def judge(self, model, *args, **kwargs):
+        """
+        Add optional model optimization functionality to :py:method:`sciunit.Test.judge` method, and delegate the rest
+        of the work to the superclass.
+        """
         if self.optimize_models:
             try:
                 self.optimize(model)
@@ -160,6 +195,17 @@ class LDMTest(SciunitTest):
 
     @overrides
     def optimize(self, model):
+        """
+        Optimize the given single- or multi-subject model using the fitting part of `self.observation` variable.
+        If model is a single-subject model, its `fit` method will be called using the key-value pairs generated from
+        `self.observation` dictionary.
+
+        If model is a multi-subject model, its `fit_jointly` method will be called using key-value pairs generated
+        from `self.observation` list (of dictionaries). As an example, if `self.observation = [{'k0': v00, 'k1': v01}, {'k0': v10, 'k1': v11}]`,
+        then `fit_jointly` will be called as:
+
+            `fit_jointly(k0=[v00, v10], k1=[v01, v11])`
+        """
         obs = self.get_fitting_observations()
         logger().info(f"{self.name} : Optimizing {model.name} model...")
         if self.multi_subject:
@@ -176,6 +222,10 @@ class LDMTest(SciunitTest):
         """
         Given a multi or single subject model, run the tests to generate predictions and return them. If the test is
         a multi-subject test, the model must be derived from `ldmunit.capabilities.MultiSubjectModel`.
+
+        See Also
+        --------
+        :py:function:`ldmunit.models.utils.multi_from_single_cls`, :class:`ldmunit.capabilities.MultiSubjectModel`
         """
         logger().debug(f"{self.name} : Generating predictions from {model.name}...")
         observations = self.get_testing_observations()
@@ -231,7 +281,7 @@ class LDMTest(SciunitTest):
     @overrides
     def compute_score(self, _, predictions, **kwargs):
         """
-        Compute the score from the given predictions and the stored observations.
+        Compute the score from the given predictions and `self.observation`.
         """
         observations = self.get_testing_observations()
         if self.multi_subject:
@@ -275,10 +325,10 @@ class LDMTest(SciunitTest):
         Parameters
         ----------
         model : :class:`ldmunit.models.LDMModel`
-            A single-subject model. Method calls don't need to pass any subject index.
+            A single-subject model. Method calls don't need to pass any subject index, even if the model is multi-subject.
 
         observations : dict
-            Observations dictionary containing the keys specific to the concrete test class.
+            Single-subject observation dictionary containing the keys specific to the concrete test class.
 
         Returns
         -------
@@ -320,6 +370,9 @@ class LDMTest(SciunitTest):
 
     @overrides
     def bind_score(self, score, model, observation, prediction):
+        """
+        Override parent `bind_score` method to allow (optional) persistence.
+        """
         self.persist(score, model, prediction)
 
     def persist(self, score, model, prediction):
@@ -349,14 +402,12 @@ class LDMTest(SciunitTest):
             self.persist_score(score_filepath, score)
         except Exception as e:
             logger().error(f"{self.name} : persist_score has failed! Exception {e}")
-
         try:
             self.persist_predictions(pred_filepath, prediction)
         except Exception as e:
             logger().error(
                 f"{self.name} : persist_predictions has failed! Exception {e}"
             )
-
         try:
             self.persist_model(model_filepath, model)
         except Exception as e:
@@ -380,12 +431,12 @@ class LDMTest(SciunitTest):
 
     def persist_model(self, path, model):
         """
-        Persist the model in the given path. `model` must implement `save(path)` method.
+        Persist the model in the given path, if `model` implements `save(path)` method.
         """
         try:
             model.save(path)
             logger().debug(f"Model is saved in {path}")
         except AttributeError:
             logger().debug(
-                f"Model {model.name} does not implement save method. Model saving is unsuccessful"
+                f"Model {model.name} does not implement save method; model has not been saved."
             )

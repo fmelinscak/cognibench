@@ -11,8 +11,7 @@ class BoundedScore(scores.FloatScore):
     @overrides
     def __init__(self, *args, min_score, max_score, **kwargs):
         """
-        Initialize the score. This class requires two mandatory
-        keyword-only arguments.
+        Initialize the score. This class requires two mandatory keyword-only arguments.
 
         Parameters
         ----------
@@ -20,18 +19,10 @@ class BoundedScore(scores.FloatScore):
             Score value.
 
         min_score : float
-            This value is used to clip the score value when coloring
-            the scores in a notebook environment. This is necessary to
-            avoid using very small/large values during coloring which
-            crashes sciunit. However, this value does not affect the
-            original score value or their ordering in any way.
+            This value is used to clip the score value when coloring the scores in a notebook environment. This is necessary to avoid using very small/large values during coloring which crashes sciunit. However, this value does not affect the original score value or their ordering in any way.
 
         max_score : float
-            This value is used to clip the score value when coloring
-            the scores in a notebook environment. This is necessary to
-            avoid using very small/large values during coloring which
-            crashes sciunit. However, this value does not affect the
-            original score value or their ordering in any way.
+            This value is used to clip the score value when coloring the scores in a notebook environment. This is necessary to avoid using very small/large values during coloring which crashes sciunit. However, this value does not affect the original score value or their ordering in any way.
         """
         super().__init__(*args, **kwargs)
         self.min_score = min_score
@@ -44,8 +35,7 @@ class HigherBetterScore(BoundedScore):
     @overrides
     def color(self, value=None):
         """
-        Ensure that a normalized value is passed to parent class' color method which
-        does the real work.
+        Ensure that a normalized value is passed to parent class' color method which does the real work.
 
         Parameters
         ----------
@@ -63,9 +53,7 @@ class HigherBetterScore(BoundedScore):
 
 class LowerBetterScore(BoundedScore):
     """
-    LowerBetterScore is a score type where lower values are better than
-    larger values (e.g. mean squared error). This property is used by
-    sciunit library when sorting or color coding the scores.
+    LowerBetterScore is a score type where lower values are better than larger values (e.g. mean squared error). This property is used by sciunit library when sorting or color coding the scores.
     """
 
     _description = "Score values where lower is better"
@@ -73,8 +61,7 @@ class LowerBetterScore(BoundedScore):
     @overrides
     def color(self, value=None):
         """
-        Ensure that a normalized value is passed to parent class' color method which
-        does the real work.
+        Ensure that a normalized value is passed to parent class' color method which does the real work.
 
         Parameters
         ----------
@@ -100,8 +87,7 @@ class LowerBetterScore(BoundedScore):
         Returns
         -------
         float
-            Score value normalized to 0-1 range computed by clipping self.score to the
-            min/max range and then transforming to a value in [0, 1].
+            Score value normalized to 0-1 range computed by clipping self.score to the min/max range and then transforming to a value in [0, 1].
         """
         return -super().norm_score
 

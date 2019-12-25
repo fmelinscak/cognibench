@@ -8,8 +8,18 @@ from rpy2.robjects.environments import Environment as REnv
 class RWrapperMixin:
     """
     Mixin class that allows easy porting of R models to LDMUnit model interface.
-    It is assumed that all core model methods are implemented as separate functions under
-    some directory.
+
+    It is assumed that all core model methods are implemented as separate functions under some directory. For example,
+    one can create a model consisting reset, predict, fit, update and act functions using the below directory structure
+
+        model/
+            -- reset.R
+            -- predict.R
+            -- fit.R
+            -- update.R
+            -- act.R
+
+    and mapping each function to its corresponding filename in class `__init__` method.
     """
 
     def __init__(
@@ -26,8 +36,8 @@ class RWrapperMixin:
         """
         Initialize the R wrapper to register function mappings and define the class interface. All objects
         deriving from this interface share the same R process. However, from a user perspective, it is as if all
-        the objects have their separate R processes since this object automatically isolates the environment of each
-        object.
+        the objects have their separate R process since this class automatically isolates the environment of each
+        model object.
 
         Parameters
         ----------
@@ -71,15 +81,12 @@ class RWrapperMixin:
         _define_if_given(self, update_fn, "update")
         _define_if_given(self, act_fn, "act")
 
+        super().__init__(*args, **kwargs)
+
 
 def _activate_conversions():
     numpy2ri.activate()
     pandas2ri.activate()
-
-
-def _deactivate_conversions():
-    numpy2ri.deactivate()
-    pandas2ri.deactivate()
 
 
 def _move_data(dict_from, dict_to):

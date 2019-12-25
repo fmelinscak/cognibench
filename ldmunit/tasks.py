@@ -8,17 +8,39 @@ import copy
 
 def model_recovery(model_list, env, interactive_test_cls, n_trials=50, seed=None):
     """
-    For each of the given models,
-      simulate the model with the environment
-      test all the models against the simulated data
+    Perform model recovery task and return the results as a score matrix.
 
-    For N models, this function produces N*N score values.
+    Model recovery is performed as below:
+        1. For each of the models in the given list
+            a. Create simulated data from the model using the given environment
+            b. Test all the models against this simulated data using the given test class
+        2. Return the results as a score matrix
 
     Parameters
     ----------
+    model_list : iterable
+        List of models
+
+    env : `ldmunit.env.LDMEnv`
+        Environment to use while simulating the data
+
+    interactive_test_cls : `ldmunit.testing.LDMTest`
+        Test class to use when testing all the models against the simulated data created by one of the models.
+
+    n_trials : int
+        Number of simulation trials.
+
+    seed : int
+        Random seed to use.
 
     Returns
     -------
+    suite : :class:`sciunit.TestSuite`
+        Test suite class created during this function call. The suite object contains all the data (observations, predictions, etc.) generated
+        during the procedure.
+
+    score_matrix : :class:`sciunit.ScoreMatrix`
+        Score matrix object containing the score of each model for each of the simulation rounds.
     """
     match, multi = _check_cardinalities_and_return(model_list)
     assert (
@@ -67,10 +89,42 @@ def model_recovery(model_list, env, interactive_test_cls, n_trials=50, seed=None
 
 
 def param_recovery(
-    paras_list, model, env, n_runs=5, n_trials=50, seed=42,
+    paras_list, model, env, n_runs=5, n_trials=50, seed=None,
 ):
     """
-    aeu
+    Perform parameter recovery task and return all of the fitted parameter values.
+
+    Parameter recovery is performed as below:
+        1. For each of the parameter dictionaries in the given parameter list
+            a. Create simulated data using the environment and the model object initialized to the current parameters
+            b. Fit the model object `n_runs` many times to this simulated data and store each of the fitted parameters
+        2. Return all of the parameter fits (a `list` of shape `(len(paras_list), n_runs)`)
+
+    Parameters
+    ----------
+    paras_list : iterable
+        List of parameter dictionaries. Each parameter dictionary should be compatible with the given model object.
+
+    model : `ldmunit.models.LDMModel`
+        Model object to use for parameter recovery task.
+
+    env : `ldmunit.env.LDMEnv`
+        Environment to use while simulating the data
+
+    n_runs : int
+        Number of fits to perform for each of the parameter dictionaries in `paras_list`.
+
+    n_trials : int
+        Number of simulation trials.
+
+    seed : int
+        Random seed to use.
+
+    Returns
+    -------
+    results : list of list
+        Each element of the list contains `n_runs` many dictionaries. Each dictionary is the result of the corresponding
+        model fit.
     """
     out = []
     for i, paras in enumerate(paras_list):
@@ -90,6 +144,20 @@ def param_recovery(
 
 
 def _check_cardinalities_and_return(model_list):
+    """
+    Parameters
+    ----------
+    model_list : list
+        List of model objects.
+
+    Returns
+    -------
+    match : bool
+        `True` if the model cardinalities (single or multi) of every model in `model_list` matches; `False` otherwise.
+
+    multi : bool
+        `True` if the models in the given list are multi-subject models; `False` otherwise.
+    """
     n_single = 0
     n_multi = 0
     match = True

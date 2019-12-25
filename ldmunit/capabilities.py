@@ -50,14 +50,17 @@ class MultiSubjectModel(sciunit.Capability):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    # List of methods that accept a subject-index as their first argument.
     multi_subject_methods = []
 
+    # Number of subjects in the multi-subject model.
     n_subjects = -1
 
     def fit_jointly(self, *args, **kwargs):
         """
         Take the data of all the subjects at once and fit the multi-subject model, either by fitting each model
         separately, or fitting all the models at once.
+
         """
         raise NotImplementedError("Multi-subject model must implement fit_multisubject")
 

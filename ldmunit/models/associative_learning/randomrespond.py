@@ -18,8 +18,7 @@ class RandomRespondAgent(
     LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservation
 ):
     """
-    Random respond model that predicts random actions for any
-    kind of observation.
+    Random respond agent that returns random actions for any kind of observation.
     """
 
     name = "RandomRespond"

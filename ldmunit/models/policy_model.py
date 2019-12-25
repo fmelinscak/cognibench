@@ -16,7 +16,17 @@ from overrides import overrides
 
 
 class PolicyModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
-    # TODO: adapt action and obs spaces according to the Agent
+    """
+    PolicyModel provides a model implementation that can be created from agents satisfying :class:`ldmunit.capabilities.ProducesPolicy`
+    capability.
+
+    If you already have an agent implementation that can provide a probability distribution over the action space (`eval_policy` method), you
+    can create a model of that agent that uses `eval_policy` to make predictions and to fit model parameters (using maximum likelihood) by simply
+    deriving from this class. For examples of this, refer to decision making or associative learning model implementations
+    provided by `ldmunit`.
+    """
+
+    # TODO: can we adapt action and obs spaces according to the Agent (probably not worth it for now)
     def __init__(self, *args, agent, **kwargs):
         assert isinstance(
             agent, ProducesPolicy
@@ -44,15 +54,10 @@ class PolicyModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
 
     @overrides
     def fit(self, stimuli, rewards, actions):
-        if isinstance(self.param_initializer, Mapping):
-            paras_init = self.param_initializer
-        else:
-            paras_init = self.param_initializer(seed=self.seed)
-
-        self.agent.paras = paras_init
+        self.init_paras()
 
         def f(x, lens):
-            _flatten_array_into_dict(self.agent.paras, x, lens)
+            _unpack_array_into_dict(self.agent.paras, x, lens)
             predictions = []
             # TODO: essentially the same logic as InteractiveTesting; refactor?
             self.reset()
@@ -71,7 +76,7 @@ class PolicyModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
                 f"Fitting on {self.name} has not finished successfully! Cause of termination: {opt_res.message}"
             )
 
-        _flatten_array_into_dict(self.agent.paras, opt_res.x, lens)
+        _unpack_array_into_dict(self.agent.paras, opt_res.x, lens)
 
         logger().debug(
             f"Agent parameters has been set to the outputs of optimization procedure."
@@ -83,30 +88,70 @@ class PolicyModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
         return policy.logpdf if hasattr(policy, "logpdf") else policy.logpmf
 
     def update(self, stimulus, reward, action, done=False):
+        """
+        Delegate the `update` function to the underlying agent.
+        """
         return self.agent.update(stimulus, reward, action, done)
 
     @overrides
     def act(self, stimulus):
+        """
+        Delegate the `act` function to the underlying agent.
+        """
         return self.agent.act(stimulus)
 
 
-def _flatten_array_into_dict(dictionary, arr, lens):
-    i = 0
-    for k, currlen in zip(dictionary.keys(), lens):
-        if currlen == 1:
-            dictionary[k] = arr[i]
-        else:
-            dictionary[k] = arr[i : i + currlen]
-        i += currlen
+def _unpack_array_into_dict(dictionary, arr, beg_indices):
+    """
+    Given an array of scalar values `arr` and a list of begin indices `beg_indices`, assign `i`ith sequence of scalars,
+    defined as `arr[beg_indices[i]:beg_indices[i+1]]` to the `i`th key in the dictionary.
+
+    Parameters
+    ----------
+    dictionary : dict
+        Some dictionary. `i`th value of the dictionary is defined as `dictionary[list(dictionary.keys())[i]]`.
+
+    arr : `numpy.ndarray`
+        Array containing the values to unpack. `i`th value of the dictionary will be assigned to the `i`th sequence of
+        scalars in the array.
+
+    beg_indices : array-like
+        Sequence containing the beginning index of every sequence of scalars. `i`th sequence of scalars can be obtained
+        as `arr[beg_indices[i]:beg_indices[i+1]]`.
+    """
+    for i, k in enumerate(dictionary.keys()):
+        beg, end = beg_indices[i], beg_indices[i + 1]
+        dictionary[k] = arr[beg] if end - beg == 1 else arr[beg:end]
 
 
 def _flatten_dict_into_array(dictionary, dtype=np.float32):
-    lens = np.array(
-        [len(v) if is_arraylike(v) else 1 for v in dictionary.values()], dtype=np.int32
+    """
+    Flatten the given dictionary into an array of scalars, and return the beginning index of each sequence of values.
+
+    Parameters
+    ----------
+    dictionary : dict
+        Some dictionary containing scalars or array of scalars as each of its keys.
+
+    dtype : type (optional)
+        Data type of the returned array of scalars.
+
+    Returns
+    -------
+    arr : `numpy.ndarray`
+        Consecutive array of scalars containing all the values of the given dictionary.
+
+    beg_indices : `numpy.ndarray`
+        Integer array containing the beginning index of each sequence of scalars in `arr`. `i`th value of the dictionary,
+        defined as `dictionary[list(dictionary.keys())[i]]` can be obtained as `arr[beg_indices[i]:beg_indices[i+1]]`.
+    """
+    beg_indices = np.array(
+        [0] + [len(v) if is_arraylike(v) else 1 for v in dictionary.values()],
+        dtype=np.int32,
     )
-    arr = np.empty(np.sum(lens), dtype=dtype)
-    i = 0
-    for v, currlen in zip(dictionary.values(), lens):
-        arr[i : i + currlen] = v
-        i += currlen
-    return arr, lens
+    beg_indices = np.cumsum(beg_indices)
+    arr = np.empty(beg_indices[-1], dtype=dtype)
+    for i, v in enumerate(dictionary.values()):
+        beg, end = beg_indices[i], beg_indices[i + 1]
+        arr[beg:end] = v
+    return arr, beg_indices

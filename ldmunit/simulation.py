@@ -149,6 +149,22 @@ def simulate_multienv_multimodel(
 
 
 def _model_env_capabilities_match(env, model_or_agent):
+    """
+    Check if capabilities, action spaces and observation spaces of the environment and model/agent matches.
+
+    Parameters
+    ----------
+    env : `ldmunit.env.LDMEnv`
+        Environment.
+
+    model_or_agent : `ldmunit.models.LDMModel` or `ldmunit.models.LDMAgent`
+        Model or agent.
+
+    Returns
+    -------
+    is_match : bool
+        `True` if the environment and the model/agent matches; `False` otherwise.
+    """
     # check types
     is_model = isinstance(model_or_agent, LDMModel)
     type_checks = [
