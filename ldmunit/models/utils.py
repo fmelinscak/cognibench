@@ -124,6 +124,7 @@ class MultiMeta(type):
             for f in dir(single_cls)
             if callable(getattr(single_cls, f))
             and not (f.startswith("__") and f.endswith("__"))
+            and f != "describe"
         ]
 
         def multi_init(self, *args, n_subj, **kwargs):
@@ -166,8 +167,12 @@ class MultiMeta(type):
                     curr_kwargs[k] = v[i]
                 model.fit(*curr_args, **curr_kwargs)
 
+        def describe(self):
+            return self.subject_models[0].describe()
+
         out_cls.__init__ = multi_init
         out_cls.fit_jointly = fit_jointly
         out_cls.multi_subject_methods = methods_to_define
+        out_cls.describe = describe
 
         return out_cls
