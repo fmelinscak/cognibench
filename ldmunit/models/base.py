@@ -138,9 +138,9 @@ class LDMAgent:
         seed : int
             Random seed to use.
         """
-        self.paras = paras_dict
+        self.set_paras(paras_dict)
         self.seed = seed
-        self.hidden_state = dict()
+        self.set_hidden_state(dict())
         super().__init__(*args, **kwargs)
 
     @property
@@ -190,20 +190,16 @@ class LDMAgent:
 
         Concrete classes should override this method and define default hidden state variables.
         """
-        self.hidden_state = dict()
+        self.set_hidden_state(dict())
 
-    @property
-    def paras(self):
+    def get_paras(self):
         return self._paras
 
-    @paras.setter
-    def paras(self, paras_dict):
+    def set_paras(self, paras_dict):
         self._paras = paras_dict
 
-    @property
-    def hidden_state(self):
+    def get_hidden_state(self):
         return self._hidden_state
 
-    @hidden_state.setter
-    def hidden_state(self, state):
+    def set_hidden_state(self, state):
         self._hidden_state = state

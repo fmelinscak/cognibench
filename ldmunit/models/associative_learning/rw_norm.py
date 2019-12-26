@@ -68,7 +68,7 @@ class RwNormAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserva
 
     def _predict_reward(self, stimulus):
         assert self.get_observation_space().contains(stimulus)
-        w_curr = self.hidden_state["w"]
+        w_curr = self.get_hidden_state()["w"]
         rhat = np.dot(stimulus, w_curr.T)
         return rhat
 
@@ -96,15 +96,15 @@ class RwNormAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserva
         assert self.get_action_space().contains(action)
         assert self.get_observation_space().contains(stimulus)
 
-        eta = self.paras["eta"]
-        w_curr = self.hidden_state["w"]
+        eta = self.get_paras()["eta"]
+        w_curr = self.get_hidden_state()["w"]
 
         rhat = self._predict_reward(stimulus)
 
         if not done:
             delta = reward - rhat
             w_curr += eta * delta * stimulus
-            self.hidden_state["w"] = w_curr
+            self.get_hidden_state()["w"] = w_curr
 
         return w_curr
 
@@ -125,14 +125,14 @@ class RwNormAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserva
             reward using b0 and b1 parameters, and standard deviation equal
             to sigma model parameter.
         """
-        assert self.hidden_state, "hidden state must be set"
+        assert self.get_hidden_state(), "hidden state must be set"
         assert self.get_observation_space().contains(stimulus)
 
-        b0 = self.paras["b0"]  # intercept
-        b1 = self.paras["b1"]  # slope
-        sd_pred = self.paras["sigma"]
+        b0 = self.get_paras()["b0"]  # intercept
+        b1 = self.get_paras()["b1"]  # slope
+        sd_pred = self.get_paras()["sigma"]
 
-        w_curr = self.hidden_state["w"]
+        w_curr = self.get_hidden_state()["w"]
 
         # Predict response
         mu_pred = b0 + np.dot(b1, stimulus * w_curr)
@@ -147,8 +147,8 @@ class RwNormAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserva
         """
         Reset the hidden state to its default value.
         """
-        w = self.paras["w"]
-        self.hidden_state = {"w": w}
+        w = self.get_paras()["w"]
+        self.set_hidden_state({"w": w})
 
 
 class RwNormModel(PolicyModel, ContinuousAction, MultiBinaryObservation):

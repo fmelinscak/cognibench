@@ -79,7 +79,7 @@ class LSSPDAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservat
 
     def _predict_reward(self, stimulus):
         assert self.get_observation_space().contains(stimulus)
-        w_curr = self.hidden_state["w"]
+        w_curr = self.get_hidden_state()["w"]
         rhat = np.dot(stimulus, w_curr.T)
         return rhat
 
@@ -107,13 +107,15 @@ class LSSPDAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservat
         assert self.get_action_space().contains(action)
         assert self.get_observation_space().contains(stimulus)
 
-        eta = self.paras[
+        eta = self.get_paras()[
             "eta"
         ]  # Proportion of pred. error. in the updated associability value
-        kappa = self.paras["kappa"]  # Fixed learning rate for the cue weight update
+        kappa = self.get_paras()[
+            "kappa"
+        ]  # Fixed learning rate for the cue weight update
 
-        w_curr = self.hidden_state["w"]
-        alpha = self.hidden_state["alpha"]
+        w_curr = self.get_hidden_state()["w"]
+        alpha = self.get_hidden_state()["alpha"]
 
         rhat = self._predict_reward(stimulus)
 
@@ -125,8 +127,8 @@ class LSSPDAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservat
             alpha += stimulus * (eta * abs(delta) - eta * alpha)
             alpha = np.minimum(alpha, 1)
 
-            self.hidden_state["w"] = w_curr
-            self.hidden_state["alpha"] = alpha
+            self.get_hidden_state()["w"] = w_curr
+            self.get_hidden_state()["alpha"] = alpha
 
         return w_curr, alpha
 
@@ -149,13 +151,13 @@ class LSSPDAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservat
         """
         assert self.get_observation_space().contains(stimulus)
 
-        b0 = self.paras["b0"]
-        b1 = self.paras["b1"]
-        sd_pred = self.paras["sigma"]
-        mix_coef = self.paras["mix_coef"]
+        b0 = self.get_paras()["b0"]
+        b1 = self.get_paras()["b1"]
+        sd_pred = self.get_paras()["sigma"]
+        mix_coef = self.get_paras()["mix_coef"]
 
-        w_curr = self.hidden_state["w"]
-        alpha = self.hidden_state["alpha"]
+        w_curr = self.get_hidden_state()["w"]
+        alpha = self.get_hidden_state()["alpha"]
 
         # Predict response
         mu_pred = b0 + np.dot(
@@ -172,9 +174,9 @@ class LSSPDAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservat
         """
         Reset the hidden state to its default value.
         """
-        w = self.paras["w"]
-        alpha = self.paras["alpha"]
-        self.hidden_state = {"w": w, "alpha": alpha}
+        w = self.get_paras()["w"]
+        alpha = self.get_paras()["alpha"]
+        self.set_hidden_state({"w": w, "alpha": alpha})
 
 
 class LSSPDModel(PolicyModel, ContinuousAction, MultiBinaryObservation):

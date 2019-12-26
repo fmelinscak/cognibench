@@ -38,7 +38,7 @@ class PolicyModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
 
     @overrides
     def n_params(self):
-        return len(self.agent.paras)
+        return len(self.agent.get_paras())
 
     @overrides
     def reset(self):
@@ -46,18 +46,18 @@ class PolicyModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
 
     @overrides
     def set_paras(self, paras_dict):
-        self.agent.paras = paras_dict
+        self.agent.set_paras(paras_dict)
 
     @overrides
     def get_paras(self):
-        return self.agent.paras
+        return self.agent.get_paras()
 
     @overrides
     def fit(self, stimuli, rewards, actions):
         self.init_paras()
 
         def f(x, lens):
-            _unpack_array_into_dict(self.agent.paras, x, lens)
+            _unpack_array_into_dict(self.agent.get_paras(), x, lens)
             predictions = []
             # TODO: essentially the same logic as InteractiveTesting; refactor?
             self.reset()
@@ -66,7 +66,7 @@ class PolicyModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
                 self.update(s, r, a)
             return negloglike(actions, predictions)
 
-        x0, lens = _flatten_dict_into_array(self.agent.paras)
+        x0, lens = _flatten_dict_into_array(self.agent.get_paras())
         # TODO: make this modifiable from outside
         opt_res = minimize(
             f, x0, args=(lens,), method="Nelder-Mead", options={"maxiter": 2}
@@ -76,7 +76,7 @@ class PolicyModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
                 f"Fitting on {self.name} has not finished successfully! Cause of termination: {opt_res.message}"
             )
 
-        _unpack_array_into_dict(self.agent.paras, opt_res.x, lens)
+        _unpack_array_into_dict(self.agent.get_paras(), opt_res.x, lens)
 
         logger().debug(
             f"Agent parameters has been set to the outputs of optimization procedure."
@@ -121,6 +121,7 @@ def _unpack_array_into_dict(dictionary, arr, beg_indices):
     """
     for i, k in enumerate(dictionary.keys()):
         beg, end = beg_indices[i], beg_indices[i + 1]
+        orig_type = type(dictionary[k])
         dictionary[k] = arr[beg] if end - beg == 1 else arr[beg:end]
 
 

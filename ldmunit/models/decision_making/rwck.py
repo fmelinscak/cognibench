@@ -59,22 +59,24 @@ class RWCKAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
         super().__init__(*args, **kwargs)
 
     def reset(self):
-        w = self.paras["w"]
-        self.hidden_state = {
-            "CK": np.zeros((self.n_obs(), self.n_action())),
-            "Q": np.full((self.n_obs(), self.n_action()), w),
-        }
+        w = self.get_paras()["w"]
+        self.set_hidden_state(
+            {
+                "CK": np.zeros((self.n_obs(), self.n_action())),
+                "Q": np.full((self.n_obs(), self.n_action()), w),
+            }
+        )
 
     def eval_policy(self, stimulus):
         """
         Return a random variable object from the given stimulus.
         """
         assert self.get_observation_space().contains(stimulus)
-        CK_i = self.hidden_state["CK"][stimulus]
-        Q_i = self.hidden_state["Q"][stimulus]
+        CK_i = self.get_hidden_state()["CK"][stimulus]
+        Q_i = self.get_hidden_state()["Q"][stimulus]
 
-        beta = self.paras["beta"]
-        beta_c = self.paras["beta_c"]
+        beta = self.get_paras()["beta"]
+        beta_c = self.get_paras()["beta_c"]
         V = beta * Q_i + beta_c * CK_i
 
         xk = np.arange(self.n_action())
@@ -123,12 +125,15 @@ class RWCKAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
         assert self.get_observation_space().contains(stimulus)
 
         # get model's state
-        CK, Q = self.hidden_state["CK"][stimulus], self.hidden_state["Q"][stimulus]
+        CK, Q = (
+            self.get_hidden_state()["CK"][stimulus],
+            self.get_hidden_state()["Q"][stimulus],
+        )
 
         if not done:
             # unpack parameters
-            eta = self.paras["eta"]
-            eta_c = self.paras["eta_c"]
+            eta = self.get_paras()["eta"]
+            eta_c = self.get_paras()["eta_c"]
 
             # update choice kernel
             CK = (1 - eta_c) * CK
@@ -138,8 +143,8 @@ class RWCKAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
             delta = reward - Q[action]
             Q[action] += eta * delta
 
-            self.hidden_state["CK"][stimulus] = CK
-            self.hidden_state["Q"][stimulus] = Q
+            self.get_hidden_state()["CK"][stimulus] = CK
+            self.get_hidden_state()["Q"][stimulus] = Q
 
         return CK, Q
 
