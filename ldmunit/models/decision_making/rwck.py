@@ -100,7 +100,7 @@ class RWCKAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
         int
             An action from the action space.
         """
-        return self._get_rv(stimulus).rvs()
+        return self.eval_policy(stimulus).rvs()
 
     def update(self, stimulus, reward, action, done=False):
         """
