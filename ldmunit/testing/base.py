@@ -5,6 +5,7 @@ import numpy as np
 from sciunit import Test as SciunitTest, Score as SciunitScore
 from sciunit.errors import Error
 from ldmunit.models import LDMModel
+from ldmunit import settings
 from ldmunit.capabilities import MultiSubjectModel
 from ldmunit.models.utils import single_from_multi_obj, reverse_single_from_multi_obj
 from overrides import overrides
@@ -190,6 +191,8 @@ class LDMTest(SciunitTest):
                 logger().error(
                     f"{self.name} : Optimization procedure for model {model.name} has failed! Exception {e}"
                 )
+                if settings["CRASH_EARLY"]:
+                    raise e
 
         return super().judge(model, *args, **kwargs)
 
@@ -247,6 +250,8 @@ class LDMTest(SciunitTest):
                     logger().error(
                         f"{self.name} : {model.name} predict_single call has failed! Exception: {e}"
                     )
+                    if settings["CRASH_EARLY"]:
+                        raise e
                     pred_single = []
 
                 predictions.append(pred_single)
@@ -263,6 +268,8 @@ class LDMTest(SciunitTest):
                 logger().error(
                     f"{self.name} : {model.name} predict_single call has failed! Exception {e}"
                 )
+                if settings["CRASH_EARLY"]:
+                    raise e
                 predictions = []
 
             score_kwargs = self.get_kwargs_for_compute_score(
@@ -299,6 +306,8 @@ class LDMTest(SciunitTest):
                     logger().error(
                         f"{self.name} : compute_score_single has failed! Exception {e}"
                     )
+                    if settings["CRASH_EARLY"]:
+                        raise e
                     single_score = np.NaN
                 scores.append(single_score)
             score = self.score_type(self.score_aggr_fn(scores))
@@ -311,6 +320,8 @@ class LDMTest(SciunitTest):
                 logger().error(
                     f"{self.name} : compute_score_single has failed! Exception {e}"
                 )
+                if settings["CRASH_EARLY"]:
+                    raise e
                 score = self.score_type(np.NaN)
         return score
 
@@ -402,16 +413,22 @@ class LDMTest(SciunitTest):
             self.persist_score(score_filepath, score)
         except Exception as e:
             logger().error(f"{self.name} : persist_score has failed! Exception {e}")
+            if settings["CRASH_EARLY"]:
+                raise e
         try:
             self.persist_predictions(pred_filepath, prediction)
         except Exception as e:
             logger().error(
                 f"{self.name} : persist_predictions has failed! Exception {e}"
             )
+            if settings["CRASH_EARLY"]:
+                raise e
         try:
             self.persist_model(model_filepath, model)
         except Exception as e:
             logger().error(f"{self.name} : persist_model has failed! Exception {e}")
+            if settings["CRASH_EARLY"]:
+                raise e
 
         logger().info("Test results have been persisted")
 

@@ -46,9 +46,22 @@ class HigherBetterScore(BoundedScore):
         --------
         :py:mod:`sciunit.scores`
         """
+        return super().color(self.norm_score)
+
+    @property
+    @overrides
+    def norm_score(self):
+        """
+        Used for sorting. Lower is better.
+
+        Returns
+        -------
+        float
+            Score value normalized to 0-1 range computed by clipping self.score to the min/max range and then transforming to a value in [0, 1].
+        """
         clipped = min(self.max_score, max(self.min_score, self.score))
         normalized = (clipped - self.min_score) / (self.max_score - self.min_score)
-        return super().color(normalized)
+        return normalized
 
 
 class LowerBetterScore(BoundedScore):
@@ -72,11 +85,7 @@ class LowerBetterScore(BoundedScore):
         --------
         :py:mod:`sciunit.scores`
         """
-        neg_min = -self.min_score
-        neg_max = -self.max_score
-        clipped = max(neg_max, min(neg_min, -self.score))
-        normalized = (clipped - neg_min) / (neg_max - neg_min)
-        return super().color(normalized)
+        return super().color(self.norm_score)
 
     @property
     @overrides
@@ -89,7 +98,11 @@ class LowerBetterScore(BoundedScore):
         float
             Score value normalized to 0-1 range computed by clipping self.score to the min/max range and then transforming to a value in [0, 1].
         """
-        return -super().norm_score
+        neg_min = -self.min_score
+        neg_max = -self.max_score
+        clipped = max(neg_max, min(neg_min, -self.score))
+        normalized = 1 - (clipped - neg_min) / (neg_max - neg_min)
+        return normalized
 
 
 class NLLScore(LowerBetterScore):
