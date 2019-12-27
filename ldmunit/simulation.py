@@ -112,7 +112,7 @@ def simulate_multienv_multimodel(
 
     See Also
     --------
-    simulate_single_env_single_model
+    :py:func:`simulate`
     """
     env_list = list(env_iterable)
     if check_env_model:

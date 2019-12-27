@@ -5,7 +5,7 @@ from gym.utils import seeding
 class LDMEnv(gym.Env):
     """
     Environment class that build upon :class:`gym.Env`. In addition to functionality provided by :class:`gym.Env`,
-    `LDMEnv` allows the environment to be stateful, and this state to be updated using :py:method:`LDMEnv.update` method.
+    `LDMEnv` allows the environment to be stateful, and this state to be updated using :py:meth:`LDMEnv.update` method.
     """
 
     name = "LDMEnv"

@@ -51,7 +51,7 @@ def single_from_multi_obj(model, subj_idx):
 
     See Also
     --------
-    :py:function:`reverse_single_from_multi_obj`
+    :py:func:`reverse_single_from_multi_obj`
     """
     assert isinstance(model, MultiSubjectModel)
 
@@ -85,7 +85,7 @@ def reverse_single_from_multi_obj(model):
 
     See Also
     --------
-    :py:function:`single_from_multi_obj`
+    :py:func:`single_from_multi_obj`
     """
     for fn_name in model.multi_subject_methods:
         multi_name = f"{fn_name}_multi"
@@ -112,7 +112,7 @@ class MultiMeta(type):
 
     See Also
     --------
-    :py:function:`multi_from_single_cls`
+    :py:func:`multi_from_single_cls`
     """
 
     def __new__(cls, name, bases, dct):

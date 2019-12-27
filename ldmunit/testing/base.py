@@ -60,14 +60,14 @@ class LDMTest(SciunitTest):
             Whether the data and the models are multi-subject.
 
             If `True`, the data is expected to be a sequence where each element is the dictionary of the corresponding subject. Similarly, the model
-            should be a multi-subject model (see :py:function:`ldmunit.models.utils.multi_from_single_cls` and :class:`ldmunit.capabilities.MultiSubjectModel`).
+            should be a multi-subject model (see :py:func:`ldmunit.models.utils.multi_from_single_cls` and :class:`ldmunit.capabilities.MultiSubjectModel`).
 
             If `False`, data is expected to be a dictionary as usual, and the model should be a standard single-subject
             model.
 
         score_aggr_fn : callable
             If a multi-subject test is performed, this callable defines how to combine the score values of different
-            subjects to compute the final score of the test. Signature is as below (e.g. :py:function:`numpy.mean`):
+            subjects to compute the final score of the test. Signature is as below (e.g. :py:func:`numpy.mean`):
 
             `score_aggr_fn(Sequence[float]) -> float`
 
@@ -181,7 +181,7 @@ class LDMTest(SciunitTest):
     @overrides
     def judge(self, model, *args, **kwargs):
         """
-        Add optional model optimization functionality to :py:method:`sciunit.Test.judge` method, and delegate the rest
+        Add optional model optimization functionality to :py:meth:`sciunit.Test.judge` method, and delegate the rest
         of the work to the superclass.
         """
         if self.optimize_models:
@@ -228,7 +228,7 @@ class LDMTest(SciunitTest):
 
         See Also
         --------
-        :py:function:`ldmunit.models.utils.multi_from_single_cls`, :class:`ldmunit.capabilities.MultiSubjectModel`
+        :py:func:`ldmunit.models.utils.multi_from_single_cls`, :class:`ldmunit.capabilities.MultiSubjectModel`
         """
         logger().debug(f"{self.name} : Generating predictions from {model.name}...")
         observations = self.get_testing_observations()

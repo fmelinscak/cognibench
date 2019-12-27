@@ -12,7 +12,11 @@ NO_LOGGING = logging.CRITICAL + 1
 
 def logger():
     """
-    Return ldmunit logger object. Check https://docs.python.org/3/library/logging.html for more details.
+    Return ldmunit logger object.
+
+    See Also
+    --------
+    `<https://docs.python.org/3/library/logging.html>`_.
     """
     if not hasattr(logger, "_logger_ready"):
         _logger_ready = False
