@@ -18,6 +18,9 @@ setuptools.setup(
         "pandas>=0.24.2",
         "gym",
         "sciunit",
+        "overrides",
+        "oct2py",
+        "rpy2",
     ],
     python_requires=">=3.6.8",
     classifiers=[
