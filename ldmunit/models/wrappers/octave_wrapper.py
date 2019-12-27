@@ -5,8 +5,18 @@ from functools import partial
 class OctaveWrapperMixin:
     """
     Mixin class that allows easy porting of Octave models to LDMUnit model interface.
-    It is assumed that all core model methods are implemented as separate functions under
-    some directory.
+
+    It is assumed that all core model methods are implemented as separate functions under some directory. For example,
+    one can create a model consisting reset, predict, fit, update and act functions using the below directory structure
+
+        model/
+            -- reset.m
+            -- predict.m
+            -- fit.m
+            -- update.m
+            -- act.m
+
+    and mapping each function to its corresponding filename in class `__init__` method.
     """
 
     def __init__(
@@ -55,6 +65,8 @@ class OctaveWrapperMixin:
         _define_if_given(self, fit_fn, "fit")
         _define_if_given(self, update_fn, "update")
         _define_if_given(self, act_fn, "act")
+
+        super().__init__(*args, **kwargs)
 
 
 def _define_if_given(obj, fn, fn_name_to_set):

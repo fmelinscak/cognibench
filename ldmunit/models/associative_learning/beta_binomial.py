@@ -56,8 +56,8 @@ class BetaBinomialAgent(
         """
         Get default occurence and non-occurence counts.
         """
-        a = self.paras["a"]
-        b = self.paras["b"]
+        a = self.get_paras()["a"]
+        b = self.get_paras()["b"]
         out = {
             "a": a * np.ones(self.n_obs(), dtype=np.float64),
             "b": b * np.ones(self.n_obs(), dtype=np.float64),
@@ -68,7 +68,7 @@ class BetaBinomialAgent(
         """
         Reset the hidden state to its default value.
         """
-        self.hidden_state = _DictWithBinarySequenceKeys()
+        self.set_hidden_state(_DictWithBinarySequenceKeys())
 
     def eval_policy(self, stimulus):
         """
@@ -87,7 +87,7 @@ class BetaBinomialAgent(
         """
         assert self.get_observation_space().contains(stimulus)
 
-        sd_pred = self.paras["sigma"]
+        sd_pred = self.get_paras()["sigma"]
 
         mu_pred = self._predict_reward(stimulus)
 
@@ -132,16 +132,16 @@ class BetaBinomialAgent(
         """
         assert self.get_observation_space().contains(stimulus)
         # get model's state
-        if stimulus not in self.hidden_state.keys():
-            self.hidden_state[stimulus] = self._get_default_a_b()
-        a = self.hidden_state[stimulus]["a"]
-        b = self.hidden_state[stimulus]["b"]
+        if stimulus not in self.get_hidden_state().keys():
+            self.get_hidden_state()[stimulus] = self._get_default_a_b()
+        a = self.get_hidden_state()[stimulus]["a"]
+        b = self.get_hidden_state()[stimulus]["b"]
 
         if not done:
             a += stimulus * reward
             b += stimulus * (1 - reward)
-            self.hidden_state[stimulus]["a"] = a
-            self.hidden_state[stimulus]["b"] = b
+            self.get_hidden_state()[stimulus]["a"] = a
+            self.get_hidden_state()[stimulus]["b"] = b
 
         return a, b
 
@@ -150,14 +150,14 @@ class BetaBinomialAgent(
         Predict the reward from the given stimulus using beta-binomial model
         equations.
         """
-        mix_coef = self.paras["mix_coef"]
-        intercept = self.paras["intercept"]
-        slope = self.paras["slope"]
+        mix_coef = self.get_paras()["mix_coef"]
+        intercept = self.get_paras()["intercept"]
+        slope = self.get_paras()["slope"]
 
-        if tuple(stimulus) not in self.hidden_state.keys():
-            self.hidden_state[stimulus] = self._get_default_a_b()
-        a = self.hidden_state[stimulus]["a"]
-        b = self.hidden_state[stimulus]["b"]
+        if tuple(stimulus) not in self.get_hidden_state().keys():
+            self.get_hidden_state()[stimulus] = self._get_default_a_b()
+        a = self.get_hidden_state()[stimulus]["a"]
+        b = self.get_hidden_state()[stimulus]["b"]
 
         mu = stats.beta(a, b).mean()
         entropy = stats.beta(a, b).entropy()

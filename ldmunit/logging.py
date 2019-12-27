@@ -2,13 +2,22 @@ import logging
 from enum import IntEnum
 
 
+# Logging levels.
+# Written in decreasing level of logging. Check python3 logging documentation for more details.
 ALL = logging.NOTSET + 1
-INFO = logging.INFO
 VERBOSE = logging.DEBUG
+INFO = logging.INFO
 NO_LOGGING = logging.CRITICAL + 1
 
 
 def logger():
+    """
+    Return ldmunit logger object.
+
+    See Also
+    --------
+    `<https://docs.python.org/3/library/logging.html>`_.
+    """
     if not hasattr(logger, "_logger_ready"):
         _logger_ready = False
 
@@ -20,10 +29,16 @@ def logger():
 
 
 def set_logging_level(level=logging.INFO):
+    """
+    Set ldmunit logging level. See top level definitions.
+    """
     logger().setLevel(level)
 
 
 def _set_logger(log_obj):
+    """
+    Configure logger object.
+    """
     logging.basicConfig(
         format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
         datefmt="%m-%d-%y %H:%M",

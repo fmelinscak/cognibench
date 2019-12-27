@@ -6,8 +6,8 @@ from overrides import overrides
 
 class InteractiveTest(LDMTest):
     """
-    Perform interactive tests by feeding the input samples (stimuli) one at a
-    time and updating the model after each sample with the corresponding reward.
+    Perform interactive tests by feeding the input samples (stimuli, rewards, actions) one at a time and updating the
+    model after each sample with the corresponding reward.
     """
 
     required_capabilities = (Interactive,)
@@ -32,7 +32,6 @@ class InteractiveTest(LDMTest):
         rewards = observations["rewards"]
         actions = observations["actions"]
 
-        # TODO: this logic is also in ReinforcementLearningFittingMixin.
         predictions = []
         model.reset()
         for s, r, a in zip(stimuli, rewards, actions):
@@ -77,9 +76,9 @@ class BatchTest(LDMTest):
 
 class BatchTestWithSplit(BatchTest):
     """
-    Testing class that allows specifying training and testing stimulus-action pairs to be specified separately
+    Testing class that allows specifying training and testing samples to be specified separately
     for each subject. This is in contrast to the standard :class:`LDMTest` class where models are optimized and
-    tested on the same stimulus-action pairs.
+    tested on the same samples.
     """
 
     @overrides

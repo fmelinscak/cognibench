@@ -45,6 +45,7 @@ def get_tests(score_name, score_type, score_kwargs_fn):
             observation=obs,
             score_type=score_type,
             fn_kwargs_for_score=score_kwargs_fn,
+            persist_path=pathjoin("results", f"{test_name}_{score_name}"),
         )
         tests.append(curr_test)
     return tests

@@ -15,8 +15,7 @@ from overrides import overrides
 
 class RandomRespondAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
     """
-    Random respond agent that predicts random actions for any
-    kind of observation.
+    Random respond agent that performs random actions for any kind of stimulus.
     """
 
     @overrides
@@ -45,7 +44,7 @@ class RandomRespondAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObser
         """
         Override base class reset behaviour by setting the hidden state to default values.
         """
-        self.hidden_state = dict()
+        self.set_hidden_state(dict())
 
     def eval_policy(self, stimulus):
         """
@@ -53,8 +52,8 @@ class RandomRespondAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObser
         """
         assert self.get_observation_space().contains(stimulus)
 
-        bias = self.paras["bias"]
-        action_bias = self.paras["action_bias"]
+        bias = self.get_paras()["bias"]
+        action_bias = int(self.get_paras()["action_bias"])
 
         n = self.n_action()
         pk = np.full(n, (1 - bias) / (n - 1))

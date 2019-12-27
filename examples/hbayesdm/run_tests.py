@@ -69,14 +69,14 @@ def main():
                 logging=2,
             ),
         ],
-        name="2-Armed Bandit Task Suite",
+        name="4-Armed Bandit Task Suite",
     )
 
     model_names_fns = [
         ("2par lapse", Hmodels.bandit4arm_2par_lapse),
-        # ("4par", Hmodels.bandit4arm_4par),
-        # ("4par lapse", Hmodels.bandit4arm_lapse),
-        # ("Lapse decay", Hmodels.bandit4arm_lapse_decay),
+        ("4par", Hmodels.bandit4arm_4par),
+        ("4par lapse", Hmodels.bandit4arm_lapse),
+        ("Lapse decay", Hmodels.bandit4arm_lapse_decay),
     ]
     models = [
         HbayesdmModel(

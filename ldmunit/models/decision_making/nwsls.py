@@ -43,7 +43,7 @@ class NWSLSAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
         Override base class reset behaviour by setting the hidden state to default
         values for NWSLS model.
         """
-        self.hidden_state = dict(win=True, action=int(self.paras["epsilon"]))
+        self.set_hidden_state(dict(win=True, action=int(self.get_paras()["epsilon"])))
 
     def eval_policy(self, stimulus):
         """
@@ -51,16 +51,16 @@ class NWSLSAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
         """
         assert self.get_observation_space().contains(stimulus)
 
-        epsilon = self.paras["epsilon"]
+        epsilon = self.get_paras()["epsilon"]
         n = self.n_action()
 
-        if self.hidden_state["win"]:
+        if self.get_hidden_state()["win"]:
             prob_action = 1 - epsilon / n
         else:
             prob_action = epsilon / n
 
         pk = np.full(n, (1 - prob_action) / (n - 1))
-        pk[self.hidden_state["action"]] = prob_action
+        pk[self.get_hidden_state()["action"]] = prob_action
 
         xk = np.arange(n)
         rv = stats.rv_discrete(name=None, values=(xk, pk))
@@ -103,8 +103,8 @@ class NWSLSAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
         assert self.get_action_space().contains(action)
         assert self.get_observation_space().contains(stimulus)
 
-        self.hidden_state["win"] = reward == 1
-        self.hidden_state["action"] = action
+        self.get_hidden_state()["win"] = reward == 1
+        self.get_hidden_state()["action"] = action
 
 
 class NWSLSModel(PolicyModel, DiscreteAction, DiscreteObservation):

@@ -78,7 +78,7 @@ class KrwNormAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserv
 
     def _predict_reward(self, stimulus):
         assert self.get_observation_space().contains(stimulus)
-        w_curr = self.hidden_state["w"]
+        w_curr = self.get_hidden_state()["w"]
         rhat = np.dot(stimulus, w_curr.T)
         return rhat
 
@@ -106,14 +106,14 @@ class KrwNormAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserv
         assert self.get_action_space().contains(action)
         assert self.get_observation_space().contains(stimulus)
 
-        tauSq = self.paras["tauSq"]  # State diffusion variance
+        tauSq = self.get_paras()["tauSq"]  # State diffusion variance
         Q = tauSq * np.identity(
             self.n_obs()
         )  # Transition noise variance (transformed to positive reals); constant over time
-        sigmaRSq = self.paras["sigmaRSq"]
+        sigmaRSq = self.get_paras()["sigmaRSq"]
 
-        w_curr = self.hidden_state["w"]
-        C_curr = self.hidden_state["C"]
+        w_curr = self.get_hidden_state()["w"]
+        C_curr = self.get_hidden_state()["C"]
 
         rhat = self._predict_reward(stimulus)
 
@@ -132,8 +132,8 @@ class KrwNormAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserv
             w_updt = w_pred + K * delta  # Mean updated with prediction error
             C_updt = C_pred - np.dot(K[:, None], np.dot(stimulus[None, :], C_pred))
 
-            self.hidden_state["w"] = w_updt
-            self.hidden_state["C"] = C_updt
+            self.get_hidden_state()["w"] = w_updt
+            self.get_hidden_state()["C"] = C_updt
 
         return w_updt, C_updt
 
@@ -154,14 +154,14 @@ class KrwNormAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserv
             reward using b0 and b1 parameters, and standard deviation equal
             to sigma model parameter.
         """
-        assert self.hidden_state, "hidden state must be set"
+        assert self.get_hidden_state(), "hidden state must be set"
         assert self.get_observation_space().contains(stimulus)
 
-        b0 = self.paras["b0"]  # intercept
-        b1 = self.paras["b1"]  # slope
-        sd_pred = self.paras["sigma"]
+        b0 = self.get_paras()["b0"]  # intercept
+        b1 = self.get_paras()["b1"]  # slope
+        sd_pred = self.get_paras()["sigma"]
 
-        w_curr = self.hidden_state["w"]
+        w_curr = self.get_hidden_state()["w"]
 
         # Predict response
         mu_pred = b0 + np.dot(b1, stimulus * w_curr)
@@ -176,10 +176,10 @@ class KrwNormAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserv
         """
         Reset the hidden state to its default value.
         """
-        w = self.paras["w"]
-        C = self.paras["sigmaWInit"] * np.identity(self.n_obs())
+        w = self.get_paras()["w"]
+        C = self.get_paras()["sigmaWInit"] * np.identity(self.n_obs())
 
-        self.hidden_state = {"w": np.full(self.n_obs(), w), "C": C}
+        self.set_hidden_state({"w": np.full(self.n_obs(), w), "C": C})
 
 
 class KrwNormModel(PolicyModel, ContinuousAction, MultiBinaryObservation):

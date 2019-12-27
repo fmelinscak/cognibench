@@ -2,14 +2,18 @@ import sciunit
 import numpy as np
 from gym.utils import seeding
 from overrides import overrides
+from collections import Mapping
 
 
 class LDMModel(sciunit.Model):
     """
-    Helper base class for LDMUnit models.
+    Base class for LDMUnit models.
+
+    In `ldmunit`, a model is a way of representing a continuum of some type of an agent and corresponding possible parameters. Models are
+    expected to provide fitting and action prediction functionalities, while leaving the tasks of acting on environments and
+    updating hidden state variables to agents.
     """
 
-    @overrides
     def __init__(self, seed=None, param_initializer=None, **kwargs):
         """
         Parameters
@@ -17,6 +21,14 @@ class LDMModel(sciunit.Model):
         seed : int
             Random seed. Must be a nonnegative integer. If seed is None,
             random state is set randomly by gym.utils.seeding. (Default: None)
+
+        param_initializer : dict or callable
+            Initializer for model parameters. If a dictionary, it must be a mapping from model parameters to initial
+            values. If a callable, it should have the below signature
+
+                `param_initializer(seed=None) -> dict`
+
+            and must return a mapping from model parameters to initial values.
         """
         self.seed = seed
         self.param_initializer = param_initializer
@@ -63,7 +75,7 @@ class LDMModel(sciunit.Model):
     def predict(self, *args, **kwargs):
         """
         Make a prediction over the action space given a stimulus. `predict` function is generally expected to return
-        a distribution over actions, but the exact return type would depend on how `ldmunit` library is being used.
+        a distribution over actions.
         """
         raise NotImplementedError("Must implement predict.")
 
@@ -82,30 +94,53 @@ class LDMModel(sciunit.Model):
         pass
 
     def init_paras(self):
+        """
+        Initialize model parameters using `self.param_initializer`.
+        """
         if self.param_initializer is None:
             raise ValueError(
                 "{self.name.init_params}: self.param_initializer is None; cannot initializer parameters"
             )
-        self.set_paras(self.param_initializer(self.seed))
+        if isinstance(self.param_initializer, Mapping):
+            paras = self.param_initializer
+        else:
+            paras = self.param_initializer(seed=self.seed)
+        self.set_paras(paras)
 
-    def set_paras(self, *args, **kwargs):
+    def set_paras(self, paras_dict):
         """
         Set the parameters for the model.
         """
-        pass
+        self._paras = paras_dict
 
     def get_paras(self):
         """
         Get the parameters of the model.
         """
-        return dict()
+        return self._paras
 
 
 class LDMAgent:
+    """
+    Base class for LDMUnit agents.
+
+    In `ldmunit`, an agent is a way of interacting with environments through `act` and `update` methods while possibly
+    storing some hidden state.
+    """
+
     def __init__(self, *args, paras_dict=None, seed=None, **kwargs):
+        """
+        Parameters
+        ----------
+        paras_dict : dict
+            Dictionary storing agent parameters.
+
+        seed : int
+            Random seed to use.
+        """
+        self.set_paras(paras_dict)
         self.seed = seed
-        self.paras = paras_dict
-        self.hidden_state = dict()
+        self.set_hidden_state(dict())
         super().__init__(*args, **kwargs)
 
     @property
@@ -137,26 +172,34 @@ class LDMAgent:
         self._rng, _ = seeding.np_random(seed=value)
 
     def act(self, *args, **kwargs):
+        """
+        Act on the stimulus given by the environment.
+        """
         raise NotImplementedError("LDMAgent must implement act")
 
     def update(self, *args, **kwargs):
+        """
+        Update hidden state using the information provided by previous stimulus, action taken and reward returned by the
+        environment.
+        """
         raise NotImplementedError("LDMAgent must implement update")
 
     def reset(self):
-        self.hidden_state = dict()
+        """
+        Reset the hidden state of the agent.
 
-    @property
-    def paras(self):
+        Concrete classes should override this method and define default hidden state variables.
+        """
+        self.set_hidden_state(dict())
+
+    def get_paras(self):
         return self._paras
 
-    @paras.setter
-    def paras(self, paras_dict):
+    def set_paras(self, paras_dict):
         self._paras = paras_dict
 
-    @property
-    def hidden_state(self):
+    def get_hidden_state(self):
         return self._hidden_state
 
-    @hidden_state.setter
-    def hidden_state(self, state):
+    def set_hidden_state(self, state):
         self._hidden_state = state

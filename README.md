@@ -1,60 +1,67 @@
 # LDMUnit
-LDMUnit is a framework for test and validation
-of learning and decision making models.  It is built mainly
-on top of [sciunit](https://github.com/scidash/sciunit) and
-[gym](https://github.com/openai/gym) libraries.  It uses the same
-test-model-capability categorization first implemented in sciunit to
-run test suites consisting of several tests on a set of models.
+LDMUnit is a framework for test and validation of learning and decision making models. It is built mainly on top of
+[sciunit](https://github.com/scidash/sciunit) and [gym](https://github.com/openai/gym) libraries. It uses the same
+test-model-capability categorization implemented in sciunit to run test suites consisting of several tests on a
+set of matching models. For a short introduction of `ldmunit` structure, please refer to documentation notebooks under
+`docs` folder. For detailed examples of how one can use `ldmunit` you can refer to example testing and simulation
+scripts under `examples` folder.
 
 ## Main features of ldmunit
 
 ### Interactive tests
-Testing some models should be performed
-iteratively. Instead of presenting all the stimuli at once, these can be
-inputted one at a time, while observing the actions of the model being
-tested. ldmunit formalizes this notion in `InteractiveTest` interface.
+Testing certain models should be performed in an interactive manner. Instead of presenting all the stimuli at once, test
+samples are inputted one at a time, while observing the actions of the model being tested. ldmunit formalizes this
+notion in `InteractiveTest` test class and `Interactive` model capability.
+
+In addition to interactive tests, `ldmunit` also implements the common way of testing models against a batch of samples
+(`BatchTest` and `BatchTestWithSplit`) in case you don't need the interactive testing logic.
 
 ### sciunit and gym interaction
-In sciunit framework, models are
-tagged with capabilities which define the tests a model can possibly
-take. ldmunit combines this idea with action and observation spaces
-from gym library so that tests can require models to work on for example
-continuous action spaces.
+In sciunit framework, models are tagged with capabilities which define the tests a model can possibly take.
+`ldmunit` combines this idea with action and observation spaces from gym library. Therefore, a model also specifies
+against which environments it can be simulated against in addition to the tests it can take.
 
-### Associative learning model implementations
-We provide example
-implementations for well-known associative learning models. These models
-also demonstrate how to satisfy the interfaces required by interactive
-tests that require log probability distributions as predictions. Currently
-implemented associative learning models are
+### Support for both single- and multi-subject models
+Some models operate on a single subject at a time (single-subject model) whereas others can operate on multiple subjects
+at the same time (multi-subject model). ldmunit supports multi-subject models by assuming the model implementation of
+required interface functions take the subject index as the first argument. The testing interface defined by `LDMTest`
+class can seamlessly work on both single- and multi-subject models. In addition, we provide a simple utility function
+to convert single-subject model classes deriving from `LDMModel` to multi-subject classes.
+
+### Data simulation
+`ldmunit` provides utility functions to simulate agents and/or models against matching environments to generate
+stimuli, action and reward triples. These functions support both single-subject and multi-subject models.
+
+### Implementation of common experimental tasks
+`ldmunit` offers `model_recovery` and `param_recovery` functions that you can use to perform these tasks quickly without
+having to bother with the details.
+
+### Agent and Model Separation
+`ldmunit` distinguishes between agents (`LDMAgent` base class) and models (`LDMModel` base class). An agent can
+interact with an environment through `act` and `update` methods, and can only function when its parameters are set to
+given values. In contrast, a model represents a specific way of fitting parameters for an agent (`fit`) and predicting
+the probability distribution over the action space (`predict`). The models we provide in `ldmunit` are implemented by
+taking this distinction into consideration; however, `ldmunit` has the flexibility to support models that don't care
+about this distinction.
+
+### Associative learning agent and model implementations
+We provide example implementations for well-known associative learning agents and models. These models also demonstrate
+how to satisfy the interfaces required by interactive tests that require log probability distributions as predictions.
+Currently implemented associative learning models are
 * Random respond
 * Beta-binomial
 * Rescorla-Wagner
 * Kalman Rescorla-Wagner
-<!-- TODO: what is LSSPD? -->
-* LSSPD
+* LSSPD (Rescorla-Wagner-Pearce-Hall)
 
-### Decision making model implementations
-Similarly, we also
-provide example implementations for well-known decision making
-models. Currently implemented decision making models are
+### Decision making agent and model implementations
+Similarly, we also provide example implementations for well-known decision making agents and models. Currently
+implemented decision making models are
 * Random respond
 * Rescorla-Wagner Choice Kernel
 * Rescorla-Wagner
 * Choice Kernel
 * Noisy-win-stay-lose-shift
-
-### Support for both single- and multi-subject models
-Some models operate on a single-subject at a time (single-subject model) whereas
-others can operate on multiple subjects at the same time (multi-subject
-model). ldmunit interfaces support multi-subject models by assuming
-the model implementation of required interface functions take the
-subject index as the first argument. Since a single-subject model can
-be represented as a multi-subject model with only one subject, there is
-no explicit support for single-subject interfaces. However, we provide a
-utility function `ldmunit.models.utils.multi_from_single_interactive` that
-takes a single-subject model class as input and returns a multi-subject
-model class. Later, this class can be used with ldmunit.
 
 ## Installation
 You can install ldmunit by running
@@ -64,68 +71,68 @@ pip install ldmunit
 ```
 
 ## Documentation
-We provide a series of jupyter notebooks that describe LDMUnit:
-<!-- TODO: Below links should point to github
-because then they will work from readthedocs and so on. -->
+We provide a series of jupyter notebooks that you can use as an introduction to `ldmunit`:
+<!-- TODO: Below links should point to github because then they will work from readthedocs and so on. -->
 <!-- TODO: change the name of the repository to ldmunit -->
 * [Chapter 1: Introduction](docs/ch01_introduction.ipynb)
 * [Chapter 2: Tests](docs/ch02_tests.ipynb)
 * [Chapter 3: Models](docs/ch03_models.ipynb)
 * [Chapter 4: Complete Example](docs/ch04_complete_example.ipynb)
+* [Chapter 5: Simulation](docs/ch05_simulation.ipynb)
+* [Chapter 6: Tasks](docs/ch06_tasks.ipynb)
 
 <!-- TODO: API reference link must be https (readthedocs) -->
-Additionally, you can browse our <!-- [API reference](TODO) --> to get
-more information about certain functions, classes, etc. you want to use.
+Additionally, you can browse our <!-- [API reference](TODO) --> to get more information about certain functions,
+classes, etc. you want to use.
+
+## Examples
+We provide multiple examples of using `ldmunit` as a tool to test models, simulate data and perform experimental tasks.
+These are very useful to get acquainted with how to use `ldmunit`.  Please refer to readme file under `examples/` folder
+for further information.
 
 ## Tests
-We use built-in `unittest` module for testing ldmunit. To perform checks,
-clone this repository and type
+We use built-in `unittest` module for testing ldmunit. To perform checks, clone this repository and type
 
 ```bash
 ./test.sh
 ```
 
 ## Information for Developers
-If you want to extend ldmunit, you need to use the development environment
-and `conda`.  To create the `ldmunit` conda environment, use
+If you want to extend ldmunit, you need to use the development environment and `conda`. To create the `ldmunit` conda
+environment, use
 
 ```bash
 conda env create -f environment.yml
 conda activate ldmunit
 ```
 
-We use `black` for code-formatting and `pre-commit` for ensuring high quality code.
-To enable these tools simply run
+We use `black` for code-formatting and `pre-commit` for ensuring high quality code.  To enable these tools simply run
 
 ```bash
 pre-commit install
 ```
 
-The next time you try to commit, all the required tools and hooks will be downloaded
-(and cached) and checks will be performed on your code.
+The next time you try to commit, all the required tools and hooks will be downloaded (and cached) and checks will be
+performed on your code.
 
 ### Generating Local Documentation
-After enabling the development environment, you can generate a local
-version of the documentation by running
+After enabling the development environment, you can generate a local version of the documentation by running
 
 ```bash
 cd docs/sphinx
 make html
 ```
 
-Afterwards, you can browse the local documentation by opening
-`docs/sphinx/_build/index.html`.
+Afterwards, you can browse the local documentation by opening `docs/sphinx/_build/index.html`.
 
 ### Installing a Local Development Version
-After implementing some changes, you can install the modified version of
-ldmunit to your local system by running
+After implementing some changes, you can install the modified version of ldmunit to your local system by running
 
 ```bash
 python setup.py install --user
 ```
 
-Then, every time you import ldmunit, this modified version will be
-imported.
+Then, every time you import ldmunit, this modified version will be imported.
 
 ## License
 <!-- TODO: LICENSE link must be https (github) -->

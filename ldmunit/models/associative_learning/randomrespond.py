@@ -18,8 +18,7 @@ class RandomRespondAgent(
     LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservation
 ):
     """
-    Random respond model that predicts random actions for any
-    kind of observation.
+    Random respond agent that returns random actions for any kind of observation.
     """
 
     name = "RandomRespond"
@@ -49,7 +48,7 @@ class RandomRespondAgent(
         """
         Reset the hidden state to its default value.
         """
-        self.hidden_state = dict()
+        self.set_hidden_state(dict())
 
     def eval_policy(self, stimulus):
         """
@@ -68,8 +67,8 @@ class RandomRespondAgent(
         """
         assert self.get_observation_space().contains(stimulus)
 
-        mu_pred = self.paras["mu"]
-        sd_pred = self.paras["sigma"]
+        mu_pred = self.get_paras()["mu"]
+        sd_pred = self.get_paras()["sigma"]
 
         rv = stats.norm(loc=mu_pred, scale=sd_pred)
         rv.random_state = self.seed

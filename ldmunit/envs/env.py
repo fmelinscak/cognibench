@@ -42,13 +42,13 @@ class BanditEnv(DiscreteAction, DiscreteObservation, LDMEnv):
     """Bandit environment base to allow agents to interact with the class n-armed bandit
     in different variations
 
-    BanditEnv will initialize a :class:`gym.Env` instance in which rewards (1 or 0) will be
-    randomly rewarded towards the agents with the probability set.
+    In BanditEnv rewards (1 or 0) will be randomly rewarded to the agents according to the given probability distribution.
 
     Parameters
     ----------
-    p_dist : list
+    p_dist : array-like
         A list of probabilities of the likelihood that a particular bandit will pay out.
+
     info : str
         Info about the environment that the agents is not supposed to know. For instance,
         info can releal the index of the optimal arm, or the value of prior parameter.
@@ -56,17 +56,21 @@ class BanditEnv(DiscreteAction, DiscreteObservation, LDMEnv):
 
     Attributes
     ----------
-    p_dist : list
+    p_dist : array-like
         A list of probabilities of the likelihood that a particular bandit will pay out.
+
     info : str
         Info about the environment that the agents is not supposed to know. For instance,
         info can releal the index of the optimal arm, or the value of prior parameter.
         Can be useful to evaluate the agent's perfomance.
+
     n_bandits : int
         Number of bandits set by p_dist.
-    action_space : :class:`gym.spaces.Discrete`
-        Environment only understand discrete action set in this space (set by length of p_dist).
-    observation_space : :class:`gym.spaces.Discrete`
+
+    action_space : :class:`gym.Spaces.Discrete`
+        Environment only understand discrete action set in this space (set by length of `p_dist`).
+
+    observation_space : :class:`gym.Spaces.Discrete`
         There is no observation/stimulus/cue in bandit environment.
     """
 
@@ -132,12 +136,15 @@ class ClassicalConditioningEnv(ContinuousAction, MultiBinaryObservation, LDMEnv)
 
     Parameters
     ----------
-    stimuli : list
+    stimuli : array-like
         A list of stimulus in the same :class:`gym.spaces.MultiBinary` space.
-    p_stimuli : list
+
+    p_stimuli : array-like
         A list of probabilities that a stimulus will occur.
-    p_reward : list
+
+    p_reward : array-like
         A list of probabilities of the likelihood that a particular stimuli will pay out.
+
     info : str
         Info about the environment that the agents is not supposed to know. For instance,
         info can releal the index of the optimal arm, or the value of prior parameter.
@@ -145,16 +152,20 @@ class ClassicalConditioningEnv(ContinuousAction, MultiBinaryObservation, LDMEnv)
 
     Attributes
     ----------
-    p_stimuli : list
+    p_stimuli : array-like
         A list of probabilities that a stimulus will occur.
-    p_reward : list
+
+    p_reward : array-like
         A list of probabilities of the likelihood that a particular stimuli will pay out.
+
     info : str
         Info about the environment that the agents is not supposed to know. For instance,
         info can releal the index of the optimal arm, or the value of prior parameter.
         Can be useful to evaluate the agent's perfomance
+
     action_space : :class:`ldmunit.continuous.ContinuousSpace`
         Environment only understand discrete action set in this space (set by length of p_dist).
+
     observation_space : :class:`gym.spaces.MultiBinary`
         The multi-binary space set by the stimuli
 

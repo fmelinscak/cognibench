@@ -32,8 +32,8 @@ def is_arraylike(x):
     """
     Returns
     -------
-    bool
-        True if the input is an array-like object.
+    out : bool
+        `True` if the input is an array-like object.
 
     See Also
     --------
@@ -50,6 +50,7 @@ def negloglike(actions, predictions):
     ----------
     actions : array-like
         Sequence of actions.
+
     predictions : array-like
         Sequence of logpdf/logpmf predictions. For an action `a` and prediction `P`, logpdf/logpmf
         value at a must be equal to `P(a)`.
