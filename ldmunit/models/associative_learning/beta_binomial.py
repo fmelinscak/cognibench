@@ -132,7 +132,7 @@ class BetaBinomialAgent(
         """
         assert self.get_observation_space().contains(stimulus)
         # get model's state
-        if stimulus not in self.get_hidden_state().keys():
+        if tuple(stimulus) not in self.get_hidden_state().keys():
             self.get_hidden_state()[stimulus] = self._get_default_a_b()
         a = self.get_hidden_state()[stimulus]["a"]
         b = self.get_hidden_state()[stimulus]["b"]

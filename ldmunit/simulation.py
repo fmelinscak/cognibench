@@ -54,6 +54,7 @@ def simulate(env, model_or_agent, n_trials, seed=None, check_env_model=True):
     rewards = []
     stimuli = []
     env.seed(seed)
+    model_or_agent.seed(seed)
     initial_stimulus = env.reset()
     stimuli.append(initial_stimulus)
     for i in range(n_trials):

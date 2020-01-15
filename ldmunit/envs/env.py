@@ -76,7 +76,7 @@ class BanditEnv(DiscreteAction, DiscreteObservation, LDMEnv):
 
     name = "BanditEnv"
 
-    def __init__(self, *args, p_dist, info={}, **kwargs):
+    def __init__(self, *args, p_dist, info={}, seed=None, **kwargs):
         super().__init__(*args, **kwargs)
         if min(p_dist) < 0 or max(p_dist) > 1:
             raise ValueError("All probabilities must be between 0 and 1")
@@ -84,7 +84,7 @@ class BanditEnv(DiscreteAction, DiscreteObservation, LDMEnv):
         self.n_bandits = len(p_dist)
         self.p_dist = p_dist
         self.info = info
-        self.seed()
+        self.seed(seed)
         self.set_action_space(self.n_bandits)
         self.set_observation_space(1)
 
@@ -173,7 +173,9 @@ class ClassicalConditioningEnv(ContinuousAction, MultiBinaryObservation, LDMEnv)
 
     name = "ClassicalConditioningEnv"
 
-    def __init__(self, *args, stimuli, p_stimuli, p_reward, info={}, **kwargs):
+    def __init__(
+        self, *args, stimuli, p_stimuli, p_reward, info={}, seed=None, **kwargs
+    ):
         super().__init__(*args, **kwargs)
         if min(p_stimuli) < 0 or max(p_stimuli) > 1 or sum(p_stimuli) != 1:
             raise ValueError("All probabilities must be between 0 and 1")
@@ -194,7 +196,7 @@ class ClassicalConditioningEnv(ContinuousAction, MultiBinaryObservation, LDMEnv)
         self.p_stimuli = p_stimuli
         self.p_reward = p_reward
         self.info = info
-        self.seed()
+        self.seed(seed)
 
     def step(self, action):
         """Environment reacts to the agent.

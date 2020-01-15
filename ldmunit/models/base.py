@@ -140,7 +140,7 @@ class LDMAgent:
         """
         self.set_paras(paras_dict)
         self.seed = seed
-        self.set_hidden_state(dict())
+        self.reset()
         super().__init__(*args, **kwargs)
 
     @property
