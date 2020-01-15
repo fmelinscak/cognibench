@@ -160,7 +160,7 @@ class LSSPDAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservat
         )
 
         rv = stats.norm(loc=mu_pred, scale=sd_pred)
-        rv.random_state = self.seed
+        rv.random_state = self.get_seed()
 
         return rv
 

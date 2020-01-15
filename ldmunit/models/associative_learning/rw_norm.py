@@ -138,7 +138,7 @@ class RwNormAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserva
         mu_pred = b0 + np.dot(b1, stimulus * w_curr)
 
         rv = stats.norm(loc=mu_pred, scale=sd_pred)
-        rv.random_state = self.seed
+        rv.random_state = self.get_seed()
 
         return rv
 

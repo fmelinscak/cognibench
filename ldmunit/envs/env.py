@@ -84,7 +84,7 @@ class BanditEnv(DiscreteAction, DiscreteObservation, LDMEnv):
         self.n_bandits = len(p_dist)
         self.p_dist = p_dist
         self.info = info
-        self.seed(seed)
+        self.set_seed(seed)
         self.set_action_space(self.n_bandits)
         self.set_observation_space(1)
 
@@ -196,7 +196,7 @@ class ClassicalConditioningEnv(ContinuousAction, MultiBinaryObservation, LDMEnv)
         self.p_stimuli = p_stimuli
         self.p_reward = p_reward
         self.info = info
-        self.seed(seed)
+        self.set_seed(seed)
 
     def step(self, action):
         """Environment reacts to the agent.

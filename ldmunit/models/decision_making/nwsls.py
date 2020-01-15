@@ -64,7 +64,7 @@ class NWSLSAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
 
         xk = np.arange(n)
         rv = stats.rv_discrete(name=None, values=(xk, pk))
-        rv.random_state = self.seed
+        rv.random_state = self.get_seed()
 
         return rv
 

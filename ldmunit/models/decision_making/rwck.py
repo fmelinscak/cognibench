@@ -82,7 +82,7 @@ class RWCKAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
         xk = np.arange(self.n_action())
         pk = softmax(V)
         rv = stats.rv_discrete(values=(xk, pk))
-        rv.random_state = self.seed
+        rv.random_state = self.get_seed()
 
         return rv
 

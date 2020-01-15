@@ -61,7 +61,7 @@ class RandomRespondAgent(LDMAgent, ProducesPolicy, DiscreteAction, DiscreteObser
 
         xk = np.arange(n)
         rv = stats.rv_discrete(values=(xk, pk))
-        rv.random_state = self.seed
+        rv.random_state = self.get_seed()
 
         return rv
 

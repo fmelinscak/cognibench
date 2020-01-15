@@ -30,12 +30,11 @@ class LDMModel(sciunit.Model):
 
             and must return a mapping from model parameters to initial values.
         """
-        self.seed = seed
+        self.set_seed(seed)
         self.param_initializer = param_initializer
         super().__init__(**kwargs)
 
-    @property
-    def seed(self):
+    def get_seed(self):
         """
         Returns
         -------
@@ -57,8 +56,7 @@ class LDMModel(sciunit.Model):
         """
         return self._rng
 
-    @seed.setter
-    def seed(self, value):
+    def set_seed(self, value):
         self._seed = value
         self._rng, _ = seeding.np_random(seed=value)
 
@@ -139,12 +137,11 @@ class LDMAgent:
             Random seed to use.
         """
         self.set_paras(paras_dict)
-        self.seed = seed
+        self.set_seed(seed)
         self.reset()
         super().__init__(*args, **kwargs)
 
-    @property
-    def seed(self):
+    def get_seed(self):
         """
         Returns
         -------
@@ -166,8 +163,7 @@ class LDMAgent:
         """
         return self._rng
 
-    @seed.setter
-    def seed(self, value):
+    def set_seed(self, value):
         self._seed = value
         self._rng, _ = seeding.np_random(seed=value)
 
