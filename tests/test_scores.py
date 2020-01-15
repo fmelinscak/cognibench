@@ -1,30 +1,24 @@
 import unittest
-from gym import spaces
-from functools import reduce
-import numpy as np
-from scipy import stats
-from ldmunit.models import associative_learning
-from ldmunit.envs import BanditEnv, ClassicalConditioningEnv
-from ldmunit.utils import partialclass
-from ldmunit.tasks import model_recovery, param_recovery
-from ldmunit.testing import InteractiveTest
-from ldmunit.scores import NLLScore
+from ldmunit.scores import HigherBetterScore, LowerBetterScore
 
 
 class TestHigherBetterScore(unittest.TestCase):
-    def setUp(self):
-        pass
+    def test_norm_score(self):
+        s1 = HigherBetterScore(40.0, min_score=0, max_score=100)
+        s2 = HigherBetterScore(60.0, min_score=0, max_score=100)
+        self.assertTrue(s1.norm_score < s2.norm_score)
 
-    def test_(self):
-        # TODO
-        pass
+    def test_score_out_of_limits(self):
+        s2 = HigherBetterScore(60.0, min_score=0, max_score=50)
+        self.assertTrue(s2.norm_score == 1.0)
 
 
 class TestLowerBetterScore(unittest.TestCase):
-    def setUp(self):
-        # TODO
-        pass
+    def test_norm_score(self):
+        s1 = LowerBetterScore(40.0, min_score=0, max_score=100)
+        s2 = LowerBetterScore(60.0, min_score=0, max_score=100)
+        self.assertTrue(s1.norm_score > s2.norm_score)
 
-    def test_(self):
-        # TODO
-        pass
+    def test_score_out_of_limits(self):
+        s2 = LowerBetterScore(60.0, min_score=0, max_score=50)
+        self.assertTrue(s2.norm_score == 0.0)
