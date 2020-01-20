@@ -76,9 +76,9 @@ class BatchTest(LDMTest):
 
 class BatchTestWithSplit(BatchTest):
     """
-    Testing class that allows specifying training and testing samples to be specified separately
-    for each subject. This is in contrast to the standard :class:`LDMTest` class where models are optimized and
-    tested on the same samples.
+    Testing class that allows specifying training and testing samples separately for each subject. This is in contrast
+    to the standard :class:`LDMTest` class where models are optimized and tested on the same samples (which is common
+    practice for psychophysiological models).
     """
 
     @overrides

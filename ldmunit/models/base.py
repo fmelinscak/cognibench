@@ -9,9 +9,10 @@ class LDMModel(sciunit.Model):
     """
     Base class for LDMUnit models.
 
-    In `ldmunit`, a model is a way of representing a continuum of some type of an agent and corresponding possible parameters. Models are
-    expected to provide fitting and action prediction functionalities, while leaving the tasks of acting on environments and
-    updating hidden state variables to agents.
+    In `ldmunit`, a model is a way of representing a continuum of an agent and corresponding parameters. Models are
+    expected to provide fitting and action prediction functionalities, while leaving the tasks of acting on environments
+    and updating hidden state variables to agents. However, this distinction is not strictly enforced, and users may
+    choose to use models to represent both of these concepts together.
     """
 
     def __init__(self, seed=None, param_initializer=None, **kwargs):
@@ -183,7 +184,8 @@ class LDMAgent:
         """
         Reset the hidden state of the agent.
 
-        Concrete classes should override this method and define default hidden state variables.
+        Concrete classes should override this method and define default hidden state variables. Note that calling
+        `reset` or any method that relies on parameters without first setting the agent parameters might cause an error.
         """
         self.set_hidden_state(dict())
 

@@ -36,8 +36,8 @@ def model_recovery(model_list, env, interactive_test_cls, n_trials=50, seed=None
     Returns
     -------
     suite : :class:`sciunit.TestSuite`
-        Test suite class created during this function call. The suite object contains all the data (observations, predictions, etc.) generated
-        during the procedure.
+        Test suite class created during this function call. The suite object contains all the data
+        (observations, predictions, etc.) generated during the procedure.
 
     score_matrix : :class:`sciunit.ScoreMatrix`
         Score matrix object containing the score of each model for each of the simulation rounds.

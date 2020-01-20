@@ -6,7 +6,7 @@ class OctaveWrapperMixin:
     """
     Mixin class that allows easy porting of Octave models to LDMUnit model interface.
 
-    It is assumed that all core model methods are implemented as separate functions under some directory. For example,
+    It is assumed that all model methods are implemented as separate functions under some directory. For example,
     one can create a model consisting reset, predict, fit, update and act functions using the below directory structure
 
         model/
