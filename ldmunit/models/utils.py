@@ -106,6 +106,11 @@ class MultiMeta(type):
     the returned model class now additionally inherits from `ldmunit.capabilities.MultiSubjectModel`, which is required
     by parts of `ldmunit` that expect multi-subject models as input.
 
+    In order to not break compatibility with code that doesn't use subject indices, the returned class forwards a method
+    call to the subject model with index 0 if no index is passed. Users should not rely on this behaviour as it is only
+    provided for compatibility with certain parts of sciunit library (e.g. sciunit calls `describe` method of the model
+    with no subject index when run on a jupyter notebook).
+
     This metaclass is not intended to be used directly by `ldmunit` users. Users should use
     multi_from_single_cls for automatically generating multi-subject models from single-subject ones without having to
     bother with implementation details.
@@ -119,12 +124,12 @@ class MultiMeta(type):
         single_cls = bases[0]
         base_classes = single_cls.__bases__ + (MultiSubjectModel,)
         out_cls = super().__new__(cls, name, base_classes, dct)
+        # TODO: implement this in a better way
         methods_to_define = [
             f
             for f in dir(single_cls)
             if callable(getattr(single_cls, f))
             and not (f.startswith("__") and f.endswith("__"))
-            and f != "describe"
         ]
 
         def multi_init(self, *args, n_subj, **kwargs):
@@ -133,7 +138,12 @@ class MultiMeta(type):
                 self.subject_models.append(single_cls(*args, **kwargs))
             self.n_subjects = len(self.subject_models)
 
-            def new_fn(idx, *args, fn_name, **kwargs):
+            def new_fn(*args, fn_name, **kwargs):
+                if len(args) == 0:
+                    idx = 0
+                else:
+                    idx = args[0]
+                    args = args[1:]
                 return getattr(self.subject_models[idx], fn_name)(*args, **kwargs)
 
             for fn_name in methods_to_define:
@@ -167,12 +177,8 @@ class MultiMeta(type):
                     curr_kwargs[k] = v[i]
                 model.fit(*curr_args, **curr_kwargs)
 
-        def describe(self):
-            return self.subject_models[0].describe()
-
         out_cls.__init__ = multi_init
         out_cls.fit_jointly = fit_jointly
         out_cls.multi_subject_methods = methods_to_define
-        out_cls.describe = describe
 
         return out_cls
