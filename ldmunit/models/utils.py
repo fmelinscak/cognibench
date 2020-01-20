@@ -19,7 +19,8 @@ def multi_from_single_cls(single_cls):
     -------
     out_cls : :class:`ldmunit.model.LDMModel`
         A multi-subject model class. Each method of the new class now takes an additional subject index (0-based) as
-        their first argument.
+        their first argument. If a subject index is not provided during a method call, the method of subject with index
+        0 is called by default.
     """
     multi_cls_name = "Multi" + single_cls.__name__
     return MultiMeta(

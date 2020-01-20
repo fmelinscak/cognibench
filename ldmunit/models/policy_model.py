@@ -17,13 +17,13 @@ from overrides import overrides
 
 class PolicyModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
     """
-    PolicyModel provides a model implementation that can be created from agents satisfying :class:`ldmunit.capabilities.ProducesPolicy`
-    capability.
+    PolicyModel provides a model implementation that can be created from agents satisfying
+    :class:`ldmunit.capabilities.ProducesPolicy` capability.
 
-    If you already have an agent implementation that can provide a probability distribution over the action space (`eval_policy` method), you
-    can create a model of that agent that uses `eval_policy` to make predictions and to fit model parameters (using maximum likelihood) by simply
-    deriving from this class. For examples of this, refer to decision making or associative learning model implementations
-    provided by `ldmunit`.
+    If you already have an agent implementation that can provide a probability distribution over the action space
+    (`eval_policy` method), you can create a model of that agent that uses `eval_policy` to make predictions and to fit
+    model parameters (using maximum likelihood) by simply deriving from this class. For examples of such usage, refer to
+    decision making or associative learning model implementations provided by `ldmunit`.
     """
 
     # TODO: can we adapt action and obs spaces according to the Agent (probably not worth it for now)
@@ -53,6 +53,11 @@ class PolicyModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
 
     @overrides
     def fit(self, stimuli, rewards, actions):
+        """
+        Fit the model by minimizing the negative log-likelihood of the model predictions using Nelder-Mead optimization.
+
+        TODO: Allow modifying optimization method and parameters.
+        """
         self.init_paras()
 
         def f(x, lens):
