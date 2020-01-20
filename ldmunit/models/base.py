@@ -102,7 +102,7 @@ class LDMModel(sciunit.Model):
         if isinstance(self.param_initializer, Mapping):
             paras = self.param_initializer
         else:
-            paras = self.param_initializer(seed=self.seed)
+            paras = self.param_initializer(seed=self.get_seed())
         self.set_paras(paras)
 
     def set_paras(self, paras_dict):
@@ -136,9 +136,8 @@ class LDMAgent:
         seed : int
             Random seed to use.
         """
-        self.set_paras(paras_dict)
         self.set_seed(seed)
-        self.reset()
+        self.set_paras(paras_dict)
         super().__init__(*args, **kwargs)
 
     def get_seed(self):
@@ -193,6 +192,8 @@ class LDMAgent:
 
     def set_paras(self, paras_dict):
         self._paras = paras_dict
+        if paras_dict is not None:
+            self.reset()
 
     def get_hidden_state(self):
         return self._hidden_state
