@@ -2,7 +2,7 @@ name: ldmunit
 channels:
   - defaults
   - conda-forge
-  - hcc
+  - powerai
   - anaconda
   - r
 dependencies:
