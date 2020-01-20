@@ -25,7 +25,7 @@ class Interactive(sciunit.Capability):
 
 class PredictsLogpdf(sciunit.Capability):
     """
-    Capability for models that produce a logpdf as the return value of their predict method.
+    Capability for models that produce a logpmf/logpdf as the return value of their predict method.
     """
 
     def __init__(self, *args, **kwargs):
@@ -33,6 +33,11 @@ class PredictsLogpdf(sciunit.Capability):
 
 
 class ProducesPolicy(sciunit.Capability):
+    """
+    Capability for agents that can generate a policy function over the action space. A policy function returns the
+    probability that the agent picks the given action.
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

@@ -6,6 +6,7 @@ from ldmunit.envs import LDMEnv
 from ldmunit.models.utils import single_from_multi_obj, reverse_single_from_multi_obj
 from ldmunit.capabilities import ActionSpace, ObservationSpace, Interactive
 from ldmunit.logging import logger
+from ldmunit import settings
 
 
 def simulate(env, model_or_agent, n_trials, seed=None, check_env_model=True):
@@ -45,9 +46,10 @@ def simulate(env, model_or_agent, n_trials, seed=None, check_env_model=True):
         List of actions performed by the model in each trial.
     """
     if check_env_model and not _model_env_capabilities_match(env, model_or_agent):
-        logger().error(
-            f"simulate : Env {env} and model {model_or_agent} action and observation spaces aren't the same!"
-        )
+        error_msg = f"simulate : Env {env} and model {model_or_agent} action and observation spaces aren't the same!"
+        logger().error(error_msg)
+        if settings["CRASH_EARLY"]:
+            raise ValueError(error_msg)
         return [], [], []
 
     actions = []
@@ -122,9 +124,10 @@ def simulate_multienv_multimodel(
             do_match = _model_env_capabilities_match(env, model_i)
             multimodel = reverse_single_from_multi_obj(model_i)
             if not do_match:
-                logger().error(
-                    f"simulate : Env {env} and model {multimodel} action and observation spaces aren't the same!"
-                )
+                error_msg = f"simulate : Env {env} and model {multimodel} action and observation spaces aren't the same!"
+                logger().error(error_msg)
+                if settings["CRASH_EARLY"]:
+                    raise ValueError(error_msg)
                 return [], [], []
 
     if np.issubdtype(type(n_trials), np.integer):
@@ -178,9 +181,10 @@ def _model_env_capabilities_match(env, model_or_agent):
     ]
     for obj, cls in type_checks:
         if not isinstance(obj, cls):
-            logger().error(
-                f"_model_env_capabilities_match : Model {obj} is not an instance of {cls}!"
-            )
+            error_msg = f"_model_env_capabilities_match : Model {obj} is not an instance of {cls}!"
+            logger().error(error_msg)
+            if settings["CRASH_EARLY"]:
+                raise ValueError(error_msg)
             return False
 
     env_action_space = type(env.get_action_space())
