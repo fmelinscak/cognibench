@@ -4,26 +4,20 @@ import numpy as np
 import numpy.testing as npt
 from scipy import stats
 from ldmunit.models import decision_making
-from ldmunit.env import BanditEnv
-from ldmunit.models.utils import (
-    multi_from_single_cls,
-    simulate_multi_env_multi_model,
-)
+from ldmunit.envs import BanditEnv
+from ldmunit.simulation import simulate
 
 
 class Test_Unit(unittest.TestCase):
     def setUp(self):
-        self.env = [BanditEnv([0.01, 0.99])]
-        paras = [{"w": 0.0, "eta": 1, "eta_c": 1, "beta": 1, "beta_c": 1}]
-        ModelClass = multi_from_single_cls(decision_making.RWCKModel)
-        self.model = ModelClass(paras, n_action=2, n_obs=2)
+        self.env = BanditEnv(p_dist=[0.15, 0.85])
+        paras = {"w": 0.5, "eta": 1e-1, "eta_c": 1e-1, "beta": 2.5, "beta_c": 0.25}
+        self.agent = decision_making.RWCKAgent(n_obs=1, n_action=2, paras_dict=paras)
 
     def test_simulation(self):
-        stimuli, rewards, actions = simulate_multi_env_multi_model(
-            self.env, self.model, 100
-        )
-        self.assertGreater(self.model.subject_models[0]._get_rv(0).pk[1], 0.65)
-        self.assertGreater(np.unique(actions[0], return_counts=True)[1][1], 65)
+        stimuli, rewards, actions = simulate(self.env, self.agent, 100, seed=42)
+        self.assertEqual(self.agent.eval_policy(0).pk[1], 0.8757028699917109)
+        self.assertEqual(np.unique(actions, return_counts=True)[1][1], 87)
 
 
 if __name__ == "__main__":

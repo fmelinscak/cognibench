@@ -34,7 +34,6 @@ class PolicyModel(LDMModel, Interactive, PredictsLogpdf, ReturnsNumParams):
         super().__init__(*args, **kwargs)
         self.agent = agent
         self.init_paras()
-        self.agent.reset()
 
     @overrides
     def n_params(self):

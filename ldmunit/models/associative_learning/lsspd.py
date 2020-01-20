@@ -23,22 +23,17 @@ class LSSPDAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservat
             Size of the observation space
 
         paras_dict : dict (optional)
-            w : float or array-like
-                Initial value of weight vector w. If float, then all elements of the
-                weight vector is set to this value. If array-like, must have the same
-                length as the dimension of the observation space.
+            w : array-like
+                Initial value of weight vector w. It must have the same length as the dimension of the observation space.
 
-            alpha : float or array-like
-                Initial value of associability vector alpha. If float, then all elements of the
-                weight vector is set to this value. If array-like, must have the same
-                length as the dimension of the observation space.
+            alpha : array-like
+                Initial value of associability vector alpha. It must have the same length as the dimension of the observation space.
 
             b0 : float
                 Intercept used when computing the mean of normal distribution from reward.
 
-            b1 : array-like or float
-                Slope used when computing the mean of the normal distribution from reward.
-                If a scalar is given, all elements of the slope vector is equal to that value.
+            b1 : array-like
+                Slope used when computing the mean of the normal distribution from reward. It must have the same length as the dimension of the observation space.
 
             sigma : float
                 Standard deviation of the normal distribution used to generate observations.
@@ -165,7 +160,7 @@ class LSSPDAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservat
         )
 
         rv = stats.norm(loc=mu_pred, scale=sd_pred)
-        rv.random_state = self.seed
+        rv.random_state = self.get_seed()
 
         return rv
 

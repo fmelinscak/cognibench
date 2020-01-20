@@ -17,10 +17,10 @@ class LDMEnv(gym.Env):
         seed : int
             Random seed to use
         """
-        self.seed(seed)
+        self.set_seed(seed)
         super().__init__(*args, **kwargs)
 
-    def seed(self, seed=None):
+    def set_seed(self, seed):
         """Set the random_state for the environment if given.
 
         Parameters
@@ -29,7 +29,7 @@ class LDMEnv(gym.Env):
             Seed for the random_state
         """
         self.np_random, seed = seeding.np_random(seed)
-        return [seed]
+        return seed
 
     def update(self, stimulus, reward, action, done=False):
         """

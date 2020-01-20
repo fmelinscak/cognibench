@@ -30,12 +30,11 @@ class LDMModel(sciunit.Model):
 
             and must return a mapping from model parameters to initial values.
         """
-        self.seed = seed
+        self.set_seed(seed)
         self.param_initializer = param_initializer
         super().__init__(**kwargs)
 
-    @property
-    def seed(self):
+    def get_seed(self):
         """
         Returns
         -------
@@ -57,8 +56,7 @@ class LDMModel(sciunit.Model):
         """
         return self._rng
 
-    @seed.setter
-    def seed(self, value):
+    def set_seed(self, value):
         self._seed = value
         self._rng, _ = seeding.np_random(seed=value)
 
@@ -104,7 +102,7 @@ class LDMModel(sciunit.Model):
         if isinstance(self.param_initializer, Mapping):
             paras = self.param_initializer
         else:
-            paras = self.param_initializer(seed=self.seed)
+            paras = self.param_initializer(seed=self.get_seed())
         self.set_paras(paras)
 
     def set_paras(self, paras_dict):
@@ -138,13 +136,11 @@ class LDMAgent:
         seed : int
             Random seed to use.
         """
+        self.set_seed(seed)
         self.set_paras(paras_dict)
-        self.seed = seed
-        self.set_hidden_state(dict())
         super().__init__(*args, **kwargs)
 
-    @property
-    def seed(self):
+    def get_seed(self):
         """
         Returns
         -------
@@ -166,8 +162,7 @@ class LDMAgent:
         """
         return self._rng
 
-    @seed.setter
-    def seed(self, value):
+    def set_seed(self, value):
         self._seed = value
         self._rng, _ = seeding.np_random(seed=value)
 
@@ -197,6 +192,8 @@ class LDMAgent:
 
     def set_paras(self, paras_dict):
         self._paras = paras_dict
+        if paras_dict is not None:
+            self.reset()
 
     def get_hidden_state(self):
         return self._hidden_state

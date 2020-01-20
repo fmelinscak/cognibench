@@ -25,10 +25,8 @@ class KrwNormAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserv
         paras_dict : dict (optional)
             Dictionary containing the agent parameters, as explained below:
 
-            w : array-like or float
-                Initial value of weight vector w. If float, then all elements of the
-                weight vector is set to this value. If array-like, must have the same
-                length as the dimension of the observation space.
+            w : array-like
+                Initial value of weight vector w. It must have the same length as the dimension of the observation space.
 
             sigma : float
                 Standard deviation of the normal distribution used to generate observations.
@@ -37,9 +35,9 @@ class KrwNormAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserv
             b0 : float
                 Intercept used when computing the mean of normal distribution from reward.
 
-            b1 : array-like or float
+            b1 : array-like
                 Slope used when computing the mean of the normal distribution from reward.
-                If a scalar is given, each element of the slope vector is equal to that value.
+                It must have the same length as the dimension of the observation space.
 
             sigmaWInit : float
                 Diagonal elements of the covariance matrix C is set to sigmaWInit.
@@ -167,7 +165,7 @@ class KrwNormAgent(LDMAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserv
         mu_pred = b0 + np.dot(b1, stimulus * w_curr)
 
         rv = stats.norm(loc=mu_pred, scale=sd_pred)
-        rv.random_state = self.seed
+        rv.random_state = self.get_seed()
 
         return rv
 
