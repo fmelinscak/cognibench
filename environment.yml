@@ -24,6 +24,7 @@ dependencies:
   - pystan
   - sphinx
   - sphinx_rtd_theme
+  - m2r
   - twine
   - pip=9.0.3
   - pip:
