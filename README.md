@@ -85,6 +85,10 @@ We provide a series of jupyter notebooks that you can use as an introduction to 
 Additionally, you can browse our <!-- [API reference](TODO) --> to get more information about certain functions,
 classes, etc. you want to use.
 
+##### Small Note to Developers
+If you are going to use the development version and want to run notebooks, you should install `ldmunit` inside the conda
+environment. See the section on installing `ldmunit`.
+
 ## Examples
 We provide multiple examples of using `ldmunit` as a tool to test models, simulate data and perform experimental tasks.
 These are very useful to get acquainted with how to use `ldmunit`.  Please refer to readme file under `examples/` folder
@@ -129,7 +133,7 @@ Afterwards, you can browse the local documentation by opening `docs/sphinx/_buil
 After implementing some changes, you can install the modified version of ldmunit to your local system by running
 
 ```bash
-python setup.py install --user
+python setup.py install
 ```
 
 Then, every time you import ldmunit, this modified version will be imported.
