@@ -196,6 +196,8 @@ autodoc_default_options = {
     "show-inheritance": True
 }
 
+autodoc_mock_imports = ["oct2py"]
+
 intersphinx_mapping = {
     "scipy": ("https://docs.scipy.org/doc/scipy/reference", None),
     "numpy": ("https://docs.scipy.org/doc/numpy/", None),
