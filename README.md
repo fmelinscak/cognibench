@@ -1,10 +1,52 @@
 # LDMUnit
-LDMUnit is a framework for test and validation of learning and decision making models. It is built mainly on top of
+LDMUnit is a framework for benchmarking cognitive models using behavioral data. It is built mainly on top of
 [sciunit](https://github.com/scidash/sciunit) and [gym](https://github.com/openai/gym) libraries. It uses the same
 test-model-capability categorization implemented in sciunit to run test suites consisting of several tests on a
 set of matching models. For a short introduction of `ldmunit` structure, please refer to documentation notebooks under
 `docs` folder. For detailed examples of how one can use `ldmunit` you can refer to example testing and simulation
 scripts under `examples` folder.
+
+## Installation
+You can install ldmunit by running
+
+```bash
+pip install ldmunit
+```
+
+In addition, you can clone this repository and create a conda environment within which you can install ldmunit to run
+the development version. To do this, run
+```bash
+conda env create -f environment.yml
+conda activate ldmunit
+python setup.py install
+```
+after cloning the repository.
+
+## Short Usage Example
+Here is a short snippet describing how you can test several models against multiple test cases using `ldmunit`.
+
+```python
+import ldmunit.models.decision_making as decision_models
+from ldmunit.testing import InteractiveTest
+from ldmunit.scores import AccuracyScore, PearsonCorrelationScore
+from sciunit import TestSuite
+
+# observations is a dictionary with keys such as 'stimuli', 'rewards', etc.
+observations, obs_dim, action_dim = read_data(observation_path)
+# define the list of models to test
+model_list = [
+    decision_models.RWCKModel(n_action=action_dim, n_obs=obs_dim, seed=42),
+    decision_models.NWSLSModel(n_action=action_dim, n_obs=obs_dim, seed=42),
+]
+# define the list of test cases
+test_list = [
+    InteractiveTest(observation=observations, score_type=AccuracyScore, name='Accuracy Test'),
+    InteractiveTest(observation=observations, score_type=PearsonCorrelationScore, name='Correlation Test'),
+]
+# combine in a suite and run
+test_suite = TestSuite(test_list, name='Test suite')
+test_suite.judge(model_list)
+```
 
 ## Main features of ldmunit
 
@@ -63,13 +105,6 @@ implemented decision making models are
 * Choice Kernel
 * Noisy-win-stay-lose-shift
 
-## Installation
-You can install ldmunit by running
-
-```bash
-pip install ldmunit
-```
-
 ## Documentation
 We provide a series of jupyter notebooks that you can use as an introduction to `ldmunit`:
 <!-- TODO: Below links should point to github because then they will work from readthedocs and so on. -->
@@ -102,13 +137,8 @@ We use built-in `unittest` module for testing ldmunit. To perform checks, clone 
 ```
 
 ## Information for Developers
-If you want to extend ldmunit, you need to use the development environment and `conda`. To create the `ldmunit` conda
-environment, use
-
-```bash
-conda env create -f environment.yml
-conda activate ldmunit
-```
+If you want to extend ldmunit, you need to use the development environment and `conda`. Please follow the conda
+installation instructions in how to install section and then continue here.
 
 We use `black` for code-formatting and `pre-commit` for ensuring high quality code.  To enable these tools simply run
 
