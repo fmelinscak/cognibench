@@ -3,7 +3,7 @@ from gym import spaces
 import numpy as np
 import numpy.testing as npt
 from scipy import stats
-from ldmunit.models import decision_making
+from cognibench.models import decision_making
 
 
 class Test_RWCKAgent(unittest.TestCase):

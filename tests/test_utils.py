@@ -3,17 +3,17 @@ from gym import spaces
 from functools import reduce
 import numpy as np
 from scipy import stats
-from ldmunit.models import associative_learning
-from ldmunit.models.utils import (
+from cognibench.models import associative_learning
+from cognibench.models.utils import (
     multi_from_single_cls,
     single_from_multi_obj,
     reverse_single_from_multi_obj,
 )
-from ldmunit.envs import BanditEnv, ClassicalConditioningEnv
-from ldmunit.utils import partialclass, negloglike, is_arraylike
-from ldmunit.tasks import model_recovery, param_recovery
-from ldmunit.testing import InteractiveTest
-from ldmunit.scores import NLLScore
+from cognibench.envs import BanditEnv, ClassicalConditioningEnv
+from cognibench.utils import partialclass, negloglike, is_arraylike
+from cognibench.tasks import model_recovery, param_recovery
+from cognibench.testing import InteractiveTest
+from cognibench.scores import NLLScore
 
 
 class Test_partialclass(unittest.TestCase):

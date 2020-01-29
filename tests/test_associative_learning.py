@@ -3,8 +3,8 @@ from gym import spaces
 import numpy as np
 import numpy.testing as npt
 from scipy import stats
-from ldmunit.models import associative_learning
-from ldmunit.continuous import ContinuousSpace
+from cognibench.models import associative_learning
+from cognibench.continuous import ContinuousSpace
 
 
 class Test_RwNormModel(unittest.TestCase):

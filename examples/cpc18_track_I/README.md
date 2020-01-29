@@ -4,7 +4,7 @@ the baseline BEASTsd model provided by CPC18 committee. We assume that every par
 their models and the main script provided by the CPC committee.
 
 For showcasing purposes, each of the three models are implemented in different languages (Python, Octave and R).
-`ldmunit` can easily test models implemented in these languages with the use of wrappers we provide as long as model
+`cognibench` can easily test models implemented in these languages with the use of wrappers we provide as long as model
 source code structure is as specified by the respective wrapper class. You can see the model definitions required to
 use these models in `model_defs.py` file.
 

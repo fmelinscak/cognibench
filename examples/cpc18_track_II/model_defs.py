@@ -1,14 +1,14 @@
 import pandas as pd
 import numpy as np
 from importlib import import_module
-from ldmunit.models import LDMModel
-from ldmunit.capabilities import ContinuousAction, ContinuousObservation
-from ldmunit.continuous import ContinuousSpace
-from ldmunit.models.wrappers import RWrapperMixin
+from cognibench.models import CNBModel
+from cognibench.capabilities import ContinuousAction, ContinuousObservation
+from cognibench.continuous import ContinuousSpace
+from cognibench.models.wrappers import RWrapperMixin
 from overrides import overrides
 
 
-class PythonModel(LDMModel, ContinuousAction, ContinuousObservation):
+class PythonModel(CNBModel, ContinuousAction, ContinuousObservation):
     name = "PythonModel"
 
     @overrides
@@ -32,7 +32,7 @@ class PythonModel(LDMModel, ContinuousAction, ContinuousObservation):
         return self.model.predict(stimuli)
 
 
-class RModel(RWrapperMixin, LDMModel, ContinuousAction, ContinuousObservation):
+class RModel(RWrapperMixin, CNBModel, ContinuousAction, ContinuousObservation):
     name = "RModel"
 
     @overrides
@@ -46,5 +46,5 @@ class RModel(RWrapperMixin, LDMModel, ContinuousAction, ContinuousObservation):
             fit_fn="fit",
             predict_fn="predict_R",
         )
-        LDMModel.__init__(self, *args, **kwargs)
+        CNBModel.__init__(self, *args, **kwargs)
         self.reset()

@@ -4,17 +4,18 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="ldmunit",
+    name="cognibench",
     version="0.1.0",
     author="",
     author_email="",
-    description="A testing framework for learning and decision making models built on top of sciunit and gym",
+    description="A benchmarking framework for cognitive models using behavioral data built on top of sciunit and gym",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/fmelinscak/ldmunit",
+    url="https://github.com/fmelinscak/cognibench",
     packages=setuptools.find_packages(),
     install_requires=[
-        "numpy>=1.16.2" "scipy>=1.2.1",
+        "numpy>=1.16.2",
+        "scipy>=1.2.1",
         "pandas>=0.24.2",
         "gym",
         "sciunit",

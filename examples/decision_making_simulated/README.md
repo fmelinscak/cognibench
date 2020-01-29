@@ -1,5 +1,5 @@
 # Testing of Decision Making Models
-This example folder provides a sample implementation of a testing script using `ldmunit` library. The script is
+This example folder provides a sample implementation of a testing script using `cognibench` library. The script is
 implemented in `run_all_tests.py`. It runs three test suites: each suite runs an interactive testing of decision
 making models against previously generated data using `NLL`, `AIC` or `BIC` scores. To run the script, simply type
 

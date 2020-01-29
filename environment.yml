@@ -1,4 +1,4 @@
-name: ldmunit
+name: cognibench
 channels:
   - defaults
   - conda-forge
@@ -16,10 +16,6 @@ dependencies:
   - rpy2=2.9.4
   - tzlocal
   - gym
-    #- r-rcpp
-    #- r-rcppeigen
-    #- r-rstan
-    #- r-data.table
   - zlib
   - pystan
   - sphinx
@@ -28,7 +24,6 @@ dependencies:
   - twine
   - pip=9.0.3
   - pip:
-   #- hbayesdm
     - git+https://github.com/scidash/sciunit@256b4a7a19149fceb643a6bfd53f4282991d02a8#egg=sciunit
     - black
     - overrides

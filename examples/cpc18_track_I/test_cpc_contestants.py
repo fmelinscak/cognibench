@@ -1,9 +1,9 @@
 from os import getcwd
 import pandas as pd
 import numpy as np
-from ldmunit.testing.tests import BatchTest
-from ldmunit.utils import partialclass
-import ldmunit.scores as scores
+from cognibench.testing.tests import BatchTest
+from cognibench.utils import partialclass
+import cognibench.scores as scores
 from sciunit import TestSuite
 from sciunit import settings as sciunit_settings
 

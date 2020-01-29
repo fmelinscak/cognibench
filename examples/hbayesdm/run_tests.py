@@ -5,9 +5,9 @@ from os import getcwd
 from os.path import join as pathjoin
 from pathlib import Path
 
-from ldmunit.testing import BatchTest
-from ldmunit.utils import partialclass
-import ldmunit.scores as scores
+from cognibench.testing import BatchTest
+from cognibench.utils import partialclass
+import cognibench.scores as scores
 from model_defs import HbayesdmModel
 
 import hbayesdm.models as Hmodels
