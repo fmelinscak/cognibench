@@ -20,7 +20,7 @@ def simulate(env, model_or_agent, n_trials, seed=None, check_env_model=True):
         Environment.
 
     model : :class:`ldmunit.models.LDMModel` and :class:`ldmunit.capabilities.Interactive` or :class:`ldmunit.models.LDMAgent`
-        Model or agent.
+        Agent or an already fitted model.
 
     n_trials : int
         Number of trials to perform. In each trial, model acts on the

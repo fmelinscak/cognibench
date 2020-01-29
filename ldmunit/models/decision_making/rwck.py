@@ -160,7 +160,7 @@ class RWCKModel(PolicyModel, DiscreteAction, DiscreteObservation):
     def __init__(self, *args, n_action, n_obs, seed=None, **kwargs):
         self.set_action_space(n_action)
         self.set_observation_space(n_obs)
-        agent = RWCKAgent(n_action=n_action, n_obs=n_obs)
+        agent = RWCKAgent(n_action=n_action, n_obs=n_obs, seed=seed)
 
         def initializer(seed):
             return {
@@ -187,7 +187,7 @@ class RWModel(PolicyModel, DiscreteAction, DiscreteObservation):
     def __init__(self, *args, n_action, n_obs, seed=None, **kwargs):
         self.set_action_space(n_action)
         self.set_observation_space(n_obs)
-        agent = RWCKAgent(n_action=n_action, n_obs=n_obs)
+        agent = RWCKAgent(n_action=n_action, n_obs=n_obs, seed=seed)
 
         def initializer(seed):
             return {
@@ -214,7 +214,7 @@ class CKModel(PolicyModel, DiscreteAction, DiscreteObservation):
     def __init__(self, *args, n_action, n_obs, seed=None, **kwargs):
         self.set_action_space(n_action)
         self.set_observation_space(n_obs)
-        agent = RWCKAgent(n_action=n_action, n_obs=n_obs)
+        agent = RWCKAgent(n_action=n_action, n_obs=n_obs, seed=seed)
 
         def initializer(seed):
             return {
