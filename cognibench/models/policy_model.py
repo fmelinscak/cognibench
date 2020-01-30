@@ -73,7 +73,7 @@ class PolicyModel(CNBModel, Interactive, PredictsLogpdf, ReturnsNumParams):
         x0, lens = _flatten_dict_into_array(self.agent.get_paras())
         # TODO: make this modifiable from outside
         opt_res = minimize(
-            f, x0, args=(lens,), method="Nelder-Mead", options={"maxiter": 2}
+            f, x0, args=(lens,), method="Nelder-Mead", options={"maxiter": 10}
         )
         if not opt_res.success:
             logger().debug(
