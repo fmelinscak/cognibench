@@ -201,8 +201,18 @@ class KrwNormModel(PolicyModel, ContinuousAction, MultiBinaryObservation):
                 "sigma": stats.expon.rvs(random_state=seed),
                 "b0": stats.norm.rvs(random_state=seed),
                 "b1": stats.norm.rvs(size=n_obs, random_state=seed),
-                "sigmaWInit": np.ones(n_obs),
+                "sigmaWInit": 1,
             }
+
+        self.param_bounds = {
+            "tauSq": (0, None),
+            "sigmaRSq": (0, None),
+            "w": [None] * 2 * n_obs,
+            "sigma": (0, None),
+            "b0": (None, None),
+            "b1": [None] * 2 * n_obs,
+            "sigmaWInit": (1, 1),
+        }
 
         super().__init__(
             *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs

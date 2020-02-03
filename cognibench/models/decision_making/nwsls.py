@@ -43,7 +43,12 @@ class NWSLSAgent(CNBAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
         Override base class reset behaviour by setting the hidden state to default
         values for NWSLS model.
         """
-        self.set_hidden_state(dict(win=True, action=int(self.get_paras()["epsilon"])))
+        self.set_hidden_state(
+            dict(
+                win=True,
+                action=min(int(self.get_paras()["epsilon"]), self.n_action() - 1),
+            )
+        )
 
     def eval_policy(self, stimulus):
         """
@@ -122,11 +127,10 @@ class NWSLSModel(PolicyModel, DiscreteAction, DiscreteObservation):
 
         def initializer(seed):
             return {
-                "epsilon": int(
-                    stats.uniform.rvs(loc=0, scale=n_action, random_state=seed)
-                )
+                "epsilon": stats.uniform.rvs(loc=0, scale=n_action, random_state=seed)
             }
 
+        self.param_bounds = {"epsilon": (0, n_action)}
         super().__init__(
             *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
         )

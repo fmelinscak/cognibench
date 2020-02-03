@@ -200,6 +200,17 @@ class LSSPDModel(PolicyModel, ContinuousAction, MultiBinaryObservation):
                 "kappa": 1e-3,
             }
 
+        self.param_bounds = {
+            "w": [None] * 2 * n_obs,
+            "alpha": [0, 1] * n_obs,
+            "sigma": (0, 1),
+            "b0": (None, None),
+            "b1": [None] * 2 * n_obs,
+            "mix_coef": (0, 1),
+            "eta": (0, 1),
+            "kappa": (0, 1),
+        }
+
         super().__init__(
             *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
         )

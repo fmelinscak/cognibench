@@ -192,6 +192,15 @@ class BetaBinomialModel(PolicyModel, ContinuousAction, MultiBinaryObservation):
                 "slope": stats.norm.rvs(size=n_obs, random_state=seed),
             }
 
+        self.param_bounds = {
+            "a": (1, None),
+            "b": (1, None),
+            "sigma": (1e-6, None),
+            "mix_coef": (0, 1),
+            "intercept": (None, None),
+            "slope": [None] * 2 * n_obs,
+        }
+
         super().__init__(
             *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
         )
