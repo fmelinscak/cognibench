@@ -1,9 +1,9 @@
 import numpy as np
 
-from ldmunit.simulation import simulate, simulate_multienv_multimodel
-from ldmunit.models.decision_making import NWSLSModel, NWSLSAgent
-from ldmunit.models.utils import multi_from_single_cls
-from ldmunit.envs import BanditEnv
+from cognibench.simulation import simulate, simulate_multienv_multimodel
+from cognibench.models.decision_making import NWSLSModel, NWSLSAgent
+from cognibench.models.utils import multi_from_single_cls
+from cognibench.envs import BanditEnv
 
 
 SEED = 42

@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath(os.path.join("..", "..")))
 
 # -- Project information -----------------------------------------------------
 
-project = "LDMUnit"
+project = "CogniBench"
 copyright = "2019, Filip Melinscak"
 author = "Filip Melinscak, Yongqi Wang, Eshref Yozdemir"
 
@@ -108,7 +108,7 @@ html_static_path = ["_static"]
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "LDMUnitdoc"
+htmlhelp_basename = "CogniBenchdoc"
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -134,8 +134,8 @@ latex_elements = {
 latex_documents = [
     (
         master_doc,
-        "LDMUnit.tex",
-        "LDMUnit Documentation",
+        "CogniBench.tex",
+        "CogniBench Documentation",
         "Filip Melinscak, Yongqi Wang, Eshref Yozdemir",
         "manual",
     )
@@ -146,7 +146,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "ldmunit", "LDMUnit Documentation", [author], 1)]
+man_pages = [(master_doc, "cognibench", "CogniBench Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -157,10 +157,10 @@ man_pages = [(master_doc, "ldmunit", "LDMUnit Documentation", [author], 1)]
 texinfo_documents = [
     (
         master_doc,
-        "LDMUnit",
-        "LDMUnit Documentation",
+        "CogniBench",
+        "CogniBench Documentation",
         author,
-        "LDMUnit",
+        "CogniBench",
         "One line description of project.",
         "Miscellaneous",
     )

@@ -1,7 +1,7 @@
 from os.path import join as pathjoin
 import numpy as np
 import pandas as pd
-from ldmunit.models.associative_learning import (
+from cognibench.models.associative_learning import (
     BetaBinomialModel,
     LSSPDModel,
     RwNormModel,

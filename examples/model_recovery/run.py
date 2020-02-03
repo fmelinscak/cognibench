@@ -2,18 +2,18 @@ import numpy as np
 
 from os import getcwd
 import sciunit
-from ldmunit.tasks import model_recovery
-from ldmunit.models.associative_learning import (
+from cognibench.tasks import model_recovery
+from cognibench.models.associative_learning import (
     RwNormModel,
     KrwNormModel,
     BetaBinomialModel,
     LSSPDModel,
 )
-from ldmunit.models.utils import multi_from_single_cls
-from ldmunit.testing import InteractiveTest
-from ldmunit.envs import ClassicalConditioningEnv
-from ldmunit.scores import NLLScore
-from ldmunit.utils import partialclass
+from cognibench.models.utils import multi_from_single_cls
+from cognibench.testing import InteractiveTest
+from cognibench.envs import ClassicalConditioningEnv
+from cognibench.scores import NLLScore
+from cognibench.utils import partialclass
 
 sciunit.settings["CWD"] = getcwd()
 N_OBS = 5

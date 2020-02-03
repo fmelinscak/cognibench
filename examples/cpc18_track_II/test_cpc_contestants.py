@@ -2,10 +2,10 @@ from os import getcwd
 import pandas as pd
 import numpy as np
 import time
-from ldmunit.testing import BatchTestWithSplit
-import ldmunit.scores as scores
-from ldmunit.utils import partialclass
-from ldmunit import logging
+from cognibench.testing import BatchTestWithSplit
+import cognibench.scores as scores
+from cognibench.utils import partialclass
+from cognibench import logging
 from sciunit import TestSuite
 from sciunit import settings as sciunit_settings
 

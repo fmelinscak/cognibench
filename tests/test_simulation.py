@@ -3,9 +3,9 @@ from gym import spaces
 import numpy as np
 import numpy.testing as npt
 from scipy import stats
-from ldmunit.models import decision_making
-from ldmunit.envs import BanditEnv
-from ldmunit.simulation import simulate
+from cognibench.models import decision_making
+from cognibench.envs import BanditEnv
+from cognibench.simulation import simulate
 
 
 class Test_Unit(unittest.TestCase):

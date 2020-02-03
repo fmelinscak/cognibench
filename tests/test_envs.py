@@ -4,10 +4,10 @@ from functools import reduce
 import numpy as np
 import numpy.testing as npt
 from scipy import stats
-from ldmunit.models import decision_making
-from ldmunit.envs import BanditEnv, ClassicalConditioningEnv
-from ldmunit.simulation import simulate
-from ldmunit.capabilities import (
+from cognibench.models import decision_making
+from cognibench.envs import BanditEnv, ClassicalConditioningEnv
+from cognibench.simulation import simulate
+from cognibench.capabilities import (
     DiscreteAction,
     DiscreteObservation,
     ContinuousAction,

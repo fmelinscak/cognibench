@@ -1,13 +1,13 @@
 import pandas as pd
 import numpy as np
 from scipy.stats import rv_discrete
-from ldmunit.models import LDMModel
-from ldmunit.capabilities import DiscreteAction, DiscreteObservation
-from ldmunit.capabilities import PredictsLogpdf, ReturnsNumParams
+from cognibench.models import CNBModel
+from cognibench.capabilities import DiscreteAction, DiscreteObservation
+from cognibench.capabilities import PredictsLogpdf, ReturnsNumParams
 
 
 class HbayesdmModel(
-    LDMModel, DiscreteAction, DiscreteObservation, PredictsLogpdf, ReturnsNumParams
+    CNBModel, DiscreteAction, DiscreteObservation, PredictsLogpdf, ReturnsNumParams
 ):
     name = "hBayesDM Model"
 
@@ -17,7 +17,7 @@ class HbayesdmModel(
         assert (
             "inc_postpred" not in kwargs
         ), "'inc_postpred' cannot be specified in the current version"
-        LDMModel.__init__(self, *args, **kwargs)
+        CNBModel.__init__(self, *args, **kwargs)
         self.set_action_space(n_action)
         self.set_observation_space(n_obs)
         self.hbayesdm_model_func = hbayesdm_model_func

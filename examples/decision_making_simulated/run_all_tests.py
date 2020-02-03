@@ -4,11 +4,11 @@ import pandas as pd
 from os import getcwd
 from os.path import join as pathjoin
 
-from ldmunit.models import decision_making
-from ldmunit.models.utils import multi_from_single_cls as multi_subject
-from ldmunit.testing import InteractiveTest
-from ldmunit.utils import partialclass
-import ldmunit.scores as scores
+from cognibench.models import decision_making
+from cognibench.models.utils import multi_from_single_cls as multi_subject
+from cognibench.testing import InteractiveTest
+from cognibench.utils import partialclass
+import cognibench.scores as scores
 from read_example_data import get_simulation_data, get_model_params
 
 DATA_PATH = "data"

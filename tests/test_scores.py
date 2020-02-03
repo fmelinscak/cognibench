@@ -1,5 +1,5 @@
 import unittest
-from ldmunit.scores import HigherBetterScore, LowerBetterScore
+from cognibench.scores import HigherBetterScore, LowerBetterScore
 
 
 class TestHigherBetterScore(unittest.TestCase):

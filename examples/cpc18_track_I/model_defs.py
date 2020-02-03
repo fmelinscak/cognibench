@@ -1,14 +1,14 @@
 from importlib import import_module
-from ldmunit.models import LDMModel
-from ldmunit.capabilities import ContinuousAction, ContinuousObservation
-from ldmunit.continuous import ContinuousSpace
-from ldmunit.models.wrappers import (
+from cognibench.models import CNBModel
+from cognibench.capabilities import ContinuousAction, ContinuousObservation
+from cognibench.continuous import ContinuousSpace
+from cognibench.models.wrappers import (
     OctaveWrapperMixin,
     RWrapperMixin,
 )
 
 
-class BEASTsdPython(LDMModel, ContinuousAction, ContinuousObservation):
+class BEASTsdPython(CNBModel, ContinuousAction, ContinuousObservation):
     name = "BEASTsdPython"
 
     def __init__(self, *args, import_base_path, **kwargs):
@@ -24,7 +24,7 @@ class BEASTsdPython(LDMModel, ContinuousAction, ContinuousObservation):
 
 
 class BEASTsdOctave(
-    OctaveWrapperMixin, LDMModel, ContinuousAction, ContinuousObservation
+    OctaveWrapperMixin, CNBModel, ContinuousAction, ContinuousObservation
 ):
     name = "BEASTsdOctave"
 
@@ -37,11 +37,11 @@ class BEASTsdOctave(
             reset_fn=lambda oct_sess: oct_sess.eval("pkg load statistics;"),
             predict_fn="CPC18_BEASTsd_pred",
         )
-        LDMModel.__init__(self, *args, **kwargs)
+        CNBModel.__init__(self, *args, **kwargs)
         self.reset()
 
 
-class BEASTsdR(RWrapperMixin, LDMModel, ContinuousAction, ContinuousObservation):
+class BEASTsdR(RWrapperMixin, CNBModel, ContinuousAction, ContinuousObservation):
     name = "BEASTsdR"
 
     def __init__(self, *args, import_base_path, **kwargs):
@@ -50,4 +50,4 @@ class BEASTsdR(RWrapperMixin, LDMModel, ContinuousAction, ContinuousObservation)
         RWrapperMixin.__init__(
             self, import_base_path=import_base_path, predict_fn="CPC18_BEASTsd_pred"
         )
-        LDMModel.__init__(self, *args, **kwargs)
+        CNBModel.__init__(self, *args, **kwargs)

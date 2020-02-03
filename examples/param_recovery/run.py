@@ -3,11 +3,11 @@ import scipy.stats as stats
 
 from os import getcwd
 import sciunit
-from ldmunit.tasks import param_recovery
-from ldmunit.models.associative_learning import LSSPDModel
-from ldmunit.testing import InteractiveTest
-from ldmunit.envs import ClassicalConditioningEnv
-from ldmunit.utils import partialclass
+from cognibench.tasks import param_recovery
+from cognibench.models.associative_learning import LSSPDModel
+from cognibench.testing import InteractiveTest
+from cognibench.envs import ClassicalConditioningEnv
+from cognibench.utils import partialclass
 
 sciunit.settings["CWD"] = getcwd()
 N_OBS = 5
