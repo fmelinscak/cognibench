@@ -164,12 +164,20 @@ class RWCKModel(PolicyModel, DiscreteAction, DiscreteObservation):
 
         def initializer(seed):
             return {
-                "w": stats.uniform.rvs(scale=5, random_state=seed),
-                "beta": stats.uniform.rvs(scale=5, random_state=seed),
-                "beta_c": stats.uniform.rvs(scale=5, random_state=seed),
-                "eta": 1e-2,
-                "eta_c": 1e-2,
+                "w": 0.5,
+                "beta": 1 + stats.expon.rvs(scale=1, random_state=seed),
+                "beta_c": 1 + stats.expon.rvs(scale=1, random_state=seed),
+                "eta": stats.uniform.rvs(scale=1, random_state=seed),
+                "eta_c": stats.uniform.rvs(scale=1, random_state=seed),
             }
+
+        self.param_bounds = {
+            "w": (0.5, 0.5),
+            "beta": (0, None),
+            "beta_c": (0, None),
+            "eta": (0, 1),
+            "eta_c": (0, 1),
+        }
 
         super().__init__(
             *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
@@ -191,12 +199,20 @@ class RWModel(PolicyModel, DiscreteAction, DiscreteObservation):
 
         def initializer(seed):
             return {
-                "w": stats.uniform.rvs(scale=5, random_state=seed),
-                "beta": stats.uniform.rvs(scale=5, random_state=seed),
+                "w": 0.5,
+                "beta": 1 + stats.expon.rvs(scale=1, random_state=seed),
                 "beta_c": 0,
-                "eta": 1e-2,
-                "eta_c": 1e-2,
+                "eta": stats.uniform.rvs(scale=1, random_state=seed),
+                "eta_c": 0,
             }
+
+        self.param_bounds = {
+            "w": (0.5, 0.5),
+            "beta": (0, None),
+            "beta_c": (0, 0),
+            "eta": (0, 1),
+            "eta_c": (0, 0),
+        }
 
         super().__init__(
             *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
@@ -218,12 +234,20 @@ class CKModel(PolicyModel, DiscreteAction, DiscreteObservation):
 
         def initializer(seed):
             return {
-                "w": stats.uniform.rvs(scale=5, random_state=seed),
+                "w": 0.5,
                 "beta": 0,
-                "beta_c": stats.uniform.rvs(scale=5, random_state=seed),
-                "eta": 1e-2,
-                "eta_c": 1e-2,
+                "beta_c": 1 + stats.expon.rvs(scale=1, random_state=seed),
+                "eta": 0,
+                "eta_c": stats.uniform.rvs(scale=1, random_state=seed),
             }
+
+        self.param_bounds = {
+            "w": (0.5, 0.5),
+            "beta": (0, 0),
+            "beta_c": (0, None),
+            "eta": (0, 0),
+            "eta_c": (0, 1),
+        }
 
         super().__init__(
             *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs

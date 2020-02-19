@@ -71,9 +71,19 @@ class PolicyModel(CNBModel, Interactive, PredictsLogpdf, ReturnsNumParams):
             return negloglike(actions, predictions)
 
         x0, lens = _flatten_dict_into_array(self.agent.get_paras())
+        try:
+            bounds, _ = _flatten_dict_into_array(self.param_bounds, dtype=object)
+            bounds = bounds.reshape(len(bounds) // 2, 2)
+        except AttributeError:
+            bounds = None
         # TODO: make this modifiable from outside
         opt_res = minimize(
-            f, x0, args=(lens,), method="Nelder-Mead", options={"maxiter": 2}
+            f,
+            x0,
+            args=(lens,),
+            method="L-BFGS-B",
+            options={"maxiter": 10},
+            bounds=bounds,
         )
         if not opt_res.success:
             logger().debug(
