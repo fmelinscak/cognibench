@@ -165,8 +165,8 @@ class RWCKModel(PolicyModel, DiscreteAction, DiscreteObservation):
         def initializer(seed):
             return {
                 "w": 0.5,
-                "beta": 1 + stats.expon.rvs(scale=1, random_state=seed),
-                "beta_c": 1 + stats.expon.rvs(scale=1, random_state=seed),
+                "beta": stats.expon.rvs(scale=1, random_state=seed),
+                "beta_c": 0.5 + stats.expon.rvs(scale=1, random_state=seed),
                 "eta": stats.uniform.rvs(scale=1, random_state=seed),
                 "eta_c": stats.uniform.rvs(scale=1, random_state=seed),
             }
@@ -204,7 +204,7 @@ class RWModel(PolicyModel, DiscreteAction, DiscreteObservation):
         def initializer(seed):
             return {
                 "w": 0.5,
-                "beta": 1 + stats.expon.rvs(scale=1, random_state=seed),
+                "beta": stats.expon.rvs(scale=1, random_state=seed),
                 "beta_c": 0,
                 "eta": stats.uniform.rvs(scale=1, random_state=seed),
                 "eta_c": 0,
@@ -244,7 +244,7 @@ class CKModel(PolicyModel, DiscreteAction, DiscreteObservation):
             return {
                 "w": 0.5,
                 "beta": 0,
-                "beta_c": 1 + stats.expon.rvs(scale=1, random_state=seed),
+                "beta_c": 0.5 + stats.expon.rvs(scale=1, random_state=seed),
                 "eta": 0,
                 "eta_c": stats.uniform.rvs(scale=1, random_state=seed),
             }

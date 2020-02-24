@@ -87,7 +87,7 @@ class PolicyModel(CNBModel, Interactive, PredictsLogpdf, ReturnsNumParams):
             f,
             x0,
             args=(lens,),
-            method="L-BFGS-B",
+            method="trust-constr",
             options={"maxiter": 10},
             bounds=bounds,
         )
