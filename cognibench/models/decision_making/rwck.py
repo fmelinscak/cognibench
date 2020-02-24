@@ -183,6 +183,10 @@ class RWCKModel(PolicyModel, DiscreteAction, DiscreteObservation):
             *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
         )
 
+    @overrides
+    def n_params(self):
+        return 4
+
 
 class RWModel(PolicyModel, DiscreteAction, DiscreteObservation):
     """
@@ -218,6 +222,10 @@ class RWModel(PolicyModel, DiscreteAction, DiscreteObservation):
             *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
         )
 
+    @overrides
+    def n_params(self):
+        return 2
+
 
 class CKModel(PolicyModel, DiscreteAction, DiscreteObservation):
     """
@@ -252,3 +260,7 @@ class CKModel(PolicyModel, DiscreteAction, DiscreteObservation):
         super().__init__(
             *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
         )
+
+    @overrides
+    def n_params(self):
+        return 2

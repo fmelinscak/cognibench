@@ -37,7 +37,13 @@ class PolicyModel(CNBModel, Interactive, PredictsLogpdf, ReturnsNumParams):
 
     @overrides
     def n_params(self):
-        return len(self.agent.get_paras())
+        cnt = 0
+        for p in self.agent.get_paras():
+            if is_arraylike(p):
+                cnt += len(np.flatten(p))
+            else:
+                cnt += 1
+        return cnt
 
     @overrides
     def reset(self):
