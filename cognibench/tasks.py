@@ -6,7 +6,7 @@ import sciunit
 import copy
 
 
-def model_recovery(model_list, env, interactive_test_cls, n_trials=50, seed=None):
+def model_recovery(model_list, env, interactive_test_cls, n_trials=50):
     """
     Perform model recovery task and return the results as a score matrix.
 
@@ -29,9 +29,6 @@ def model_recovery(model_list, env, interactive_test_cls, n_trials=50, seed=None
 
     n_trials : int
         Number of simulation trials.
-
-    seed : int
-        Random seed to use.
 
     Returns
     -------
@@ -63,7 +60,7 @@ def model_recovery(model_list, env, interactive_test_cls, n_trials=50, seed=None
         logger().info(
             f"model_recovery : Simulating model {model.name} against env {env_name}"
         )
-        stimuli, rewards, actions = sim_fun(env, model, n_trials, seed=seed)
+        stimuli, rewards, actions = sim_fun(env, model, n_trials)
         if multi:
             obs = []
             for subj_stimuli, subj_rewards, subj_actions in zip(
@@ -92,9 +89,7 @@ def model_recovery(model_list, env, interactive_test_cls, n_trials=50, seed=None
     return suite, score_matrix
 
 
-def param_recovery(
-    paras_list, model, env, n_runs=5, n_trials=50, seed=None,
-):
+def param_recovery(paras_list, model, env, n_runs=5, n_trials=50):
     """
     Perform parameter recovery task and return all of the fitted parameter values.
 
@@ -121,9 +116,6 @@ def param_recovery(
     n_trials : int
         Number of simulation trials.
 
-    seed : int
-        Random seed to use.
-
     Returns
     -------
     results : list of list
@@ -136,9 +128,7 @@ def param_recovery(
         out_paras = []
         for _ in range(n_runs):
             model.set_paras(paras)
-            stimuli, rewards, actions = simulation.simulate(
-                env, model, n_trials, seed=seed
-            )
+            stimuli, rewards, actions = simulation.simulate(env, model, n_trials)
             model.init_paras()
             model.reset()
             model.fit(stimuli, rewards, actions)

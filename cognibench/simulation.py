@@ -9,7 +9,7 @@ from cognibench.logging import logger
 from cognibench import settings
 
 
-def simulate(env, model_or_agent, n_trials, seed=None, check_env_model=True):
+def simulate(env, model_or_agent, n_trials, check_env_model=True):
     """
     Simulate the evolution of an environment and a model or an agent for a
     fixed number of steps.
@@ -26,9 +26,6 @@ def simulate(env, model_or_agent, n_trials, seed=None, check_env_model=True):
         Number of trials to perform. In each trial, model acts on the
         last stimulus produced by the environment. Afterwards environment and
         then the model is updated.
-
-    seed : int
-        Random seed used to initialize the environment.
 
     check_env_model : bool
         Whether to check if the model/agent and the environment has matching action and observation spaces.
@@ -55,8 +52,6 @@ def simulate(env, model_or_agent, n_trials, seed=None, check_env_model=True):
     actions = []
     rewards = []
     stimuli = []
-    env.set_seed(seed)
-    model_or_agent.set_seed(seed)
     initial_stimulus = env.reset()
     stimuli.append(initial_stimulus)
     for i in range(n_trials):
@@ -74,7 +69,7 @@ def simulate(env, model_or_agent, n_trials, seed=None, check_env_model=True):
 
 
 def simulate_multienv_multimodel(
-    env_iterable, multimodel, n_trials, seed=None, check_env_model=True
+    env_iterable, multimodel, n_trials, check_env_model=True
 ):
     """
     Simulate the evolution of multiple environments with multi-subject model.
@@ -95,9 +90,6 @@ def simulate_multienv_multimodel(
         iterable, n_trials must contain the number of steps for each environment
         in the same order. In this case, length of n_trials must be the same as
         that of env_iterable.
-
-    seed : int
-        Random seed used to initialize every environment.
 
     Returns
     -------
@@ -141,7 +133,7 @@ def simulate_multienv_multimodel(
     def sim_i(multimodel, idx):
         model_i = single_from_multi_obj(multimodel, idx)
         out_tuple = simulate(
-            env_list[idx], model_i, n_trials_list[idx], seed, check_env_model=False
+            env_list[idx], model_i, n_trials_list[idx], check_env_model=False
         )
         multimodel = reverse_single_from_multi_obj(model_i)
         return out_tuple
