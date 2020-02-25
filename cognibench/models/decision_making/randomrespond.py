@@ -106,11 +106,15 @@ class RandomRespondModel(PolicyModel, DiscreteAction, DiscreteObservation):
         def initializer(seed):
             return {
                 "bias": stats.uniform.rvs(loc=0, scale=1, random_state=seed),
-                "action_bias": int(
-                    stats.uniform.rvs(loc=0, scale=n_action, random_state=seed)
-                ),
+                "action_bias": 0,
             }
+
+        self.param_bounds = {"bias": (0, 1), "action_bias": (0, 0)}
 
         super().__init__(
             *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
         )
+
+    @overrides
+    def n_params(self):
+        return 1

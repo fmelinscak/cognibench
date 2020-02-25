@@ -83,6 +83,10 @@ def model_recovery(model_list, env, interactive_test_cls, n_trials=50, seed=None
             interactive_test_cls(observation=obs, name=f"Ground truth: {model.name}")
         )
 
+    for model in model_list:
+        model.init_paras()
+        model.reset()
+
     suite = sciunit.TestSuite(test_list, name="Model recovery test suite")
     score_matrix = suite.judge(model_list)
     return suite, score_matrix

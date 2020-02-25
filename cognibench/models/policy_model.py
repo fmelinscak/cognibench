@@ -88,7 +88,7 @@ class PolicyModel(CNBModel, Interactive, PredictsLogpdf, ReturnsNumParams):
             x0,
             args=(lens,),
             method="trust-constr",
-            options={"maxiter": 10},
+            options={"maxiter": 50},
             bounds=bounds,
         )
         if not opt_res.success:
