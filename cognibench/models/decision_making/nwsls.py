@@ -2,6 +2,7 @@ import numpy as np
 from gym import spaces
 from scipy import stats
 
+from cognibench.distr import DiscreteRV
 from cognibench.models import CNBAgent
 from cognibench.models.policy_model import PolicyModel
 from cognibench.capabilities import Interactive, PredictsLogpdf
@@ -70,9 +71,11 @@ class NWSLSAgent(CNBAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
                 pk = np.full(n, (1 - epsilon / n) / (n - 1))
                 pk[a] = epsilon / n
 
-        xk = np.arange(n)
-        rv = stats.rv_discrete(name=None, values=(xk, pk))
-        rv.random_state = self.get_seed()
+        rv = DiscreteRV(pk)
+        rv.random_state = self.rng
+        # xk = np.arange(n)
+        # rv = stats.rv_discrete(name=None, values=(xk, pk))
+        # rv.random_state = self.rng
 
         return rv
 

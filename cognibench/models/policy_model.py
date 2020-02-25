@@ -60,7 +60,7 @@ class PolicyModel(CNBModel, Interactive, PredictsLogpdf, ReturnsNumParams):
     @overrides
     def fit(self, stimuli, rewards, actions):
         """
-        Fit the model by minimizing the negative log-likelihood of the model predictions using Nelder-Mead optimization.
+        Fit the model by minimizing the negative log-likelihood of the model predictions.
 
         TODO: Allow modifying optimization method and parameters.
         """
@@ -88,7 +88,7 @@ class PolicyModel(CNBModel, Interactive, PredictsLogpdf, ReturnsNumParams):
             x0,
             args=(lens,),
             method="trust-constr",
-            options={"maxiter": 50},
+            options={"gtol": 1e-6, "xtol": 1e-6, "barrier_tol": 1e-6},
             bounds=bounds,
         )
         if not opt_res.success:
@@ -141,8 +141,10 @@ def _unpack_array_into_dict(dictionary, arr, beg_indices):
     """
     for i, k in enumerate(dictionary.keys()):
         beg, end = beg_indices[i], beg_indices[i + 1]
-        orig_type = type(dictionary[k])
-        dictionary[k] = arr[beg] if end - beg == 1 else arr[beg:end]
+        if end - beg == 1:
+            dictionary[k] = arr[beg]
+        else:
+            dictionary[k][0 : end - beg] = arr[beg:end]
 
 
 def _flatten_dict_into_array(dictionary, dtype=np.float32):

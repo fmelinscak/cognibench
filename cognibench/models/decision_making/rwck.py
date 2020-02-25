@@ -3,6 +3,7 @@ from scipy.special import softmax
 from gym import spaces
 from scipy import stats
 
+from cognibench.distr import DiscreteRV
 from cognibench.models import CNBAgent
 from cognibench.models.policy_model import PolicyModel
 from cognibench.capabilities import Interactive, PredictsLogpdf
@@ -79,10 +80,12 @@ class RWCKAgent(CNBAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
         beta_c = self.get_paras()["beta_c"]
         V = beta * Q_i + beta_c * CK_i
 
-        xk = np.arange(self.n_action())
+        # xk = np.arange(self.n_action())
         pk = softmax(V)
-        rv = stats.rv_discrete(values=(xk, pk))
-        rv.random_state = self.get_seed()
+        rv = DiscreteRV(pk)
+        rv.random_state = self.rng
+        # rv = stats.rv_discrete(values=(xk, pk))
+        # rv.random_state = self.rng
 
         return rv
 

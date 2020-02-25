@@ -2,6 +2,7 @@ import numpy as np
 from gym import spaces
 from scipy import stats
 
+from cognibench.distr import DiscreteRV
 from cognibench.models import CNBAgent
 from cognibench.models.policy_model import PolicyModel
 from cognibench.capabilities import Interactive, PredictsLogpdf
@@ -58,10 +59,12 @@ class RandomRespondAgent(CNBAgent, ProducesPolicy, DiscreteAction, DiscreteObser
         n = self.n_action()
         pk = np.full(n, (1 - bias) / (n - 1))
         pk[action_bias] = bias
+        rv = DiscreteRV(pk)
+        rv.random_state = self.rng
 
-        xk = np.arange(n)
-        rv = stats.rv_discrete(values=(xk, pk))
-        rv.random_state = self.get_seed()
+        # xk = np.arange(n)
+        # rv = stats.rv_discrete(values=(xk, pk))
+        # rv.random_state = self.rng
 
         return rv
 
