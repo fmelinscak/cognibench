@@ -27,13 +27,28 @@ class PolicyModel(CNBModel, Interactive, PredictsLogpdf, ReturnsNumParams):
     """
 
     # TODO: can we adapt action and obs spaces according to the Agent (probably not worth it for now)
-    def __init__(self, *args, agent, **kwargs):
+    def __init__(self, *args, agent, optim_kwargs=None, **kwargs):
+        """
+        Parameters
+        ----------
+        agent : :class:`cognibench.models.CNBAgent`, :class:`cognibench.capabilities.ProducesPolicy`
+            An agent object that satisfies ProducesPolicy capability.
+
+        optim_kwargs : dict (optional)
+            Optimization parameters to be passed to :py:func:`scipy.optimize.minimize` function.
+            By default it only defines `'method'` argument as 'L-BFGS-B'.
+        """
         assert isinstance(
             agent, ProducesPolicy
         ), "PolicyModel can only accept agents satisfying ProducesPolicy capability"
         super().__init__(*args, **kwargs)
         self.agent = agent
+        self.optim_kwargs = optim_kwargs
         self.init_paras()
+        if self.optim_kwargs is None:
+            self.optim_kwargs = {
+                "method": "L-BFGS-B",
+            }
 
     @overrides
     def n_params(self):
@@ -60,11 +75,27 @@ class PolicyModel(CNBModel, Interactive, PredictsLogpdf, ReturnsNumParams):
     @overrides
     def fit(self, stimuli, rewards, actions):
         """
-        Fit the model by minimizing the negative log-likelihood of the model predictions.
-
-        TODO: Allow modifying optimization method and parameters.
+        Fit the model by minimizing the negative log-likelihood of the model predictions using
+        :py:func:`scipy.optimize.minimize`. f and x0 parameters to the function is computed here; all
+        the other keyword arguments can be modified in class initialization by providing 'optim_kwargs'
+        argument.
         """
+        if "args" in self.optim_kwargs:
+            raise ValueError(
+                'PolicyModel.fit: self.optim_kwargs cannot contain "args" key as this is used internally'
+            )
+
         self.init_paras()
+        x0, lens = _flatten_dict_into_array(self.agent.get_paras())
+        optim_kwargs = {k: v for k, v in self.optim_kwargs.items()}
+        optim_kwargs["args"] = (lens,)
+        if "bounds" not in optim_kwargs:
+            try:
+                bounds, _ = _flatten_dict_into_array(self.param_bounds, dtype=object)
+                bounds = bounds.reshape(len(bounds) // 2, 2)
+            except AttributeError:
+                bounds = None
+            optim_kwargs["bounds"] = bounds
 
         def f(x, lens):
             _unpack_array_into_dict(self.agent.get_paras(), x, lens)
@@ -76,21 +107,7 @@ class PolicyModel(CNBModel, Interactive, PredictsLogpdf, ReturnsNumParams):
                 self.update(s, r, a)
             return negloglike(actions, predictions)
 
-        x0, lens = _flatten_dict_into_array(self.agent.get_paras())
-        try:
-            bounds, _ = _flatten_dict_into_array(self.param_bounds, dtype=object)
-            bounds = bounds.reshape(len(bounds) // 2, 2)
-        except AttributeError:
-            bounds = None
-        # TODO: make this modifiable from outside
-        opt_res = minimize(
-            f,
-            x0,
-            args=(lens,),
-            method="trust-constr",
-            options={"gtol": 1e-6, "xtol": 1e-6, "barrier_tol": 1e-6},
-            bounds=bounds,
-        )
+        opt_res = minimize(f, x0, **optim_kwargs)
         if not opt_res.success:
             logger().debug(
                 f"Fitting on {self.name} has not finished successfully! Cause of termination: {opt_res.message}"
