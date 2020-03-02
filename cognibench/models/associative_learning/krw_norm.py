@@ -165,7 +165,7 @@ class KrwNormAgent(CNBAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserv
         mu_pred = b0 + np.dot(b1, stimulus * w_curr)
 
         rv = stats.norm(loc=mu_pred, scale=sd_pred)
-        rv.random_state = self.get_seed()
+        rv.random_state = self.rng
 
         return rv
 

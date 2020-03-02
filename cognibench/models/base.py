@@ -112,6 +112,12 @@ class CNBModel(sciunit.Model):
         """
         self._paras = paras_dict
 
+    def set_paras_kw(self, **kwargs):
+        dct = self.get_paras()
+        for k, v in kwargs.items():
+            dct[k] = v
+        self.set_paras(dct)
+
     def get_paras(self):
         """
         Get the parameters of the model.

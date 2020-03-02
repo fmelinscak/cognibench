@@ -2,6 +2,7 @@ import numpy as np
 from gym import spaces
 from scipy import stats
 
+from cognibench.distr import DiscreteRV
 from cognibench.models import CNBAgent
 from cognibench.models.policy_model import PolicyModel
 from cognibench.capabilities import Interactive, PredictsLogpdf
@@ -30,7 +31,7 @@ class NWSLSAgent(CNBAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
             Dimension of the observation space.
 
         paras_dict : dict (optional)
-            epsilon : int
+            epsilon : float
                 Number of loose actions. Must be nonnegative and less than or equal
                 to the dimension of the action space.
         """
@@ -59,17 +60,22 @@ class NWSLSAgent(CNBAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
         epsilon = self.get_paras()["epsilon"]
         n = self.n_action()
 
+        a = self.get_hidden_state()["action"]
         if self.get_hidden_state()["win"]:
-            prob_action = 1 - epsilon / n
+            pk = np.full(n, epsilon / n)
+            pk[a] = 1 - (n - 1) * epsilon / n
         else:
-            prob_action = epsilon / n
+            if n == 1:
+                pk[0] = 1
+            else:
+                pk = np.full(n, (1 - epsilon / n) / (n - 1))
+                pk[a] = epsilon / n
 
-        pk = np.full(n, (1 - prob_action) / (n - 1))
-        pk[self.get_hidden_state()["action"]] = prob_action
-
-        xk = np.arange(n)
-        rv = stats.rv_discrete(name=None, values=(xk, pk))
-        rv.random_state = self.get_seed()
+        rv = DiscreteRV(pk)
+        rv.random_state = self.rng
+        # xk = np.arange(n)
+        # rv = stats.rv_discrete(name=None, values=(xk, pk))
+        # rv.random_state = self.rng
 
         return rv
 

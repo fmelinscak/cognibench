@@ -142,8 +142,7 @@ class AICScore(LowerBetterScore):
         and logpdf/logpmf predictions.
         """
         nll = negloglike(actions, predictions)
-        regularizer = 2 * np.sum(n_model_params)
-        return cls(nll + regularizer)
+        return cls(2 * nll + 2 * n_model_params)
 
 
 class BICScore(LowerBetterScore):
@@ -165,7 +164,7 @@ class BICScore(LowerBetterScore):
         """
         nll = negloglike(actions, predictions)
         regularizer = np.dot(n_model_params, n_samples)
-        return cls(nll + regularizer)
+        return cls(2 * nll + n_model_params * np.log(n_samples))
 
 
 class MSEScore(LowerBetterScore):

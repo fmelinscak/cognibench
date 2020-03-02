@@ -3,6 +3,7 @@ from scipy.special import softmax
 from gym import spaces
 from scipy import stats
 
+from cognibench.distr import DiscreteRV
 from cognibench.models import CNBAgent
 from cognibench.models.policy_model import PolicyModel
 from cognibench.capabilities import Interactive, PredictsLogpdf
@@ -79,10 +80,12 @@ class RWCKAgent(CNBAgent, ProducesPolicy, DiscreteAction, DiscreteObservation):
         beta_c = self.get_paras()["beta_c"]
         V = beta * Q_i + beta_c * CK_i
 
-        xk = np.arange(self.n_action())
+        # xk = np.arange(self.n_action())
         pk = softmax(V)
-        rv = stats.rv_discrete(values=(xk, pk))
-        rv.random_state = self.get_seed()
+        rv = DiscreteRV(pk)
+        rv.random_state = self.rng
+        # rv = stats.rv_discrete(values=(xk, pk))
+        # rv.random_state = self.rng
 
         return rv
 
@@ -165,8 +168,8 @@ class RWCKModel(PolicyModel, DiscreteAction, DiscreteObservation):
         def initializer(seed):
             return {
                 "w": 0.5,
-                "beta": 1 + stats.expon.rvs(scale=1, random_state=seed),
-                "beta_c": 1 + stats.expon.rvs(scale=1, random_state=seed),
+                "beta": stats.expon.rvs(scale=1, random_state=seed),
+                "beta_c": 0.5 + stats.expon.rvs(scale=1, random_state=seed),
                 "eta": stats.uniform.rvs(scale=1, random_state=seed),
                 "eta_c": stats.uniform.rvs(scale=1, random_state=seed),
             }
@@ -182,6 +185,10 @@ class RWCKModel(PolicyModel, DiscreteAction, DiscreteObservation):
         super().__init__(
             *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
         )
+
+    @overrides
+    def n_params(self):
+        return 4
 
 
 class RWModel(PolicyModel, DiscreteAction, DiscreteObservation):
@@ -200,7 +207,7 @@ class RWModel(PolicyModel, DiscreteAction, DiscreteObservation):
         def initializer(seed):
             return {
                 "w": 0.5,
-                "beta": 1 + stats.expon.rvs(scale=1, random_state=seed),
+                "beta": stats.expon.rvs(scale=1, random_state=seed),
                 "beta_c": 0,
                 "eta": stats.uniform.rvs(scale=1, random_state=seed),
                 "eta_c": 0,
@@ -217,6 +224,10 @@ class RWModel(PolicyModel, DiscreteAction, DiscreteObservation):
         super().__init__(
             *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
         )
+
+    @overrides
+    def n_params(self):
+        return 2
 
 
 class CKModel(PolicyModel, DiscreteAction, DiscreteObservation):
@@ -236,7 +247,7 @@ class CKModel(PolicyModel, DiscreteAction, DiscreteObservation):
             return {
                 "w": 0.5,
                 "beta": 0,
-                "beta_c": 1 + stats.expon.rvs(scale=1, random_state=seed),
+                "beta_c": 0.5 + stats.expon.rvs(scale=1, random_state=seed),
                 "eta": 0,
                 "eta_c": stats.uniform.rvs(scale=1, random_state=seed),
             }
@@ -252,3 +263,7 @@ class CKModel(PolicyModel, DiscreteAction, DiscreteObservation):
         super().__init__(
             *args, agent=agent, param_initializer=initializer, seed=seed, **kwargs
         )
+
+    @overrides
+    def n_params(self):
+        return 2
