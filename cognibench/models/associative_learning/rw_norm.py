@@ -2,6 +2,7 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
+from cognibench.distr import NormalRV
 from cognibench.models import CNBAgent
 from cognibench.models.policy_model import PolicyModel
 from cognibench.capabilities import (
@@ -137,7 +138,7 @@ class RwNormAgent(CNBAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserva
         # Predict response
         mu_pred = b0 + np.dot(b1, stimulus * w_curr)
 
-        rv = stats.norm(loc=mu_pred, scale=sd_pred)
+        rv = NormalRV(loc=mu_pred, scale=sd_pred)
         rv.random_state = self.rng
 
         return rv

@@ -16,11 +16,19 @@ class DiscreteRV:
         return self.random_state.choice(self.n, p=self._p)
 
 
-#
-#
-# class ContinuousRV:
-#    def __init__(self, rv_cont):
-#        self._rv_cont = rv_cont
-#
-#    def __getitem__(self, e):
-#        return
+class NormalRV:
+    def __init__(self, loc, scale, eps=1e-8):
+        self.loc = loc
+        self.scale = scale
+        self.eps = eps
+        self.random_state = None
+
+    def logpdf(self, e):
+        return (
+            -np.log(self.scale + self.eps)
+            - 0.5 * np.log(2 * np.pi + self.eps)
+            - 0.5 * ((e - self.loc) / (self.scale + self.eps)) ** 2
+        )
+
+    def rvs(self):
+        return self.random_state.normal(self.loc, self.scale)
