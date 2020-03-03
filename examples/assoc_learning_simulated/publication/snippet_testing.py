@@ -9,13 +9,14 @@ from cognibench.models.utils import multi_from_single_cls as multi_subj
 import cognibench.scores as scores
 from read_example_data import get_simulation_data
 
+sciunit.settings["CWD"] = os.getcwd()
 # Constants
 def aic_kwargs_fn(model, obs, pred):
     return {"n_model_params": model.n_params()}
 
 
 SEED = 42
-DATA_PATH = "data"
+DATA_PATH = "../data"
 N_SUBJECTS = 3
 AICScore = partialclass(scores.AICScore, min_score=0, max_score=1000)
 names_paths = [
@@ -26,8 +27,12 @@ names_paths = [
 ]
 # Define tests
 test_list = []
+distinct_stimuli = None
 for test_name, path in names_paths:
     obs = get_simulation_data(path, N_SUBJECTS, True)
+    distinct_curr = np.unique(obs[0]["stimuli"], axis=0)
+    assert distinct_stimuli is None or (distinct_stimuli == distinct_curr).all()
+    distinct_stimuli = distinct_curr
     test_list.append(
         InteractiveTest(
             name=f"{test_name}",
@@ -47,7 +52,9 @@ model_list = [
     MultiRwNormModel(n_subj=N_SUBJECTS, n_obs=4, seed=SEED),
     MultiKrwNormModel(n_subj=N_SUBJECTS, n_obs=4, seed=SEED),
     MultiLSSPDModel(n_subj=N_SUBJECTS, n_obs=4, seed=SEED),
-    MultiBetaBinomialModel(n_subj=N_SUBJECTS, n_obs=4, seed=SEED),
+    MultiBetaBinomialModel(
+        n_subj=N_SUBJECTS, n_obs=4, distinct_stimuli=distinct_stimuli, seed=SEED
+    ),
 ]
 # Define suite and judge
 suite = sciunit.TestSuite(test_list, name="Associative learning suite")

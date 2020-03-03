@@ -2,6 +2,7 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
+from cognibench.distr import NormalRV
 from cognibench.models import CNBAgent
 from cognibench.models.policy_model import PolicyModel
 from cognibench.capabilities import (
@@ -159,7 +160,7 @@ class LSSPDAgent(CNBAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservat
             b1, stimulus * (mix_coef * w_curr + (1 - mix_coef) * alpha)
         )
 
-        rv = stats.norm(loc=mu_pred, scale=sd_pred)
+        rv = NormalRV(loc=mu_pred, scale=sd_pred)
         rv.random_state = self.rng
 
         return rv
@@ -169,9 +170,12 @@ class LSSPDAgent(CNBAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservat
         """
         Reset the hidden state to its default value.
         """
-        w = self.get_paras()["w"]
-        alpha = self.get_paras()["alpha"]
-        self.set_hidden_state({"w": w, "alpha": alpha})
+        self.set_hidden_state(
+            {
+                "w": self.get_paras()["w"] * np.ones(self.n_obs()),
+                "alpha": self.get_paras()["alpha"] * np.ones(self.n_obs()),
+            }
+        )
 
 
 class LSSPDModel(PolicyModel, ContinuousAction, MultiBinaryObservation):
@@ -190,9 +194,9 @@ class LSSPDModel(PolicyModel, ContinuousAction, MultiBinaryObservation):
 
         def initializer(seed):
             return {
-                "w": stats.norm.rvs(size=n_obs, random_state=seed),
-                "alpha": stats.norm.rvs(size=n_obs, random_state=seed),
-                "sigma": stats.expon.rvs(random_state=seed),
+                "w": stats.norm.rvs(random_state=seed),
+                "alpha": stats.uniform.rvs(random_state=seed),
+                "sigma": stats.uniform.rvs(random_state=seed),
                 "b0": stats.norm.rvs(random_state=seed),
                 "b1": stats.norm.rvs(size=n_obs, random_state=seed),
                 "mix_coef": stats.uniform.rvs(random_state=seed),
@@ -201,8 +205,8 @@ class LSSPDModel(PolicyModel, ContinuousAction, MultiBinaryObservation):
             }
 
         self.param_bounds = {
-            "w": [None] * 2 * n_obs,
-            "alpha": [0, 1] * n_obs,
+            "w": [-10, 10],
+            "alpha": [0, 1],
             "sigma": (0, 1),
             "b0": (None, None),
             "b1": [None] * 2 * n_obs,
