@@ -8,9 +8,10 @@ model_list = [
     cnb.RWCKModel(n_action=n_action, n_obs=n_obs),
     cnb.NWSLSModel(n_action=n_action, n_obs=n_obs),
 ]
+# Set initial parameters for simulation (not shown here)
 # Define environment and test
 env = cnb.BanditEnv(p_dist=[0.2, 0.8])
-score_cls = cnb.partialclass(cnb.AICScore, min_score=0, max_score=1000)
+score_cls = cnb.partialclass(cnb.BICScore, min_score=0, max_score=1000)
 test_cls = cnb.partialclass(cnb.InteractiveTest, score_type=score_cls)
 # Run many times and pick best models
 for _ in range(N_SIMULATIONS):
