@@ -5,6 +5,7 @@ from cognibench.continuous import ContinuousSpace
 from cognibench.models.wrappers import (
     OctaveWrapperMixin,
     RWrapperMixin,
+    MatlabWrapperMixin,
 )
 
 
@@ -39,6 +40,20 @@ class BEASTsdOctave(
         )
         CNBModel.__init__(self, *args, **kwargs)
         self.reset()
+
+
+class BEASTsdMatlab(
+    MatlabWrapperMixin, CNBModel, ContinuousAction, ContinuousObservation
+):
+    name = "BEASTsdMatlab"
+
+    def __init__(self, *args, import_base_path, **kwargs):
+        self.set_action_space(ContinuousSpace())
+        self.set_observation_space(ContinuousSpace())
+        MatlabWrapperMixin.__init__(
+            self, import_base_path=import_base_path, predict_fn="CPC18_BEASTsd_pred",
+        )
+        CNBModel.__init__(self, *args, **kwargs)
 
 
 class BEASTsdR(RWrapperMixin, CNBModel, ContinuousAction, ContinuousObservation):
