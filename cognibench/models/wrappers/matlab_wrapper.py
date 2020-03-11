@@ -1,4 +1,5 @@
 import matlab.engine
+import time
 import matlab
 import numpy as np
 
@@ -9,6 +10,9 @@ from _internal.mlarray_utils import _get_strides, _get_mlsize
 
 from functools import partial
 from cognibench.logging import logger
+
+
+_matlab_sess = None
 
 
 class MatlabWrapperMixin:
@@ -31,6 +35,7 @@ class MatlabWrapperMixin:
     def __init__(
         self,
         *args,
+        pspm_path,
         import_base_path,
         reset_fn=None,
         predict_fn=None,
@@ -45,6 +50,9 @@ class MatlabWrapperMixin:
 
         Parameters
         ----------
+        pspm_path : str
+            Base folder path containing PsPM.
+
         import_base_path : str
             Base folder path containing Matlab function implementations.
 
@@ -66,18 +74,11 @@ class MatlabWrapperMixin:
         act_fn : str or callable
             Analogous to reset_fn documentation.
         """
-        existing_sessions = matlab.engine.find_matlab()
-        if existing_sessions:
-            sess_id = existing_sessions[0]
-            if len(existing_sessions) > 1:
-                logger().warning(
-                    "MatlabWrapperMixin: There are multiple MATLAB sessions running. Connecting to the first found session"
-                )
-            self.matlab_session = matlab.engine.connect_matlab(name=sess_id)
-        else:
-            self.matlab_session = matlab.engine.start_matlab()
-            self.matlab_session.eval("matlab.engine.shareEngine", nargout=0)
-        self.matlab_session.addpath(import_base_path, nargout=0)
+        global _matlab_sess
+        if _matlab_sess is None:
+            _matlab_sess = matlab.engine.start_matlab()
+        _matlab_sess.addpath(pspm_path, nargout=0)
+        _matlab_sess.addpath(import_base_path, nargout=0)
 
         _define_if_given(self, reset_fn, "reset")
         _define_if_given(self, predict_fn, "predict")
@@ -95,11 +96,11 @@ def _define_if_given(obj, fn, fn_name_to_set):
     if fn is None:
         return
     if isinstance(fn, str):
-        fn_to_call = partial(obj.matlab_session.feval, fn)
+        fn_to_call = partial(_matlab_sess.feval, fn)
     else:
 
         def fn_to_call(*args, **kwargs):
-            return fn(obj.matlab_session, *args, **kwargs)
+            return fn(_matlab_sess, *args, **kwargs)
 
     setattr(obj, fn_name_to_set, _matlab_auto_convert(fn_to_call))
 
