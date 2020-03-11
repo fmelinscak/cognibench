@@ -18,12 +18,18 @@ PSPM_PATH = "/home/eozd/bachlab/pspm/src"
 if __name__ == "__main__":
     # prepare data
     actions = [0]
-    obs_dict = {"stimuli": pathjoin(DATA_PATH, "PIT2e1.asc"), "actions": actions}
+    obs_dict0 = {"stimuli": pathjoin(DATA_PATH, "PIT2e1.asc"), "actions": actions}
+    obs_dict1 = {"stimuli": pathjoin(DATA_PATH, "PIT2e2.asc"), "actions": actions}
+    obs_dict2 = {"stimuli": pathjoin(DATA_PATH, "PIT2e3.asc"), "actions": actions}
+    obs_dict3 = {"stimuli": pathjoin(DATA_PATH, "PIT2e38.asc"), "actions": actions}
 
     # prepare models
     models = [
         PsPMModel(
-            pspm_path=PSPM_PATH, import_base_path=MODEL_PATH, predict_fn=f"model{i}"
+            pspm_path=PSPM_PATH,
+            import_base_path=MODEL_PATH,
+            predict_fn=f"model{i}",
+            name=f"model{i}",
         )
         for i in range(6)
     ]
@@ -34,15 +40,18 @@ if __name__ == "__main__":
     suite = TestSuite(
         [
             BatchTest(
-                name="MSE Test",
-                observation=obs_dict,
+                name=f"{fname} Test",
+                observation={"stimuli": pathjoin(DATA_PATH, fname), "actions": actions},
                 score_type=MSEScore,
-                persist_path=persist_path_fmt.format("PIT2e1_test"),
+                persist_path=persist_path_fmt.format(fname),
+                optimize_models=False,
                 logging=2,
-            ),
+            )
+            for fname in ["PIT2e1.asc", "PIT2e2.asc", "PIT2e3.asc", "PIT2e38.asc"]
         ],
         name="Batch test suite",
     )
 
     # judge
-    suite.judge(models)
+    sm = suite.judge(models)
+    print(sm)

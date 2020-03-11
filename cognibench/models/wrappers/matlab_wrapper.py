@@ -76,6 +76,7 @@ class MatlabWrapperMixin:
         """
         global _matlab_sess
         if _matlab_sess is None:
+            logger().info("Initializing MATLAB session.")
             _matlab_sess = matlab.engine.start_matlab()
         _matlab_sess.addpath(pspm_path, nargout=0)
         _matlab_sess.addpath(import_base_path, nargout=0)
