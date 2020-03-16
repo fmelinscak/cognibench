@@ -261,7 +261,6 @@ class CohensDScore(HigherBetterScore):
 
     @classmethod
     def compute(cls, actions, predictions):
-        print(predictions)
         N = predictions.shape[1]
         m = np.mean(predictions, axis=1)
         var = np.sum((predictions - m[:, None]) ** 2, axis=1) / (N - 1)

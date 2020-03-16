@@ -1,7 +1,6 @@
-function out = model4(filepath)
+function stats = model4(path_struct)
     bf.fhandle = @pspm_bf_psrf_fc;
     bf.args = [1, 0, 1];
 
-    out = fit(filepath, bf, true, false);
-    out = 0;
+    stats = fit_all(path_struct, bf, true, false);
 end
