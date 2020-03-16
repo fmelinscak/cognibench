@@ -252,3 +252,20 @@ class AccuracyScore(HigherBetterScore):
         assert len(actions.shape) == 1 and actions.shape == predictions.shape
         n_correct = np.sum(actions == predictions)
         return cls(float(n_correct) / len(actions))
+
+
+class CohensDScore(HigherBetterScore):
+    """
+    Cohen's D score.
+    """
+
+    @classmethod
+    def compute(cls, actions, predictions):
+        print(predictions)
+        N = predictions.shape[1]
+        m = np.mean(predictions, axis=1)
+        var = np.sum((predictions - m[:, None]) ** 2, axis=1) / (N - 1)
+        var = np.squeeze(var)
+        s = np.sqrt(((N - 1) * var[0] + (N - 1) * var[1]) / (N + N - 2))
+        d = (m[0] - m[1]) / s
+        return cls(d)
