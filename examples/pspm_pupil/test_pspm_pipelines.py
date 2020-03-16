@@ -19,6 +19,7 @@ PSPM_PATH = "/home/eozd/bachlab/pspm/src"
 
 Dataset = namedtuple("Dataset", "name subject_ids")
 dataset_list = [
+    Dataset(name="sc4b", subject_ids=np.arange(1, 22)),
     Dataset(name="fss6b", subject_ids=np.arange(1, 19)),
     Dataset(name="vc7b", subject_ids=np.arange(1, 22)),
 ]

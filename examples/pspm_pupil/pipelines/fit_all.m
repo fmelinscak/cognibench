@@ -6,7 +6,11 @@ function stats = fit_all(varargin)
     subject_ids = path_struct.subject_ids;
     stats = [];
     for subj_id = subject_ids
-        glm = fit(datapath, subj_id, args{:});
-        stats(1:2, subj_id) = glm.stats(1:2)';
+        try
+            glm = fit(datapath, subj_id, args{:});
+            stats(1:2, subj_id) = glm.stats(1:2)';
+        catch
+            fprintf('There was an error fitting subject id %d. Skipping...\n', subj_id);
+        end
     end
 end
