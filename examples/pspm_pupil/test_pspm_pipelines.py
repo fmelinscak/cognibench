@@ -19,8 +19,11 @@ PSPM_PATH = "/home/eozd/bachlab/pspm/src"
 
 Dataset = namedtuple("Dataset", "name subject_ids")
 dataset_list = [
-    Dataset(name="sc4b", subject_ids=np.arange(1, 22)),
+    Dataset(name="doxmem2", subject_ids=np.arange(1, 80)),
     Dataset(name="fss6b", subject_ids=np.arange(1, 19)),
+    Dataset(name="li", subject_ids=np.arange(1, 21)),
+    Dataset(name="pubfe", subject_ids=np.arange(1, 23)),
+    Dataset(name="sc4b", subject_ids=np.arange(1, 22)),
     Dataset(name="vc7b", subject_ids=np.arange(1, 22)),
 ]
 obs_dict_list = [

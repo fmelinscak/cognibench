@@ -8,7 +8,11 @@ function stats = fit_all(varargin)
     for subj_id = subject_ids
         try
             glm = fit(datapath, subj_id, args{:});
-            stats(1:2, subj_id) = glm.stats(1:2)';
+            if isempty(fieldnames(glm))
+                fprintf('Skipping subject %d...\n', subj_id);
+                continue
+            end
+            stats(1:2, end + 1) = glm.stats(1:2)';
         catch
             fprintf('There was an error fitting subject id %d. Skipping...\n', subj_id);
         end
