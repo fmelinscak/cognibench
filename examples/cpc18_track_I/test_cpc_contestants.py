@@ -6,9 +6,11 @@ from cognibench.utils import partialclass
 import cognibench.scores as scores
 from sciunit import TestSuite
 from sciunit import settings as sciunit_settings
+from cognibench.settings import settings
 
-from model_defs import BEASTsdPython, BEASTsdOctave, BEASTsdR
+from model_defs import BEASTsdPython, BEASTsdOctave, BEASTsdR, BEASTsdMatlab
 
+settings["CRASH_EARLY"] = True
 sciunit_settings["CWD"] = getcwd()
 
 
@@ -72,6 +74,12 @@ if __name__ == "__main__":
             "beastsd_contestant_{}",
             "Contestant {} (Octave)",
             BEASTsdOctave,
+        )
+        + get_models(
+            octave_model_IDs,
+            "beastsd_contestant_{}",
+            "Contestant {} (Matlab)",
+            BEASTsdMatlab,
         )
     )
 
