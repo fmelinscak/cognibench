@@ -8,6 +8,10 @@ import cognibench.scores as scores
 from sciunit import TestSuite
 from sciunit import settings as sciunit_settings
 from cognibench.settings import settings
+import sys
+import os
+
+sys.path.insert(0, os.getcwd())
 from model_defs import PsPMModel
 
 settings["CRASH_EARLY"] = True
@@ -15,7 +19,7 @@ sciunit_settings["CWD"] = getcwd()
 
 DATA_PATH = "data"
 MODEL_PATH = "exp3"
-PSPM_PATH = "/home/eozd/bachlab/pspm/src"
+LIB_PATHS = ["/home/eozd/bachlab/pspm/src", "libcommon"]
 
 Dataset = namedtuple("Dataset", "name subject_ids")
 dataset_list = [
@@ -39,15 +43,16 @@ obs_dict_list = [
 
 if __name__ == "__main__":
     # prepare models
-    model_names = [f"miss_percentage_{perc}" for perc in [10, 20, 35, 50, 60]]
+    miss_percs = [10, 20, 35, 50, 60]
     models = [
         PsPMModel(
-            pspm_path=PSPM_PATH,
+            lib_paths=LIB_PATHS,
             import_base_path=MODEL_PATH,
-            predict_fn=f"{model_name}",
-            name=f"{model_name}",
+            predict_fn="fit_all",
+            model_spec={"miss_perc_threshold": perc},
+            name=f"Miss perc {perc}",
         )
-        for model_name in model_names
+        for perc in miss_percs
     ]
 
     # prepare tests
