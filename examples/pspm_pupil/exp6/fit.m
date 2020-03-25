@@ -1,5 +1,6 @@
-function out = fit(inarg)
+function [out, stats] = fit(inarg)
     out = struct();
+    stats = [];
     datapath = inarg.datapath;
     subj_id = inarg.subj_id;
     fixation_angle = inarg.fixation_angle;
@@ -40,4 +41,6 @@ function out = fit(inarg)
     options.overwrite = true;
 
     out = pspm_glm(model, options);
+    bfno = out.bf.bfno;
+    stats = [out.stats(1) out.stats(1 + bfno)];
 end

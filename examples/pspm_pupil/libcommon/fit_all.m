@@ -5,12 +5,12 @@ function stats = fit_all(inarg)
     for subj_id = subject_ids
         try
             inarg.subj_id = subj_id;
-            glm = fit(inarg);
+            [glm, cs_stats] = fit(inarg);
             if isempty(fieldnames(glm))
                 fprintf('Skipping subject %d...\n', subj_id);
                 continue
             end
-            stats(1:2, end + 1) = glm.stats(1:2)';
+            stats(1:2, end + 1) = cs_stats;
         catch err
             fprintf('There was an error fitting subject id %d. Skipping...\n', subj_id);
             warning('ID:fitting_error', getReport(err, 'extended'));
