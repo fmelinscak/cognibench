@@ -3,7 +3,14 @@ function [out, stats] = fit(inarg)
     stats = [];
     datapath = inarg.datapath;
     subj_id = inarg.subj_id;
-    fixation_angle = inarg.fixation_angle;
+    model_str = inarg.model_str;
+    if strcmpi(model_str, 'pfe')
+        % nothing
+    elseif strcmpi(model_str, 'valid_fixations')
+        fixation_angle = inarg.fixation_angle;
+    else
+        error('ID:invalid_argument', 'model_str can be ''pfe'' or ''valid_fixations''');
+    end
 
     [pupil_fpath, conditions] = get_conditions(datapath, subj_id);
     channel = 'pupil';
@@ -16,8 +23,12 @@ function [out, stats] = fit(inarg)
         pupil_fpath = {pupil_fpath};
     end
     fprintf('Processing subject %d\n', subj_id);
-    sts = pp_valid_fixations(pupil_fpath, fixation_angle);
-    if sts ~= 1; return; end;
+    if strcmpi(model_str, 'pfe')
+        sts = pp_pfe(pupil_fpath);
+    else
+        sts = pp_valid_fixations(pupil_fpath, fixation_angle);
+        if sts ~= 1; return; end;
+    end
 
     model.modelfile = fullfile(datapath, sprintf('glm_%d.mat', subj_id));
     model.datafile = pupil_fpath;
