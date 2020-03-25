@@ -19,7 +19,7 @@ settings["CRASH_EARLY"] = True
 sciunit_settings["CWD"] = getcwd()
 
 DATA_PATH = "data"
-MODEL_PATH = "exp2"
+MODEL_PATH = "exp1"
 LIB_PATHS = ["/home/eozd/bachlab/pspm/src", "libcommon"]
 
 Dataset = namedtuple("Dataset", "name subject_ids")
@@ -45,16 +45,17 @@ obs_dict_list = [
 
 if __name__ == "__main__":
     # prepare models
-    miss_percs = [10, 20, 35, 50, 60]
+    segment_length_list = [2.5, 5, 7.5, 10]
+    cutoff_list = [30, 50, 70]
     models = [
         PsPMModel(
             lib_paths=LIB_PATHS,
             import_base_path=MODEL_PATH,
             predict_fn="fit_all",
-            model_spec={"miss_perc_threshold": perc},
-            name=f"Miss perc {perc}",
+            model_spec={"exclude_segment_length": seglen, "exclude_cutoff": cutoff},
+            name=f"Seglen {seglen:2.1f} Cutoff {cutoff}",
         )
-        for perc in miss_percs
+        for seglen, cutoff in itertools.product(segment_length_list, cutoff_list)
     ]
 
     # prepare tests

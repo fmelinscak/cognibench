@@ -3,12 +3,13 @@ function [out, stats] = fit(inarg)
     stats = [];
     datapath = inarg.datapath;
     subj_id = inarg.subj_id;
-    miss_perc_threshold = inarg.miss_perc_threshold;
+    exclude_segment_length = inarg.exclude_segment_length;
+    exclude_cutoff = inarg.exclude_cutoff;
 
     [pupil_fpath, conditions] = get_conditions(datapath, subj_id);
     [conditions, csp] = single_trial_conditions(conditions);
     channel = 'pupil';
-    should_fit = ~isempty(pupil_fpath) && ~isempty(conditions) && perc_miss_overall(pupil_fpath, channel) <= miss_perc_threshold;
+    should_fit = ~isempty(pupil_fpath) && ~isempty(conditions);
     if ~should_fit
         return;
     end
@@ -23,8 +24,8 @@ function [out, stats] = fit(inarg)
     model.bf = bf;
     model.channel = channel;
     options.overwrite = true;
+    options.exclude_missing = struct('segment_length', exclude_segment_length, 'cutoff', exclude_cutoff);
 
     out = pspm_glm(model, options);
-    not_exclude = zeros(1, numel(cell2mat(csp)), 'uint8');
-    [out, stats] = exclude_and_average(out, csp, not_exclude);
+    [out, stats] = exclude_and_average(out, csp, out.stats_exclude);
 end
