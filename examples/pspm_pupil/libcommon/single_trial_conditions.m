@@ -2,6 +2,9 @@ function [cond_single, csp] = single_trial_conditions(conditions)
     cond_single = {};
     csp = {};
     trial_cnt = 1;
+    if ~iscell(conditions)
+        conditions = {conditions};
+    end
     for i = 1:numel(conditions)
         cond_single{end + 1} = struct();
         cond_single{end}.names = {};
