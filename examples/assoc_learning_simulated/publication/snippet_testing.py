@@ -4,30 +4,65 @@ import numpy as np
 import os
 import cognibench.models.associative_learning as assoc_models
 from cognibench.testing import InteractiveTest
+from cognibench.simulation import simulate
+from cognibench.envs import ClassicalConditioningEnv
 from cognibench.utils import partialclass
+from cognibench.models.utils import single_from_multi_obj, reverse_single_from_multi_obj
 from cognibench.models.utils import multi_from_single_cls as multi_subj
 import cognibench.scores as scores
 from read_example_data import get_simulation_data
 
 # Constants
+sciunit.settings["CWD"] = os.getcwd()
+SEED = 42
+N_SUBJECTS = 3
+AICScore = partialclass(scores.AICScore, min_score=0, max_score=1000)
+DISTINCT_STIMULI = np.array([[0, 1], [1, 0]], dtype=np.float64)
+
+
 def aic_kwargs_fn(model, obs, pred):
     return {"n_model_params": model.n_params()}
 
 
-SEED = 42
-DATA_PATH = "data"
-N_SUBJECTS = 3
-AICScore = partialclass(scores.AICScore, min_score=0, max_score=1000)
-names_paths = [
-    ("RwNorm Data", os.path.join(DATA_PATH, "multi-rw_norm.csv")),
-    ("KrwNorm Data", os.path.join(DATA_PATH, "multi-krw_norm.csv")),
-    ("LSSPD Data", os.path.join(DATA_PATH, "multi-lsspd.csv")),
-    ("BB Data", os.path.join(DATA_PATH, "multi-beta_binomial.csv")),
+def exp_twostage_twocueonly(n_trials_all, probs_all, model):
+    obs = {"stimuli": [], "actions": [], "rewards": []}
+    for n_trials, probs in zip(n_trials_all, probs_all):
+        p_a, p_us_a, p_us_b = probs
+        env = ClassicalConditioningEnv(
+            stimuli=DISTINCT_STIMULI,
+            p_stimuli=[p_a, 1 - p_a],
+            p_reward=[p_us_a, p_us_b],
+        )
+        stimuli, rewards, actions = simulate(env, model, n_trials)
+        obs["stimuli"] += stimuli
+        obs["rewards"] += rewards
+        obs["actions"] += actions
+    return obs
+
+
+def get_sim_data(model):
+    n_trials_all = [60, 60]
+    probs_all = [(0.6, 0.3333, 0), (0.4103, 0, 0.3043)]
+    obs_all = []
+    for i in range(model.n_subjects):
+        single_model = single_from_multi_obj(model, i)
+        obs_all.append(exp_twostage_twocueonly(n_trials_all, probs_all, single_model))
+        model = reverse_single_from_multi_obj(single_model)
+    return obs_all
+
+
+model_list = [
+    multi_subj(assoc_models.RwNormModel)(n_subj=N_SUBJECTS, n_obs=2, seed=SEED),
+    multi_subj(assoc_models.KrwNormModel)(n_subj=N_SUBJECTS, n_obs=2, seed=SEED),
+    multi_subj(assoc_models.LSSPDModel)(n_subj=N_SUBJECTS, n_obs=2, seed=SEED),
+    multi_subj(assoc_models.BetaBinomialModel)(
+        n_subj=N_SUBJECTS, n_obs=2, distinct_stimuli=DISTINCT_STIMULI, seed=SEED
+    ),
 ]
+names_data = [(f"{model.name} Data", get_sim_data(model)) for model in model_list]
 # Define tests
 test_list = []
-for test_name, path in names_paths:
-    obs = get_simulation_data(path, N_SUBJECTS, True)
+for test_name, obs in names_data:
     test_list.append(
         InteractiveTest(
             name=f"{test_name}",
@@ -38,17 +73,6 @@ for test_name, path in names_paths:
         )
     )
 # Define models
-MultiRwNormModel = multi_subj(assoc_models.RwNormModel)
-MultiKrwNormModel = multi_subj(assoc_models.KrwNormModel)
-MultiBetaBinomialModel = multi_subj(assoc_models.BetaBinomialModel)
-MultiBetaBinomialModel.name = "BB"
-MultiLSSPDModel = multi_subj(assoc_models.LSSPDModel)
-model_list = [
-    MultiRwNormModel(n_subj=N_SUBJECTS, n_obs=4, seed=SEED),
-    MultiKrwNormModel(n_subj=N_SUBJECTS, n_obs=4, seed=SEED),
-    MultiLSSPDModel(n_subj=N_SUBJECTS, n_obs=4, seed=SEED),
-    MultiBetaBinomialModel(n_subj=N_SUBJECTS, n_obs=4, seed=SEED),
-]
 # Define suite and judge
 suite = sciunit.TestSuite(test_list, name="Associative learning suite")
 score_matrix = suite.judge(model_list)

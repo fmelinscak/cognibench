@@ -35,7 +35,7 @@ class CNBTest(SciunitTest):
         *args,
         score_type=None,
         multi_subject=False,
-        score_aggr_fn=np.mean,
+        score_aggr_fn=np.sum,
         persist_path=None,
         fn_kwargs_for_score=None,
         optimize_models=True,

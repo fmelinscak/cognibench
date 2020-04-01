@@ -2,6 +2,7 @@ import numpy as np
 import gym
 from gym import spaces
 from scipy import stats
+from cognibench.distr import NormalRV
 from cognibench.models import CNBAgent
 from cognibench.models.policy_model import PolicyModel
 from cognibench.capabilities import (
@@ -15,7 +16,7 @@ from overrides import overrides
 
 
 class KrwNormAgent(CNBAgent, ProducesPolicy, ContinuousAction, MultiBinaryObservation):
-    def __init__(self, *args, n_obs, **kwargs):
+    def __init__(self, *args, n_obs, eps=1e-8, **kwargs):
         """
         Parameters
         ----------
@@ -50,7 +51,7 @@ class KrwNormAgent(CNBAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserv
                 Additive factor used in the denominator when computing the Kalman gain K.
                 Must be nonnegative.
         """
-
+        self.eps = eps
         self.set_action_space(ContinuousSpace())
         self.set_observation_space(n_obs)
         # TODO: get params here
@@ -125,7 +126,7 @@ class KrwNormAgent(CNBAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserv
 
             # Kalman update step
             K = C_pred.dot(stimulus) / (
-                stimulus.dot(C_pred.dot(stimulus)) + sigmaRSq
+                stimulus.dot(C_pred.dot(stimulus)) + sigmaRSq + self.eps
             )  # (n_obs(),)
             w_updt = w_pred + K * delta  # Mean updated with prediction error
             C_updt = C_pred - np.dot(K[:, None], np.dot(stimulus[None, :], C_pred))
@@ -164,7 +165,7 @@ class KrwNormAgent(CNBAgent, ProducesPolicy, ContinuousAction, MultiBinaryObserv
         # Predict response
         mu_pred = b0 + np.dot(b1, stimulus * w_curr)
 
-        rv = stats.norm(loc=mu_pred, scale=sd_pred)
+        rv = NormalRV(loc=mu_pred, scale=sd_pred)
         rv.random_state = self.rng
 
         return rv

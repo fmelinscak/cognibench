@@ -1,7 +1,9 @@
 import numpy as np
 import gym
+from collections import defaultdict
 from gym import spaces
 from scipy import stats
+from cognibench.distr import NormalRV
 from cognibench.models import CNBAgent
 from cognibench.models.policy_model import PolicyModel
 from cognibench.capabilities import (
@@ -20,12 +22,17 @@ class BetaBinomialAgent(
 ):
     name = "BetaBinomial"
 
-    def __init__(self, *args, n_obs, **kwargs):
+    def __init__(self, *args, n_obs, distinct_stimuli, **kwargs):
         """
         Parameters
         ----------
         n_obs : int
             Size of the observation space
+
+        distinct_stimuli : array-like
+            List of distinct stimuli that can be passed to this agent. Each element
+            should be an array-like object that contain only 0s and 1s. Further, all
+            the element must have the same size.
 
         paras_dict : dict (optional)
             a : float
@@ -48,27 +55,34 @@ class BetaBinomialAgent(
                 Slope used when computing the reward. If a single scalar is given, each element of the slope vector
                 is equal to that value.
         """
+        self.n_cues = len(distinct_stimuli)
+        self.cue_to_idx = _CueToIdxMap()
+        for i, stimulus in enumerate(distinct_stimuli):
+            self.cue_to_idx[stimulus] = i
         self.set_action_space(ContinuousSpace())
         self.set_observation_space(n_obs)
         super().__init__(*args, **kwargs)
 
-    def _get_default_a_b(self):
-        """
-        Get default occurence and non-occurence counts.
-        """
-        a = self.get_paras()["a"]
-        b = self.get_paras()["b"]
-        out = {
-            "a": a * np.ones(self.n_obs(), dtype=np.float64),
-            "b": b * np.ones(self.n_obs(), dtype=np.float64),
-        }
-        return out
+    @overrides
+    def set_paras(self, paras):
+        if paras is None:
+            self._paras = paras
+            return
+        own_paras = {k: v for k, v in paras.items()}
+        self.a_init = own_paras["a"]
+        self.b_init = own_paras["b"]
+        del own_paras["a"]
+        del own_paras["b"]
+        self._paras = own_paras
+        self.reset()
 
     def reset(self):
-        """
-        Reset the hidden state to its default value.
-        """
-        self.set_hidden_state(_DictWithBinarySequenceKeys())
+        self.set_hidden_state(
+            {
+                "a": self.a_init * np.ones(self.n_cues),
+                "b": self.a_init * np.ones(self.n_cues),
+            }
+        )
 
     def eval_policy(self, stimulus):
         """
@@ -91,7 +105,7 @@ class BetaBinomialAgent(
 
         mu_pred = self._predict_reward(stimulus)
 
-        rv = stats.norm(loc=mu_pred, scale=sd_pred)
+        rv = NormalRV(loc=mu_pred, scale=sd_pred)
         rv.random_state = self.rng
 
         return rv
@@ -131,19 +145,12 @@ class BetaBinomialAgent(
             If True, do not update the hidden state.
         """
         assert self.get_observation_space().contains(stimulus)
-        # get model's state
-        if tuple(stimulus) not in self.get_hidden_state().keys():
-            self.get_hidden_state()[stimulus] = self._get_default_a_b()
-        a = self.get_hidden_state()[stimulus]["a"]
-        b = self.get_hidden_state()[stimulus]["b"]
+        hidden = self.get_hidden_state()
 
+        stimulus_idx = self.cue_to_idx[stimulus]
         if not done:
-            a += stimulus * reward
-            b += stimulus * (1 - reward)
-            self.get_hidden_state()[stimulus]["a"] = a
-            self.get_hidden_state()[stimulus]["b"] = b
-
-        return a, b
+            hidden["a"][stimulus_idx] += reward
+            hidden["b"][stimulus_idx] += 1 - reward
 
     def _predict_reward(self, stimulus):
         """
@@ -154,17 +161,21 @@ class BetaBinomialAgent(
         intercept = self.get_paras()["intercept"]
         slope = self.get_paras()["slope"]
 
-        if tuple(stimulus) not in self.get_hidden_state().keys():
-            self.get_hidden_state()[stimulus] = self._get_default_a_b()
-        a = self.get_hidden_state()[stimulus]["a"]
-        b = self.get_hidden_state()[stimulus]["b"]
+        stimulus_idx = self.cue_to_idx[stimulus]
+        hidden = self.get_hidden_state()
 
-        mu = stats.beta(a, b).mean()
-        entropy = stats.beta(a, b).entropy()
+        a_i = hidden["a"][stimulus_idx]
+        b_i = hidden["b"][stimulus_idx]
+        slope_i = slope[stimulus_idx]
 
-        rhat = intercept + np.dot(
-            slope, (mix_coef * mu + (1 - mix_coef) * entropy) * stimulus
-        )
+        mu_i = stats.beta.mean(a_i, b_i)
+        entropy_i = stats.beta.entropy(a_i, b_i)
+
+        rhat = intercept + slope_i * (mix_coef * mu_i + (1 - mix_coef) * entropy_i)
+        # rhat = intercept + np.dot(
+        #    slope,
+        #    (mix_coef * mu + (1 - mix_coef) * entropy) * stimulus
+        # )
 
         return rhat
 
@@ -177,28 +188,30 @@ class BetaBinomialModel(PolicyModel, ContinuousAction, MultiBinaryObservation):
     name = "Beta Binomial"
 
     @overrides
-    def __init__(self, *args, n_obs, seed=None, **kwargs):
+    def __init__(self, *args, n_obs, distinct_stimuli, seed=None, **kwargs):
         self.set_action_space(ContinuousSpace())
         self.set_observation_space(n_obs)
-        agent = BetaBinomialAgent(n_obs=n_obs, seed=seed)
+        agent = BetaBinomialAgent(
+            n_obs=n_obs, distinct_stimuli=distinct_stimuli, seed=seed
+        )
+
+        n_cues = len(distinct_stimuli)
 
         def initializer(seed):
             return {
-                "a": stats.expon.rvs(scale=5, random_state=seed),
-                "b": stats.expon.rvs(scale=5, random_state=seed),
+                "a": 1,
+                "b": 1,
                 "sigma": stats.expon.rvs(random_state=seed),
                 "mix_coef": stats.uniform.rvs(random_state=seed),
                 "intercept": stats.norm.rvs(random_state=seed),
-                "slope": stats.norm.rvs(size=n_obs, random_state=seed),
+                "slope": stats.norm.rvs(size=n_cues, random_state=seed),
             }
 
         self.param_bounds = {
-            "a": (1, None),
-            "b": (1, None),
             "sigma": (1e-6, None),
             "mix_coef": (0, 1),
             "intercept": (None, None),
-            "slope": [None] * 2 * n_obs,
+            "slope": [None] * 2 * n_cues,
         }
 
         super().__init__(
@@ -206,14 +219,13 @@ class BetaBinomialModel(PolicyModel, ContinuousAction, MultiBinaryObservation):
         )
 
 
-class _DictWithBinarySequenceKeys(MutableMapping):
+class _CueToIdxMap(MutableMapping):
     """
     Mapping where keys are binary sequences such as [0, 1, 1], [1, 0, 1], etc.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self._storage = dict()
-        self.update(dict(*args, **kwargs))
 
     def __getitem__(self, key):
         return self._storage[tuple(key)]
