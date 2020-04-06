@@ -35,7 +35,7 @@ class MatlabWrapperMixin:
     def __init__(
         self,
         *args,
-        pspm_path,
+        lib_paths,
         import_base_path,
         reset_fn=None,
         predict_fn=None,
@@ -50,8 +50,8 @@ class MatlabWrapperMixin:
 
         Parameters
         ----------
-        pspm_path : str
-            Base folder path containing PsPM.
+        lib_paths : list of str
+            Folders containing additional libraries required by the model. Each path will be called with addpath.
 
         import_base_path : str
             Base folder path containing Matlab function implementations.
@@ -78,7 +78,8 @@ class MatlabWrapperMixin:
         if _matlab_sess is None:
             logger().info("Initializing MATLAB session.")
             _matlab_sess = matlab.engine.start_matlab()
-        _matlab_sess.addpath(pspm_path, nargout=0)
+        for path in lib_paths:
+            _matlab_sess.addpath(path, nargout=0)
         _matlab_sess.addpath(import_base_path, nargout=0)
 
         _define_if_given(self, reset_fn, "reset")

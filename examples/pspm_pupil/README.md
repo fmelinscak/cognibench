@@ -1,19 +1,21 @@
-# Description
-In this example we test three hypothetical submissions made to CPC18 track I. All three models are slight variations of
-the baseline BEASTsd model provided by CPC18 committee. We assume that every participant submitted a folder containing
-their models and the main script provided by the CPC committee.
+# PsPM Pupil Benchmarking
+This folder contains the benchmarking codes for seven different experiments that measure the retrodictive validity
+of various psychophysiological models. In each experiment, a series of models that are created by combining certain
+configuration parameters are tested against seven different pupil datasets. The datasets, along with their links, are
+given below:
 
-For showcasing purposes, each of the three models are implemented in different languages (Python, Octave and R).
-`cognibench` can easily test models implemented in these languages with the use of wrappers we provide as long as model
-source code structure is as specified by the respective wrapper class. You can see the model definitions required to
-use these models in `model_defs.py` file.
+## Datasets
+1. DoxMeM2 (only placebo group): https://doi.org/10.5281/zenodo.3441715
+2. FER02: http://doi.org/10.5281/zenodo.3555306
+3. FSS6B: https://doi.org/10.5281/zenodo.3601250
+4. LI: https://doi.org/10.5281/zenodo.1288493
+5. PubFe: https://doi.org/10.5281/zenodo.1168493
+6. SC4B: https://doi.org/10.5281/zenodo.1039580
+7. VC7B: https://doi.org/10.5281/zenodo.1211609
 
-# Running
-Simply type
+
+## Running
+To run a specific experiment simply type, e.g. experiment 1,
 ```bash
-python test_cpc_contestants.py
+python exp1/bench.py
 ```
-
-# Acknowledgements
-Model implementations and data in this folder are obtained from CPC18 official website:
-https://cpc-18.com/baseline-models-and-source-code
