@@ -23,12 +23,12 @@ class Dataset:
 
 DATASET_LIST = [
     Dataset(name="doxmem2", subject_ids=np.arange(1, 80)),
-    # Dataset(name="fer02", subject_ids=np.arange(1, 75)),
-    # Dataset(name="fss6b", subject_ids=np.arange(1, 19)),
-    # Dataset(name="li", subject_ids=np.arange(1, 21)),
-    # Dataset(name="pubfe", subject_ids=np.arange(1, 23)),
-    # Dataset(name="sc4b", subject_ids=np.arange(1, 22)),
-    # Dataset(name="vc7b", subject_ids=np.arange(1, 22)),
+    Dataset(name="fer02", subject_ids=np.arange(1, 75)),
+    Dataset(name="fss6b", subject_ids=np.arange(1, 19)),
+    Dataset(name="li", subject_ids=np.arange(1, 21)),
+    Dataset(name="pubfe", subject_ids=np.arange(1, 23)),
+    Dataset(name="sc4b", subject_ids=np.arange(1, 22)),
+    Dataset(name="vc7b", subject_ids=np.arange(1, 22)),
 ]
 
 
