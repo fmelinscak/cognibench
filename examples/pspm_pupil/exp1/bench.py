@@ -21,6 +21,7 @@ SEGMENT_LENGTH_LIST = [2.5, 5, 7.5, 10]
 CUTOFF_LIST = [30, 50, 70]
 
 if __name__ == "__main__":
+    os.makedirs(EXP_OUTPUT_PATH, exist_ok=True)
     models = [
         PsPMModel(
             lib_paths=util.LIB_PATHS,

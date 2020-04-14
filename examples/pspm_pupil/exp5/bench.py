@@ -17,6 +17,7 @@ EXP_OUTPUT_PATH = pathjoin(util.OUT_PATH, MODEL_PATH)
 DISCARD_FACTOR_LIST = [0.0, 0.005, 0.01, 0.015, 0.02]
 
 if __name__ == "__main__":
+    os.makedirs(EXP_OUTPUT_PATH, exist_ok=True)
     # prepare models
     model_list = [
         (f"blink_saccade {factor:.3f}", {"discard_factor": factor})

@@ -17,6 +17,7 @@ EXP_OUTPUT_PATH = pathjoin(util.OUT_PATH, MODEL_PATH)
 ANGLE_LIST = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
 
 if __name__ == "__main__":
+    os.makedirs(EXP_OUTPUT_PATH, exist_ok=True)
     # prepare models
     models = [
         PsPMModel(

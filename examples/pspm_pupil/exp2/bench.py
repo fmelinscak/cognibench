@@ -17,6 +17,7 @@ EXP_OUTPUT_PATH = pathjoin(util.OUT_PATH, MODEL_PATH)
 MISS_PERCS = [10, 20, 30, 40, 50, 60]
 
 if __name__ == "__main__":
+    os.makedirs(EXP_OUTPUT_PATH, exist_ok=True)
     models = [
         PsPMModel(
             lib_paths=util.LIB_PATHS,

@@ -33,14 +33,6 @@ DATASET_LIST = [
 ]
 
 
-def temp_dataset(tmp_base_path, dataset):
-    dest_path = pathjoin(tmp_base_path, dataset.name)
-    if exists(dest_path):
-        rmtree(dest_path)
-    copytree(dataset.path, dest_path)
-    return dest_path
-
-
 def sm_to_pandas(sm):
     n_rows, n_cols = sm.shape
     arr = np.empty(shape=(n_rows, n_cols), dtype=np.float64)
@@ -55,8 +47,9 @@ def get_obs_dict_list(exp_output_path):
     obs_dict_list = [
         {
             "stimuli": {
-                "datapath": temp_dataset(exp_output_path, ds),
+                "datapath": ds.path,
                 "subject_ids": ds.subject_ids,
+                "tmp_out_path": exp_output_path,
             },
             "actions": [],
         }

@@ -16,6 +16,7 @@ MODEL_PATH = "exp4"
 EXP_OUTPUT_PATH = pathjoin(util.OUT_PATH, MODEL_PATH)
 
 if __name__ == "__main__":
+    os.makedirs(EXP_OUTPUT_PATH, exist_ok=True)
     # prepare models
     model_list = [
         (
