@@ -22,5 +22,11 @@ for i in {0..6}; do
     if [ "$name" != "li" ]; then
         mv Data/* . && rmdir Data
     fi
+
+    echo "Cleaning ${name}..."
+    rm -rf *wdq*.mat
+    rm -rf *SetUS*.mat
+    rm Data.zip
+
     cd -
 done
