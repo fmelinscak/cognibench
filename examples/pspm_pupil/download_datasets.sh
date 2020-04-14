@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Script to download, unzip and clean all 7 pupil datasets so that we only have pupil and cogent
+# files after the script exits.
 
 mkdir -p data
 
