@@ -44,7 +44,7 @@ obs_dict_list = [
 
 if __name__ == "__main__":
     # prepare models
-    angle_list = [2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+    angle_list = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
     models = [
         PsPMModel(
             lib_paths=LIB_PATHS,
@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     # prepare tests
     CohensD = partialclass(scores.CohensDScore, min_score=-5, max_score=5)
-    persist_path_fmt = "output/{}"
+    persist_path_fmt = pathjoin("output", MODEL_PATH, "{}")
     suite = TestSuite(
         [
             BatchTest(

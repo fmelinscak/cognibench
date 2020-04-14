@@ -23,13 +23,13 @@ LIB_PATHS = ["/home/eozd/bachlab/pspm/src", "libcommon"]
 
 Dataset = namedtuple("Dataset", "name subject_ids")
 dataset_list = [
-    # Dataset(name="doxmem2", subject_ids=np.arange(1, 80)),
-    # Dataset(name="fer02", subject_ids=np.arange(1, 75)),
+    Dataset(name="doxmem2", subject_ids=np.arange(1, 80)),
+    Dataset(name="fer02", subject_ids=np.arange(1, 75)),
     Dataset(name="fss6b", subject_ids=np.arange(1, 19)),
-    # Dataset(name="li", subject_ids=np.arange(1, 21)),
-    # Dataset(name="pubfe", subject_ids=np.arange(1, 23)),
-    # Dataset(name="sc4b", subject_ids=np.arange(1, 22)),
-    # Dataset(name="vc7b", subject_ids=np.arange(1, 22)),
+    Dataset(name="li", subject_ids=np.arange(1, 21)),
+    Dataset(name="pubfe", subject_ids=np.arange(1, 23)),
+    Dataset(name="sc4b", subject_ids=np.arange(1, 22)),
+    Dataset(name="vc7b", subject_ids=np.arange(1, 22)),
 ]
 obs_dict_list = [
     {
@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     # prepare tests
     CohensD = partialclass(scores.CohensDScore, min_score=-5, max_score=5)
-    persist_path_fmt = "output/{}"
+    persist_path_fmt = pathjoin("output", MODEL_PATH, "{}")
     suite = TestSuite(
         [
             BatchTest(

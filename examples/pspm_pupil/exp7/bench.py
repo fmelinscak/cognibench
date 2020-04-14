@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     # prepare tests
     CohensD = partialclass(scores.CohensDScore, min_score=-5, max_score=5)
-    persist_path_fmt = "output/{}"
+    persist_path_fmt = pathjoin("output", MODEL_PATH, "{}")
     suite = TestSuite(
         [
             BatchTest(
