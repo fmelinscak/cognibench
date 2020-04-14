@@ -6,6 +6,7 @@ from sciunit import TestSuite
 from shutil import copytree, rmtree
 from os.path import exists, join as pathjoin
 import numpy as np
+import pandas as pd
 
 Dataset = namedtuple("Dataset", "name subject_ids")
 
@@ -38,6 +39,16 @@ def temp_dataset(tmp_base_path, dataset):
         rmtree(dest_path)
     copytree(dataset.path, dest_path)
     return dest_path
+
+
+def sm_to_pandas(sm):
+    n_rows, n_cols = sm.shape
+    arr = np.empty(shape=(n_rows, n_cols), dtype=np.float64)
+    for i in range(n_rows):
+        for j in range(n_cols):
+            arr[i, j] = sm.iat[i, j].score
+    df = pd.DataFrame(data=arr, index=sm.index, columns=sm.columns)
+    return df
 
 
 def get_obs_dict_list(exp_output_path):

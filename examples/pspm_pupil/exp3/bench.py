@@ -33,3 +33,5 @@ if __name__ == "__main__":
     # judge
     sm = suite.judge(models)
     print(sm)
+    sm_df = util.sm_to_pandas(sm)
+    sm_df.to_csv(pathjoin(EXP_OUTPUT_PATH, "score_matrix.csv"), na_rep="NULL")
