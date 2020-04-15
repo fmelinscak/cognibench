@@ -1,4 +1,17 @@
 function [pupil_fpath, conditions] = get_conditions_fer02(datapath, subj_id)
+    % Return the pupil paths and timing structure for a subject from FER02 dataset.
+    %
+    % Parameters
+    % ----------
+    % datapath : Path to the FER02 dataset.
+    % subj_id : ID of the subject
+    %
+    % Returns
+    % -------
+    % pupil_fpath : Cell array holding the paths to the pupil files (all sessions) for the
+    %               given subject.
+    % conditions : Cell array holding the condition structures (all sessions) for the
+    %              given subject.
     cogent_fpath = {};
     cogent = {};
     try

@@ -26,5 +26,5 @@ function [out, stats] = fit(inarg)
 
     out = pspm_glm(model, options);
     not_exclude = zeros(1, numel(cell2mat(csp)), 'uint8');
-    [out, stats] = exclude_and_average(out, csp, not_exclude);
+    stats = exclude_and_average(out, csp, not_exclude);
 end

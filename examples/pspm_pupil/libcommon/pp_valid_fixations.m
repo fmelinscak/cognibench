@@ -1,4 +1,14 @@
 function sts = pp_valid_fixations(pupil_fpath, fixation_angle)
+    % Perform valid fixations filtering on the data of a subject.
+    % If the gaze channels are in pixels, they are first converted to milimeters.
+    %
+    % Parameters
+    % ----------
+    % pupil_fpath : Path or cell of paths (all sessions) to pupil data of a subject.
+    %
+    % Returns
+    % -------
+    % sts : Status flag.
     for i = 1:numel(pupil_fpath)
         fpath = pupil_fpath{i};
         try

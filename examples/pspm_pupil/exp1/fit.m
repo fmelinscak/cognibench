@@ -27,5 +27,5 @@ function [out, stats] = fit(inarg)
     options.exclude_missing = struct('segment_length', exclude_segment_length, 'cutoff', exclude_cutoff);
 
     out = pspm_glm(model, options);
-    [out, stats] = exclude_and_average(out, csp, out.stats_exclude);
+    stats = exclude_and_average(out, csp, out.stats_exclude);
 end

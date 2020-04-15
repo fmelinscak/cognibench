@@ -2,7 +2,7 @@
 #
 # STEPS
 # 1. If there is no data folder, download datasets using download_datasets.sh
-# 2. Change PsPM src folder path in libcommon/util.py line 14
+# 2. Change PsPM src folder path in libcommon/util.py LIB_PATHS definition
 # 3. Run this script
 #
 # Outputs will be stored in output folder

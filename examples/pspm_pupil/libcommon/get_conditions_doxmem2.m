@@ -1,4 +1,17 @@
 function [pupil_fpath, conditions] = get_conditions_doxmem2(datapath, subj_id)
+    % Return the pupil paths and timing structure for a subject from DoxMem2 dataset.
+    %
+    % Parameters
+    % ----------
+    % datapath : Path to the doxmem2 dataset.
+    % subj_id : ID of the subject
+    %
+    % Returns
+    % -------
+    % pupil_fpath : Cell array holding the paths to the pupil files (all sessions) for the
+    %               given subject.
+    % conditions : Cell array holding the condition structures (all sessions) for the
+    %              given subject.
     cogent_fpath = {...
         fullfile(datapath, sprintf('DoxMem2_cogent_%.2d_sn1.mat', subj_id)),
         fullfile(datapath, sprintf('DoxMem2_cogent_%.2d_sn2.mat', subj_id)),

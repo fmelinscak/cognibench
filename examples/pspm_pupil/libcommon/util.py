@@ -8,14 +8,16 @@ from os.path import exists, join as pathjoin
 import numpy as np
 import pandas as pd
 
-Dataset = namedtuple("Dataset", "name subject_ids")
-
 DATA_PATH = "data"
 OUT_PATH = "output"
 LIB_PATHS = ["/home/eozd/bachlab/pspm/src", "libcommon"]
 
 
 class Dataset:
+    """
+    Simple class to represent a dataset (e.g. doxmem2)
+    """
+
     def __init__(self, *args, name, subject_ids):
         self.name = name
         self.subject_ids = subject_ids
@@ -34,6 +36,10 @@ DATASET_LIST = [
 
 
 def sm_to_pandas(sm):
+    """
+    Convert a score matrix that is the result of sciunit TestSuite
+    to a regular pandas dataframe.
+    """
     n_rows, n_cols = sm.shape
     arr = np.empty(shape=(n_rows, n_cols), dtype=np.float64)
     for i in range(n_rows):
@@ -44,6 +50,9 @@ def sm_to_pandas(sm):
 
 
 def get_obs_dict_list(exp_output_path):
+    """
+    Get the observation dictionary that can be used in cognibench framework.
+    """
     obs_dict_list = [
         {
             "stimuli": {
@@ -59,6 +68,10 @@ def get_obs_dict_list(exp_output_path):
 
 
 def get_test_suite(exp_output_path):
+    """
+    Construct a test suite for pupil benchmarking. Each dataset in DATASET_LIST
+    will be a separate test in the suite.
+    """
     # prepare tests
     obs_dict_list = get_obs_dict_list(exp_output_path)
     CohensD = partialclass(scores.CohensDScore, min_score=-5, max_score=5)

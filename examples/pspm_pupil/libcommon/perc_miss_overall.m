@@ -1,4 +1,15 @@
 function perc = perc_miss_overall(fp, channel)
+    % Return the overall missing data percentage of the data of a subject in
+    % the given channel.
+    %
+    % Parameters
+    % ----------
+    % fp : Path or cell to the paths (all sessions) of a subject.
+    % channel : Channels on which miss percentage should be computed.
+    %
+    % Returns
+    % -------
+    % perc : Overall missing data percentage in the range [0, 100].
     if ~iscell(fp)
         fp = {fp};
     end

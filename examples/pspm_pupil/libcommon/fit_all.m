@@ -1,4 +1,20 @@
 function stats = fit_all(inarg)
+    % Fit all the subjects in the dataset given in inarg structure using the currently
+    % loaded fit.m function.
+    %
+    % Before the dataset is fit, it is copied to a temporary location specified with
+    % inarg.tmp_out_path so that the original data is left unmodified.
+    %
+    % Parameters
+    % ----------
+    % inarg : Structure with the following fields:
+    %   .datapath : field holding the path to the dataset to fit.
+    %   .tmp_out_path : field holding the path to the temporary location to copy the dataset.
+    %   .subject_ids : Array of subject IDs to fit
+    %
+    % Returns
+    % -------
+    % stats : Array with shape [2, n_subj] holding CS+ and CS- beta fits for each subject.
     orig_datapath = inarg.datapath;
     ds_name = split(orig_datapath, '/');
     ds_name = ds_name{end};

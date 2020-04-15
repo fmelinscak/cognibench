@@ -1,6 +1,16 @@
 function sts = pp_pfe(pupil_fpath)
+    % Perform pupil foreshortening error correction on the data of a subject.
+    % If the gaze channels are in pixels, they are first converted to milimeters.
+    %
+    % Parameters
+    % ----------
+    % pupil_fpath : Path or cell of paths (all sessions) to pupil data of a subject.
+    %
+    % Returns
+    % -------
+    % sts : Status flag.
     opt.mode = 'auto';
-    opt.C_z = 525;
+    opt.C_z = 625;
     for i = 1:numel(pupil_fpath)
         fpath = pupil_fpath{i};
         try
