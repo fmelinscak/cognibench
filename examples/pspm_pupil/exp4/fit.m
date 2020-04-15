@@ -39,7 +39,7 @@ function [out, stats] = single_trial(inarg)
     options.exclude_missing = struct('segment_length', exclusion_seg_len, 'cutoff', trial_exclusion_threshold);
 
     out = pspm_glm(model, options);
-    [out, stats] = exclude_and_average(out, csp, out.stats_exclude);
+    stats = exclude_and_average(out, csp, out.stats_exclude);
 end
 
 function [out, stats] = condition_wise(inarg)

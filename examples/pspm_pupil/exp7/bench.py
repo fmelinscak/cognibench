@@ -15,20 +15,23 @@ sciunit_settings["CWD"] = getcwd()
 
 MODEL_PATH = "exp7"
 EXP_OUTPUT_PATH = pathjoin(util.OUT_PATH, MODEL_PATH)
-PP_LIST = ["pfe", "valid_fixations"]
 
 if __name__ == "__main__":
     os.makedirs(EXP_OUTPUT_PATH, exist_ok=True)
     # prepare models
+    model_list = [
+        ("pfe", {}),
+        ("valid_fixations", {"fixation_angle": 5.0}),
+    ]
     models = [
         PsPMModel(
             lib_paths=util.LIB_PATHS,
             import_base_path=MODEL_PATH,
             predict_fn="fit_all",
-            model_spec={"model_str": pp},
-            name=pp,
+            model_spec=dict({"model_str": model_str}, **params),
+            name=model_str,
         )
-        for pp in PP_LIST
+        for model_str, params in model_list
     ]
 
     suite = util.get_test_suite(EXP_OUTPUT_PATH)
