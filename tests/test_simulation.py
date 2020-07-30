@@ -15,7 +15,7 @@ class Test_Unit(unittest.TestCase):
         self.agent = decision_making.RWCKAgent(n_obs=1, n_action=2, paras_dict=paras)
 
     def test_simulation(self):
-        stimuli, rewards, actions = simulate(self.env, self.agent, 100, seed=42)
+        stimuli, rewards, actions = simulate(self.env, self.agent, 100)
         self.assertEqual(self.agent.eval_policy(0).pk[1], 0.8757028699917109)
         self.assertEqual(np.unique(actions, return_counts=True)[1][1], 87)
 
