@@ -57,7 +57,7 @@ notion in `InteractiveTest` test class and `Interactive` model capability.
 In addition to interactive tests, CogniBench also implements the common way of testing models against a batch of samples
 (`BatchTest` and `BatchTestWithSplit`) in case you don't need the interactive testing logic.
 
-### SciUnit and OpenAI OpenAI Gym interaction
+### SciUnit and OpenAI Gym interaction
 In the SciUnit framework, models are tagged with capabilities which define the tests a model can possibly take.
 CogniBench combines this idea with action and observation spaces from OpenAI Gym library. Therefore, a model also specifies
 against which environments it can be simulated against in addition to the tests it can take.
@@ -76,7 +76,7 @@ stimuli, action and reward triplets. These functions support both single-subject
 ### Implementation of common experimental tasks
 CogniBench offers `model_recovery` and `param_recovery` functions that you can use to perform these common auxiliary modeling tasks.
 
-### Agent and Model Separation
+### Agent and model Separation
 CogniBench distinguishes between agents (`CNBAgent` base class) and models (`CNBModel` base class). An agent can
 interact with an environment through `act` and `update` methods, and can only function when its parameters are set to
 given values. In contrast, a model represents a specific way of fitting parameters for an agent (`fit`) and predicting
@@ -118,7 +118,7 @@ We provide a series of Jupyter notebooks that you can use as an introduction to 
 <!-- Additionally, you can browse our [API reference](TODO) to get more information about certain functions,
 classes, etc. you want to use. -->
 
-##### Small Note to Developers
+##### Small note to developers
 If you are going to use the development version and want to run notebooks, you should install CogniBench inside the conda
 environment. See the section on installing CogniBench.
 
@@ -134,7 +134,7 @@ We use built-in `unittest` module for testing CogniBench. To perform checks, clo
 ./test.sh
 ```
 
-## Information for Developers
+## Information for developers
 If you want to extend CogniBench, you need to use the development environment and `conda`. Please follow the conda
 installation instructions in how to install section and then continue here.
 
@@ -147,7 +147,7 @@ pre-commit install
 The next time you try to commit, all the required tools and hooks will be downloaded (and cached) and checks will be
 performed on your code.
 
-### Generating Local Documentation
+### Generating local documentation
 After enabling the development environment, you can generate a local version of the documentation by running
 
 ```bash
@@ -157,7 +157,7 @@ make html
 
 Afterwards, you can browse the local documentation by opening `docs/sphinx/_build/index.html`.
 
-### Installing a Local Development Version
+### Installing a local development version
 After implementing some changes, you can install the modified version of CogniBench to your local system by running
 
 ```bash
