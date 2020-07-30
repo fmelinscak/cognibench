@@ -18,8 +18,8 @@ dependencies:
   - gym
   - zlib
   - pystan
-  - sphinx
-  - sphinx_rtd_theme
+  - sphinx=2.4.0
+  - sphinx_rtd_theme=0.4.3
   - m2r
   - twine
   - pip=9.0.3
