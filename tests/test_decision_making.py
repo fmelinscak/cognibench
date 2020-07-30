@@ -2,8 +2,8 @@ import unittest
 from gym import spaces
 import numpy as np
 import numpy.testing as npt
-from scipy import stats
 from cognibench.models import decision_making
+from cognibench import distr
 
 
 class Test_RWCKAgent(unittest.TestCase):
@@ -43,7 +43,7 @@ class Test_RWCKAgent(unittest.TestCase):
             )
 
     def test_eval_policy(self):
-        self.assertIsInstance(self.agent.eval_policy(0), stats.rv_discrete)
+        self.assertIsInstance(self.agent.eval_policy(0), distr.DiscreteRV)
 
 
 class Test_NWSLSAgent(unittest.TestCase):
@@ -72,7 +72,7 @@ class Test_NWSLSAgent(unittest.TestCase):
         self.assertIn(self.agent.get_hidden_state()["action"], [0, 1, 2])
 
     def test_eval_policy(self):
-        self.assertIsInstance(self.agent.eval_policy(0), stats.rv_discrete)
+        self.assertIsInstance(self.agent.eval_policy(0), distr.DiscreteRV)
 
 
 class Test_RandomRespondAgent(unittest.TestCase):
@@ -97,7 +97,7 @@ class Test_RandomRespondAgent(unittest.TestCase):
         self.assertEqual(dict(), self.agent.get_hidden_state())
 
     def test_eval_policy(self):
-        self.assertIsInstance(self.agent.eval_policy(0), stats.rv_discrete)
+        self.assertIsInstance(self.agent.eval_policy(0), distr.DiscreteRV)
 
 
 if __name__ == "__main__":
