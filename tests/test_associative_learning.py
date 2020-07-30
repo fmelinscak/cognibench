@@ -127,6 +127,7 @@ class Test_LSSPDAgent(unittest.TestCase):
 
 class Test_BetaBinomialAgent(unittest.TestCase):
     def setUp(self):
+        distinct_stimuli = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float64)
         paras = {
             "intercept": 0.5,
             "slope": 0.5,
@@ -135,19 +136,21 @@ class Test_BetaBinomialAgent(unittest.TestCase):
             "a": 1,
             "b": 1,
         }
-        self.agent = associative_learning.BetaBinomialAgent(n_obs=3, paras_dict=paras)
+        self.agent = associative_learning.BetaBinomialAgent(
+            n_obs=3, distinct_stimuli=distinct_stimuli, paras_dict=paras
+        )
 
     def test_update(self):
         stimulus = np.array([0, 1, 0], dtype=np.int8)
         self.agent.update(stimulus, 1, 1, False)
         a = np.array([1, 2, 1], dtype=np.float64)
         self.assertIsNone(
-            npt.assert_almost_equal(self.agent.get_hidden_state()[stimulus]["a"], a)
+            npt.assert_almost_equal(self.agent.get_hidden_state()["a"], a)
         )
 
         b = np.array([1, 1, 1], dtype=np.float64)
         self.assertIsNone(
-            npt.assert_almost_equal(self.agent.get_hidden_state()[stimulus]["b"], b)
+            npt.assert_almost_equal(self.agent.get_hidden_state()["b"], b)
         )
 
 
