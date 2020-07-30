@@ -1,2 +1,0 @@
-# Dependencies for the Sphinx documentation build
-m2r
