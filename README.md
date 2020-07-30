@@ -7,20 +7,20 @@ set of matching models. For a short introduction of `cognibench` structure, plea
 scripts under `examples` folder.
 
 ## Installation
-You can install cognibench by running
+<!-- TODO: Update pip installation instructions when the package is to be published on PyPI. -->
+You can install CogniBench by downloading or cloning the repository, and running the following command:
 
 ```bash
-pip install cognibench
+pip install cognibench-path
 ```
+where `cognibench-path` is the path to the top-level directory of the unpacked/cloned CogniBench package (i.e., the directory that contains the `setup.py` file).
 
-In addition, you can clone this repository and create a conda environment within which you can install cognibench to run
-the development version. To do this, run
+If you wish to contribute to the development, you can clone this repository, and create the [conda](https://docs.conda.io/en/latest/) development environment with CogniBench using the following commands executed at the package top-level directory:
 ```bash
 conda env create -f environment.yml
 conda activate cognibench
 python setup.py install
 ```
-after cloning the repository.
 
 ## Short Usage Example
 Here is a short snippet describing how you can test several models against multiple test cases using `cognibench`.
